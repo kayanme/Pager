@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Test.Pager
+namespace Pager
 {
     [TestClass]
     public class UnitTest1
