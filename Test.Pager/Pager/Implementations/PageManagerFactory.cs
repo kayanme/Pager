@@ -14,7 +14,7 @@ namespace Pager
     [Export(typeof(IPageManagerFactory))]
     public sealed class PageManagerFactory : IPageManagerFactory
     {
-        public IPageManager CreateManager(string fileName, PageMapConfiguration configuration, bool createFileIfNotExists)
+        public IPageManager CreateManager(string fileName, PageManagerConfiguration configuration, bool createFileIfNotExists)
         {
             FileStream _file;          
 

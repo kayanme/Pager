@@ -24,13 +24,14 @@ namespace Pager
         private readonly int _recordSize;
         private readonly int _maxRecords;
         private int _headerSizeInBytes =>_headers.HeaderSize;
-        
-        internal FixedRecordTypedPage(IPageHeaders headers,IPageAccessor accessor, PageReference reference,int pageSize)
+        private FixedRecordTypePageConfiguration<TRecordType> _config;
+        internal FixedRecordTypedPage(IPageHeaders headers,IPageAccessor accessor, PageReference reference,int pageSize,FixedRecordTypePageConfiguration<TRecordType> config)
         {
             _reference = reference;
             _accessor = accessor;
             _headers = headers;
-            _recordSize = new TRecordType().RecordSize;
+            _recordSize = config.RecordType.GetSize(null);
+            _config = config;
             _maxRecords = pageSize / (_recordSize + _headerSizeInBytes);
         }
 
@@ -41,7 +42,7 @@ namespace Pager
         public IEnumerable<TRecordType> IterateRecords()
         {
         
-            for (int i=0;i<_maxRecords;i++)
+            for (ushort i=0;i<_maxRecords;i++)
             {
                 if (!_headers.IsRecordFree(i))
                 {
@@ -58,11 +59,11 @@ namespace Pager
                 throw new ArgumentException("The record is on another page");
             var offset = reference.Record * (_recordSize + _headerSizeInBytes);
             var bytes = _accessor.GetByteArray(reference.Record*(_recordSize + _headerSizeInBytes), _recordSize + _headerSizeInBytes);
-            if (!_headers.IsRecordFree(reference.Record))
+            if (!_headers.IsRecordFree((ushort)reference.Record))
             {
                 var r = new TRecordType();
                 r.Reference = reference;
-                r.FillFromByteArray(new ArraySegment<byte>(bytes, 1, bytes.Length - 1));
+                _config.RecordType.FillFromBytes(new ArraySegment<byte>(bytes, 1, bytes.Length - 1),r);
                 return r;
             }
             return null;
@@ -84,7 +85,7 @@ namespace Pager
         {
             var recordStart = offset * (_recordSize + _headerSizeInBytes);
             var bytes = _accessor.GetByteArray(recordStart, _recordSize + _headerSizeInBytes);
-            record.FillByteArray(new ArraySegment<byte>(bytes, 1, bytes.Length - 1));
+            _config.RecordType.FillBytes(record,new ArraySegment<byte>(bytes, 1, bytes.Length - 1));
             _accessor.SetByteArray(bytes, recordStart, _recordSize + _headerSizeInBytes);
         }
 
@@ -100,7 +101,7 @@ namespace Pager
         {
             if (record.Reference.Record == -1)
                 throw new ArgumentException("Trying to delete deleted record");
-            _headers.FreeRecord(record.Reference.Record);
+            _headers.FreeRecord((ushort)record.Reference.Record);
             record.Reference.Record = -1;
         }
 

@@ -9,11 +9,11 @@ namespace Test.Pager
 {
     internal class TestRecord : TypedRecord
     {
-        public override short RecordSize => 7;
+        public  ushort RecordSize => 7;
 
         public int Value = 0;
 
-        public override void FillByteArray(IList<byte> b)
+        public  void FillByteArray(IList<byte> b)
         {
             b[0] = (byte)(Value & 0xFF000000);
             b[1] = (byte)(Value & 0x00FF0000);
@@ -21,7 +21,7 @@ namespace Test.Pager
             b[3] = (byte)(Value & 0x000000FF);
         }
 
-        public override void FillFromByteArray(IList<byte> b)
+        public  void FillFromByteArray(IList<byte> b)
         {
             Value = b[0] << 24 + b[1] << 16 + b[2] << 8 + b[3];
         }

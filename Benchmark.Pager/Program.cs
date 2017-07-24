@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
-using static Pager.PageMapConfiguration;
+using static Pager.PageManagerConfiguration;
 
 namespace Benchmark.Pager
 {
@@ -13,7 +13,7 @@ namespace Benchmark.Pager
     {
         public static void Main()
         {
-            //var t = new RecordChangeBenchmark { PageSize = PageSize.Kb4 };
+            //var t = new RecordChangeBenchmark ();
             //t.Init();
             //t.AddRecord();
             //t.DeleteFile();

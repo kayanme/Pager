@@ -42,6 +42,7 @@ namespace Test.Pager
             _map = MemoryMappedFile.CreateFromFile(FileName, System.IO.FileMode.OpenOrCreate, FileName, Extent.Size);
             var file = new MockRepository().StrictMock<IUnderlyingFileOperator>();
             file.Expect(k => k.GetMappedFile(Extent.Size)).Return(_map);
+            file.Expect(k => k.ReturnMappedFile(_map));
             file.Replay();
             return new GAMAccessor(file);
         }

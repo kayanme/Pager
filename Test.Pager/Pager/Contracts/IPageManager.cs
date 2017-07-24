@@ -15,5 +15,7 @@ namespace Pager
        
 
         void DeletePage(PageReference page, bool ensureEmptyness);
+
+        void GroupFlush(params TypedPage[] pages);
     }
 }

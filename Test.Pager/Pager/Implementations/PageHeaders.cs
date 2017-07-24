@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Pager;
 using Pager.Contracts;
+using Pager.Exceptions;
 using Pager.Implementations;
 
 namespace Pager.Implementations
@@ -14,60 +15,100 @@ namespace Pager.Implementations
     internal sealed class FixedRecordPageHeaders:IPageHeaders
     {
         private const byte RecordUseMask = 0x80;
-        private byte[] _page;
-        private int _recordSize;
+      
+        private ushort _recordSize;
+        private int _lastKnownNotFree;
         private IPageAccessor _accessor;
-        public FixedRecordPageHeaders(IPageAccessor accessor,int recordSize)
+
+        private int[] _recordShifts;
+
+        public FixedRecordPageHeaders(IPageAccessor accessor,ushort recordSize)
         {
             Debug.Assert(recordSize >= 3, "recordSize >= 3");
-            _page = accessor.GetByteArray(0, accessor.PageSize);
+            var _page = accessor.GetByteArray(0, accessor.PageSize);
             _recordSize = recordSize;
             _accessor = accessor;
+            ScanForHeaders(_page);
+            ScanForLastNotFreeRecord();
         }
 
-        public int RecordCount=>Enumerable.Range(0, _accessor.PageSize / (_recordSize + HeaderSize)).Select(IsRecordFree).Count(k => !k);
+        public ushort RecordCount =>(ushort) _recordShifts.Count(k => k==-1);
           
 
-        public int HeaderSize => 1;
+        public byte HeaderSize => 1;
 
-        public void FreeRecord(int record)
+        private void ScanForHeaders(byte[] _page)
+        {
+            _recordShifts = new int[_accessor.PageSize / (_recordSize + HeaderSize)];
+            for (ushort i = 0; i< _recordShifts.Length; i +=1)
+            {
+                if ((_page[RecordShift(i)] & RecordUseMask) == 0)
+                    _recordShifts[i] = -1;
+                else
+                    _recordShifts[i] = RecordShift(i);               
+            };
+        }
+
+        private void ScanForLastNotFreeRecord()
+        {           
+            _lastKnownNotFree = -1;
+            for (int i =  (_recordShifts.Length-1);i>=0;i-=1)
+            {
+                if (!IsRecordFree((ushort)i))
+                    break;
+                _lastKnownNotFree = i;
+            };
+        }
+
+        public void FreeRecord(ushort record)
         {
             Thread.BeginCriticalRegion();
-            _page[record * (_recordSize + HeaderSize)] = 0;
-            _accessor.SetByteArray(new[] { (byte)0 }, record * (_recordSize + HeaderSize), 1); 
+            var r = _recordShifts[record];
+            if (Interlocked.CompareExchange(ref _recordShifts[record], -1, r) == r)
+            {                
+                _accessor.SetByteArray(new[] { (byte)0 }, record * (_recordSize + HeaderSize), 1);
+            }
+            else
+                throw new RecordWriteConflictException();          
             Thread.EndCriticalRegion();
            
         }
 
-        public bool IsRecordFree(int record)
+        private ushort RecordShift(ushort record) => (ushort)(record * (_recordSize + HeaderSize));
+
+    
+        public bool IsRecordFree(ushort record)
         {
-            return (_page[record * (_recordSize + HeaderSize)] & RecordUseMask) == 0;
+            return _recordShifts[record] == -1;
         }
 
-        public unsafe int TakeNewRecord()
+        public unsafe short TakeNewRecord()
         {
             Thread.BeginCriticalRegion();
             int i = 0;
             bool changed = false;
-            for (i=0; i < _page.Length ;i+=_recordSize+HeaderSize)
+
+            for (i = _lastKnownNotFree == -1 ?0 : _lastKnownNotFree ; i < _recordShifts.Length; i += 1)
             {
-                fixed (byte* a = &_page[i])
-                {
-                    if (Interlocked.CompareExchange(ref *(int*)a, RecordUseMask, 0) == 0)
-                        break; ;
+                if (Interlocked.CompareExchange(ref _recordShifts[i], RecordUseMask, -1) == -1)
+                {                
+                    _accessor.SetByteArray(new[] { (byte)RecordUseMask }, RecordShift((ushort)i), 1);
+                    break;
                 }
             };
-            if (i < _page.Length)
+            Thread.EndCriticalRegion();
+            if (i != _recordShifts.Length)
             {
-                _accessor.SetByteArray(new[] { RecordUseMask }, i, 1);
-                Thread.EndCriticalRegion();
-                return i / (_recordSize + HeaderSize);
+                if (_lastKnownNotFree != -1)
+                    _lastKnownNotFree = i ;
+                return (short)(i);
             }
             else
-            {
-                Thread.EndCriticalRegion();
+            {               
                 return -1;
             }
+           
+           
             
             
         }

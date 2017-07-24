@@ -24,11 +24,13 @@ namespace Pager.Implementations
 
         public IPageAccessor GetAccessor(long pageOffset, int pageLength)
         {
+            var extentNumber = pageOffset / Extent.Size;
+            var extentBorder = extentNumber * Extent.Size;
             var map = _file.GetMappedFile(pageOffset + pageLength+Extent.Size);
-            var extentBorder = pageOffset / Extent.Size * Extent.Size;
+         
             var accessor = map.CreateViewAccessor(extentBorder, Extent.Size);
             _accessorsLent.TryAdd(accessor, map);
-            return new PageAccessor((int)(pageOffset - extentBorder),pageLength,accessor, this);
+            return new PageAccessor((int)(pageOffset - extentBorder),pageLength,(uint)extentNumber,accessor, this);
         }
 
         public void ReturnAccessor(MemoryMappedViewAccessor map)

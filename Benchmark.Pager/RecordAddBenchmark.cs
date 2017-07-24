@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Pager;
-using static Pager.PageMapConfiguration;
+using static Pager.PageManagerConfiguration;
 
 namespace Benchmark.Pager
 {
@@ -22,8 +22,11 @@ namespace Benchmark.Pager
         [GlobalSetup]
         public void Init()
         {
-            var config = new PageMapConfiguration { SizeOfPage = PageSize };
-            config.PageMap.Add(1, typeof(TestRecord));
+            var config = new PageManagerConfiguration { SizeOfPage = PageSize };
+            config.PageMap.Add(1, new FixedRecordTypePageConfiguration<TestRecord>
+            {
+                RecordType = new RecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
+            });
             _manager = new PageManagerFactory().CreateManager("testFile", config,true);
             _page = _manager.CreatePage<TestRecord>();
             _other = File.Open("testfile2" , FileMode.OpenOrCreate);

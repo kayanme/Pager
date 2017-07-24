@@ -26,11 +26,14 @@ namespace Test.Pager
             TestContext.Properties.Add("IGAMAccessor", gamMock);
             TestContext.Properties.Add("IExtentAccessorFactory", blockFactoryMock);
             TestContext.Properties.Add("IUnderlyingFileOperator", fileOperator);
-            var config = new PageMapConfiguration();
-            config.SizeOfPage = PageMapConfiguration.PageSize.Kb4;
-            config.PageMap.Add(1, typeof(TestRecord));
+            var config = new PageManagerConfiguration();
+            config.SizeOfPage = PageManagerConfiguration.PageSize.Kb4;
+            config.PageMap.Add(1, new FixedRecordTypePageConfiguration<TestRecord>
+            {
+                RecordType = new RecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
+            });
 
-            var manager = new PageManager(config, gamMock, blockFactoryMock);
+            var manager = new PageManager(config, gamMock, blockFactoryMock,fileOperator);
             TestContext.Properties.Add("manager", manager);
         }
 
@@ -52,8 +55,9 @@ namespace Test.Pager
         public void PageCreation()
         {
             var t = MockRepository.GenerateStrictMock<IPageAccessor>();
-            t.Expect(k => k.PageSize).Return(4096);
+            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
             t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
+            t.Expect(k => k.Dispose()).Repeat.Any();
             blockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
             gamMock.Expect(k => k.MarkPageUsed(1)).Return(0);         
             var manager = GetManager();

@@ -10,8 +10,7 @@ namespace Pager
     {
         public PageRecordReference Reference { get; internal set; }
         internal int RecordStamp;
-        public abstract short RecordSize { get; }
-        public abstract void FillFromByteArray(IList<byte> b);
-        public abstract void FillByteArray(IList<byte> b);
+    
+     
     }
 }

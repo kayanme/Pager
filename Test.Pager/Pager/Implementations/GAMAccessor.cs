@@ -14,12 +14,13 @@ namespace Pager
     {
         private IUnderlyingFileOperator _fileOperator;
         private MemoryMappedViewAccessor _accessor;
+        private MemoryMappedFile _mapToReturn;
         [ImportingConstructor]
         internal GAMAccessor(IUnderlyingFileOperator fileOperator)
         {
             _fileOperator = fileOperator;
-            var map = _fileOperator.GetMappedFile(Extent.Size);
-            _accessor = map.CreateViewAccessor(0, Extent.Size);
+            _mapToReturn = _fileOperator.GetMappedFile(Extent.Size);
+            _accessor = _mapToReturn.CreateViewAccessor(0, Extent.Size);
         }
 
         public void InitializeGAM()
@@ -55,6 +56,7 @@ namespace Pager
 
         public void Dispose()
         {
+            _fileOperator.ReturnMappedFile(_mapToReturn);
             _accessor.Dispose();
         }
     }

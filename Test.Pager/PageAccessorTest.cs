@@ -22,7 +22,7 @@ namespace Test.Pager
             var p = new MockRepository().StrictMock<IExtentAccessorFactory>();
             p.Expect(k => k.ReturnAccessor(null)).IgnoreArguments().Repeat.Any().Do(new Action<MemoryMappedViewAccessor>(k2 => k2.Dispose()));
             p.Replay();
-            var t = new PageAccessor(4096, 4096, acc, p);
+            var t = new PageAccessor(4096, 4096,1, acc, p);
             TestContext.Properties.Add("Map", m);
             return t;
         }

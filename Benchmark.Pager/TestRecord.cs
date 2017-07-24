@@ -11,7 +11,7 @@ namespace Benchmark.Pager
     {
         public byte[] Values = new byte[7];
 
-        public override short RecordSize
+        public  ushort RecordSize
         {
             get
             {
@@ -19,7 +19,7 @@ namespace Benchmark.Pager
             }
         }
 
-        public override void FillByteArray(IList<byte> b)
+        public  void FillByteArray(IList<byte> b)
         {
           for (int i=0;i<RecordSize;i++)
             {
@@ -27,7 +27,7 @@ namespace Benchmark.Pager
             }
         }
 
-        public override void FillFromByteArray(IList<byte> b)
+        public  void FillFromByteArray(IList<byte> b)
         {
 
             for (int i = 0; i < RecordSize; i++)

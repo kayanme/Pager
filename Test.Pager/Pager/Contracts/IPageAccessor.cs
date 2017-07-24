@@ -12,5 +12,6 @@ namespace Pager
         void SetByteArray(byte[] record,int position, int length);
         int PageSize { get; }
         void Flush();
+        uint ExtentNumber { get; }
     }
 }

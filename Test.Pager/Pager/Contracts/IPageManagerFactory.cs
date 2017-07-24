@@ -8,6 +8,6 @@ namespace Pager
 {
     public interface IPageManagerFactory
     {
-        IPageManager CreateManager(string fileName,PageMapConfiguration configuration, bool createFileIfNotExists);
+        IPageManager CreateManager(string fileName,PageManagerConfiguration configuration, bool createFileIfNotExists);
     }
 }

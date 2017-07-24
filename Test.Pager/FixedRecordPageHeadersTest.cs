@@ -22,7 +22,7 @@ namespace Test.Pager
             var m = new MockRepository().StrictMock<IPageAccessor>();
 
             m.Expect(k => k.GetByteArray(0, page.Length)).Return(page);
-            m.Expect(k => k.PageSize).Return(page.Length);
+            m.Expect(k => k.PageSize).Repeat.Any().Return(page.Length);
             m.Replay();
             var p = new FixedRecordPageHeaders(m, 7);
             TestContext.Properties.Add("page", m);

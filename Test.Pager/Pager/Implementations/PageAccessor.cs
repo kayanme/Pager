@@ -15,15 +15,19 @@ namespace Pager
         private MemoryMappedViewAccessor _map;
         private int _startOffset;
         private int _pageSize;
-        internal PageAccessor(int startOffset,int pageSize,MemoryMappedViewAccessor accessor, IExtentAccessorFactory disposer)
+        private uint _extentNumber;
+        internal PageAccessor(int startOffset,int pageSize,uint extentNumber,MemoryMappedViewAccessor accessor, IExtentAccessorFactory disposer)
         {
             _map = accessor;
             _startOffset = startOffset;
             _disposer = disposer;
             _pageSize = pageSize;
+            _extentNumber = extentNumber;
         }
 
         public int PageSize => _pageSize;
+
+        public uint ExtentNumber => _extentNumber;
 
         public void Dispose()
         {            

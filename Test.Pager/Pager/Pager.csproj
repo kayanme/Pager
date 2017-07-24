@@ -67,6 +67,7 @@
     <Compile Include="Classes\BufferedPage.cs" />
     <Compile Include="Contracts\IPageHeaders.cs" />
     <Compile Include="Exceptions\FileSizeInsufficientException.cs" />
+    <Compile Include="Exceptions\RecordWriteConflictException.cs" />
     <Compile Include="Extent.cs" />
     <Compile Include="Implementations\PageHeaders.cs" />
     <Compile Include="Implementations\GAMAccessor.cs" />

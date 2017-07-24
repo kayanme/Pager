@@ -78,7 +78,7 @@ namespace Pager.Implementations
             {
                 i = _oldMaps[file];
             }
-            while (!_oldMaps.TryUpdate(_map, i - 1, i));
+            while (!_oldMaps.TryUpdate(file, i - 1, i));
             CheckMapForCleaning(file);
         }
 
