@@ -13,14 +13,14 @@ namespace Benchmark.Pager
     {
         public static void Main()
         {
-            //var t = new RecordChangeBenchmark ();
+            //var t = new RecordChangeBenchmark { WriteMethod = WriteMethod.VariableSize };
             //t.Init();
             //t.AddRecord();
             //t.DeleteFile();
             //t.Init();
             //t.AddRecord();
             //t.DeleteFile();
-            BenchmarkDotNet.Running.BenchmarkRunner.Run<RecordChangeBenchmark>(new C());
+            BenchmarkDotNet.Running.BenchmarkRunner.Run<RecordAddBenchmark>(new C());
             Console.ReadKey();
         }
     }
@@ -29,7 +29,7 @@ namespace Benchmark.Pager
     {
         public C()
         {
-            this.Add(Job.Clr.WithInvocationCount(48));
+            this.Add(Job.Clr.WithInvocationCount(96*2).WithLaunchCount(3).WithAnalyzeLaunchVariance(true));
             Add(DefaultConfig.Instance.GetExporters().ToArray());
             Add(DefaultConfig.Instance.GetLoggers().ToArray());
             Add(DefaultConfig.Instance.GetColumnProviders().ToArray());

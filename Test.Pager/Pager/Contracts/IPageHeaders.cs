@@ -8,10 +8,13 @@ namespace Pager.Contracts
 {
     internal interface IPageHeaders
     {
-        short TakeNewRecord();
+        IEnumerable<ushort> NonFreeRecords();
+        short TakeNewRecord(byte rType, ushort rSize);
         bool IsRecordFree(ushort record);
         void FreeRecord(ushort record);
-        ushort RecordCount { get; }
-        byte HeaderSize { get; }
+        ushort RecordCount { get; }    
+        ushort RecordShift(ushort record);
+        byte RecordType(ushort record);
+        ushort RecordSize(ushort record);
     }
 }

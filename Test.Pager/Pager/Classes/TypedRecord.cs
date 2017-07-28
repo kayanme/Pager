@@ -9,8 +9,6 @@ namespace Pager
     public abstract class TypedRecord
     {
         public PageRecordReference Reference { get; internal set; }
-        internal int RecordStamp;
-    
-     
+        internal int RecordStamp;         
     }
 }

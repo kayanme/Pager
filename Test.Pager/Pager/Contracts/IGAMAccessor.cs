@@ -9,7 +9,7 @@ namespace Pager
     internal interface IGAMAccessor:IDisposable
     {
         void InitializeGAM();
-
+        byte GetPageType(int pageNum);
         int MarkPageUsed(byte pageType);
         void MarkPageFree(int pageNum);
          

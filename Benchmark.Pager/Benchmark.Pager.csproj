@@ -167,6 +167,7 @@
     <Compile Include="RecordChangeBenchmark.cs" />
     <Compile Include="RecordAddBenchmark.cs" />
     <Compile Include="TestRecord.cs" />
+    <Compile Include="WriteMethod.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

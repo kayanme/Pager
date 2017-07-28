@@ -24,6 +24,7 @@ namespace Pager
         private IUnderlyingFileOperator _operatorForDisposal;
         private ConcurrentDictionary<int, BufferedPage> _bufferedPages = new ConcurrentDictionary<int, BufferedPage>();
         private int _pages;
+
         [ImportingConstructor]
         internal PageManager(PageManagerConfiguration config,IGAMAccessor accessor,
             IExtentAccessorFactory blockFactory,IUnderlyingFileOperator operatorForDisposal)
@@ -38,18 +39,8 @@ namespace Pager
             _pages = (int)((operatorForDisposal.FileSize - Extent.Size) / _pageSize);            
         }
 
-        private FixedRecordTypePageConfiguration<TRecordType> GetFixedConfig<TRecordType>() =>
-            _config.PageMap.Values.OfType<FixedRecordTypePageConfiguration<TRecordType>>().FirstOrDefault(k => k.RecordType.ClrType == typeof(TRecordType));
+      
 
-        public FixedRecordTypedPage<TRecordType> CreatePage<TRecordType>() where TRecordType : TypedRecord,new()
-        {
-            var type = _config.PageMap.FirstOrDefault(k => (k.Value as FixedRecordTypePageConfiguration<TRecordType>)!=null).Key;
-            if (type == 0)
-                throw new ArgumentException("TRecordType");
-            var newPageNum = _accessor.MarkPageUsed(type);
-            Interlocked.Increment(ref _pages);
-            return RetrievePage<TRecordType>(new PageReference(newPageNum));
-        }
 
         public void DeletePage(PageReference page, bool ensureEmptyness)
         {
@@ -67,17 +58,19 @@ namespace Pager
             _operatorForDisposal.Dispose();
         }
 
-        public FixedRecordTypedPage<TRecordType> RetrievePage<TRecordType>(PageReference pageNum) where TRecordType : TypedRecord,new()
+        public TypedPage RetrievePage(PageReference pageNum) 
         {
             var page = _bufferedPages.GetOrAdd(pageNum.PageNum, i =>
             {
                 var block = _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
-                var config = GetFixedConfig<TRecordType>();
-                var headers = new FixedRecordPageHeaders(block,(ushort) config.RecordType.GetSize(null));
-                return new BufferedPage {Accessor = block,Headers =headers,Config = config};
+                
+                var type = _config.PageMap[_accessor.GetPageType(pageNum.PageNum)];
+                var headers = type.CreateHeaders(block,0);
+                                                    
+                return new BufferedPage {Accessor = block,Headers =headers,Config = type };
             });
             
-            return new FixedRecordTypedPage<TRecordType>(page.Headers,page.Accessor, pageNum,_pageSize,page.Config as FixedRecordTypePageConfiguration<TRecordType>);
+            return page.Config.CreatePage(page.Headers,page.Accessor, pageNum,_pageSize);
         }
 
         public void GroupFlush(params TypedPage[] pages)
@@ -86,6 +79,17 @@ namespace Pager
             {
                 t.Accessor.Flush();
             }
+        }
+
+
+        public TypedPage CreatePage(byte type)
+        {
+            
+            if (type == 0)
+                throw new ArgumentException("TRecordType");
+            var newPageNum = _accessor.MarkPageUsed(type);
+            Interlocked.Increment(ref _pages);
+            return RetrievePage(new PageReference(newPageNum));
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Pager
         private int _startOffset;
         private int _pageSize;
         private uint _extentNumber;
+        private int _pageType;
         internal PageAccessor(int startOffset,int pageSize,uint extentNumber,MemoryMappedViewAccessor accessor, IExtentAccessorFactory disposer)
         {
             _map = accessor;
@@ -24,14 +25,14 @@ namespace Pager
             _pageSize = pageSize;
             _extentNumber = extentNumber;
         }
-
+    
         public int PageSize => _pageSize;
 
         public uint ExtentNumber => _extentNumber;
 
         public void Dispose()
         {            
-            _disposer.ReturnAccessor(_map);
+            _disposer?.ReturnAccessor(_map);
         }
 
         public void Flush()
@@ -49,6 +50,11 @@ namespace Pager
         public void SetByteArray(byte[] record, int position, int length)
         {
             _map.WriteArray(position + _startOffset, record, 0, length);
+        }
+
+        public IPageAccessor GetChildAccessorWithStartShift(ushort startShirt)
+        {
+            return new PageAccessor(_startOffset + startShirt, _pageSize - startShirt, _extentNumber, _map, null);
         }
     }
 

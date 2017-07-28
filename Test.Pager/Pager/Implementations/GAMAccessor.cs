@@ -36,7 +36,10 @@ namespace Pager
                 _accessor.Flush();
             }
         }
-
+        public byte GetPageType(int pageNum)
+        {
+            return _accessor.ReadByte(pageNum);
+        }
         public int MarkPageUsed(byte pageType)
         {
             lock (_accessor)

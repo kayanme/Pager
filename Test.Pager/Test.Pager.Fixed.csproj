@@ -58,12 +58,15 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="FixedRecordPageHeadersTest.cs" />
+    <Compile Include="Headers\VariableRecordPageHeadersTest.cs" />
+    <Compile Include="Headers\FixedRecordPageHeadersTest.cs" />
     <Compile Include="GamManager.cs" />
     <Compile Include="PageAccessorTest.cs" />
+    <Compile Include="Headers\PageHeadersBaseTest.cs" />
     <Compile Include="PageManagerTest - Copy.cs" />
     <Compile Include="PageManagerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestHeader.cs" />
     <Compile Include="TestRecord.cs" />
     <Compile Include="UnderlyingFileOperatorTest.cs" />
   </ItemGroup>

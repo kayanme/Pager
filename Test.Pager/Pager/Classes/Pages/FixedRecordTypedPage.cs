@@ -2,54 +2,42 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Pager.Contracts;
 
-namespace Pager
+namespace Pager.Classes
 {
-    public abstract class TypedPage:IDisposable
-    {
-        public abstract PageReference Reference { get; }
-        public abstract double PageFullness { get; }
-        public abstract void Flush();
-        public abstract void Dispose();
-    }
-
-    public unsafe sealed class FixedRecordTypedPage<TRecordType> : TypedPage where TRecordType : TypedRecord,new()
+    public sealed class FixedRecordTypedPage<TRecordType> : TypedPage where TRecordType : TypedRecord, new()
     {
         PageReference _reference;
         private IPageAccessor _accessor;
         private IPageHeaders _headers;
-        private readonly int _recordSize;
-        private readonly int _maxRecords;
-        private int _headerSizeInBytes =>_headers.HeaderSize;
+     
+     
+     
         private FixedRecordTypePageConfiguration<TRecordType> _config;
-        internal FixedRecordTypedPage(IPageHeaders headers,IPageAccessor accessor, PageReference reference,int pageSize,FixedRecordTypePageConfiguration<TRecordType> config)
+        internal FixedRecordTypedPage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize, FixedRecordTypePageConfiguration<TRecordType> config)
         {
             _reference = reference;
             _accessor = accessor;
-            _headers = headers;
-            _recordSize = config.RecordType.GetSize(null);
+            _headers = headers;       
             _config = config;
-            _maxRecords = pageSize / (_recordSize + _headerSizeInBytes);
+          
         }
 
         public override PageReference Reference => _reference;
 
-        public override double PageFullness => _headers.RecordCount / _maxRecords;
+        public override double PageFullness =>0;
 
         public IEnumerable<TRecordType> IterateRecords()
         {
-        
-            for (ushort i=0;i<_maxRecords;i++)
+            foreach (var i in _headers.NonFreeRecords())
             {
-                if (!_headers.IsRecordFree(i))
-                {
+                
                     var t = GetRecord(new PageRecordReference { Record = i, Page = Reference });
                     if (t != null)
                         yield return t;
-                }
+                
             }
         }
 
@@ -57,13 +45,15 @@ namespace Pager
         {
             if (Reference != reference.Page)
                 throw new ArgumentException("The record is on another page");
-            var offset = reference.Record * (_recordSize + _headerSizeInBytes);
-            var bytes = _accessor.GetByteArray(reference.Record*(_recordSize + _headerSizeInBytes), _recordSize + _headerSizeInBytes);
+           
             if (!_headers.IsRecordFree((ushort)reference.Record))
             {
+                var offset = _headers.RecordShift((ushort)reference.Record);
+                var size = _headers.RecordSize((ushort)reference.Record);
+                var bytes = _accessor.GetByteArray(offset, size);
                 var r = new TRecordType();
                 r.Reference = reference;
-                _config.RecordType.FillFromBytes(new ArraySegment<byte>(bytes, 1, bytes.Length - 1),r);
+                _config.RecordType.FillFromBytes(bytes, r);
                 return r;
             }
             return null;
@@ -71,22 +61,23 @@ namespace Pager
 
         public bool AddRecord(TRecordType type)
         {
-            var record = _headers.TakeNewRecord();
+            var record = _headers.TakeNewRecord(0, (ushort)_config.RecordType.GetSize);
             if (record == -1)
                 return false;
             SetRecord(record, type);
             if (type.Reference == null)
-                type.Reference = new PageRecordReference { Page = Reference};
+                type.Reference = new PageRecordReference { Page = Reference };
             type.Reference.Record = record;
             return true;
         }
 
-        private void SetRecord(int offset,TRecordType record)
+        private void SetRecord(int offset, TRecordType record)
         {
-            var recordStart = offset * (_recordSize + _headerSizeInBytes);
-            var bytes = _accessor.GetByteArray(recordStart, _recordSize + _headerSizeInBytes);
-            _config.RecordType.FillBytes(record,new ArraySegment<byte>(bytes, 1, bytes.Length - 1));
-            _accessor.SetByteArray(bytes, recordStart, _recordSize + _headerSizeInBytes);
+            var recordStart = _headers.RecordShift((ushort)offset);
+            var recordSize = _headers.RecordSize((ushort)offset);
+            var bytes = _accessor.GetByteArray(recordStart, recordSize);
+            _config.RecordType.FillBytes(record, bytes);
+            _accessor.SetByteArray(bytes, recordStart, recordSize);
         }
 
         public void StoreRecord(TRecordType record)

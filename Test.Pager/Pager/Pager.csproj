@@ -65,11 +65,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\BufferedPage.cs" />
+    <Compile Include="Classes\Pages\ComplexRecordTypePage.cs" />
+    <Compile Include="Classes\Pages\FixedRecordTypedPage.cs" />
+    <Compile Include="Classes\Configurations\FixedRecordTypePageConfiguration.cs" />
+    <Compile Include="Classes\Pages\HeaderedPage.cs" />
+    <Compile Include="Classes\Configurations\HeaderPageConfiguration.cs" />
+    <Compile Include="Classes\Configurations\PageConfiguration.cs" />
+    <Compile Include="Classes\Configurations\RecordDeclaration.cs" />
+    <Compile Include="Classes\Configurations\VariableRecordTypeConfiguration.cs" />
     <Compile Include="Contracts\IPageHeaders.cs" />
     <Compile Include="Exceptions\FileSizeInsufficientException.cs" />
     <Compile Include="Exceptions\RecordWriteConflictException.cs" />
     <Compile Include="Extent.cs" />
-    <Compile Include="Implementations\PageHeaders.cs" />
+    <Compile Include="Implementations\FixedRecordPageHeaders.cs" />
     <Compile Include="Implementations\GAMAccessor.cs" />
     <Compile Include="Contracts\IGAMAccessor.cs" />
     <Compile Include="Contracts\IPageAccessor.cs" />
@@ -78,19 +86,22 @@
     <Compile Include="Contracts\IPageManagerFactory.cs" />
     <Compile Include="Implementations\PageAccessor.cs" />
     <Compile Include="Implementations\ExtentAccessorFactory.cs" />
+    <Compile Include="Implementations\PageHeadersBase.cs" />
     <Compile Include="Implementations\PageManager.cs" />
     <Compile Include="Implementations\PageManagerFactory.cs" />
-    <Compile Include="Classes\PageMapConfiguration.cs" />
+    <Compile Include="Classes\Configurations\PageMapConfiguration.cs" />
     <Compile Include="Classes\PageRecordReference.cs" />
     <Compile Include="Implementations\UnderyingFileOperator.cs" />
+    <Compile Include="Implementations\VariableRecordPageHeaders.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Classes\TypedPage.cs" />
+    <Compile Include="Classes\Pages\TypedPage.cs" />
     <Compile Include="Classes\TypedRecord.cs" />
     <Compile Include="Contracts\IUnderlyingFileOperator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
