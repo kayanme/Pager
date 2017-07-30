@@ -57,10 +57,33 @@ namespace Pager
             }
         }
 
+        private bool disposedValue = false;
+        void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    _fileOperator.ReturnMappedFile(_mapToReturn);
+                    _accessor.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+        ~GAMAccessor()
+        {
+            Dispose(true);
+        }
+
+
         public void Dispose()
         {
-            _fileOperator.ReturnMappedFile(_mapToReturn);
-            _accessor.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
+
+
+       
     }
 }

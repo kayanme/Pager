@@ -8,12 +8,12 @@ using Pager.Contracts;
 
 namespace Pager.Classes
 {
-    public sealed class ComplexRecordTypePage<TRecordType> : TypedPage where TRecordType : TypedRecord, new()
+    public sealed class ComplexRecordTypePage<TRecordType> :  IPage<TRecordType> where TRecordType : TypedRecord, new()
     {
 
         private IPageHeaders _headers;
         private IPageAccessor _accessor;
-        private int _pageSize;
+     
         private VariableRecordTypePageConfiguration<TRecordType> _config;
         internal ComplexRecordTypePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize, VariableRecordTypePageConfiguration<TRecordType> config)
         {
@@ -55,7 +55,7 @@ namespace Pager.Classes
             return config;
         }
 
-        public bool AddRecord<TType>(TType type) where TType : TRecordType
+        public bool AddRecord(TRecordType type)
         {
            
             var mapKey = _config.GetRecordType(type);
@@ -90,13 +90,14 @@ namespace Pager.Classes
             return null;
         }
 
-        public void StoreRecord<TType>(TType record) where TType:TRecordType
+        public void StoreRecord(TRecordType record)
         {
             if (record.Reference.Page != this.Reference)
                 throw new ArgumentException();
             if (record.Reference.Record == -1)
                 throw new ArgumentException();
-            var config = FindConfig<TType>();
+            var mapKey = _config.GetRecordType(record);
+            var config = _config.RecordMap[mapKey];
             if (_headers.RecordSize((ushort)record.Reference.Record) < config.GetSize(record))
                 throw new ArgumentException("Record size is more, than slot space available");
             SetRecord((ushort)record.Reference.Record, record, config);
@@ -112,16 +113,36 @@ namespace Pager.Classes
 
       
 
-        public override double PageFullness => 0;
+        public  double PageFullness => 0;
 
-        public override PageReference Reference { get;  }
+        public  PageReference Reference { get;  }
 
-        public override void Dispose()
+        private bool disposedValue = false;
+        void Dispose(bool disposing)
         {
-            _accessor.Flush();
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Flush();
+                }
+
+                disposedValue = true;
+            }
+        }
+        ~ComplexRecordTypePage()
+        {
+            Dispose(true);
         }
 
-        public override void Flush()
+
+        public  void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public  void Flush()
         {
             _accessor.Flush();
         }

@@ -71,9 +71,9 @@
     <Compile Include="UnderlyingFileOperatorTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="Pager\Pager.csproj">
+    <ProjectReference Include="Pager\File.Paging.PhysicalLevel.csproj">
       <Project>{48462091-cdbc-4e4e-aee7-f63665e15a64}</Project>
-      <Name>Pager</Name>
+      <Name>File.Paging.PhysicalLevel</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

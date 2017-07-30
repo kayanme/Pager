@@ -7,7 +7,7 @@ using Pager.Contracts;
 
 namespace Pager.Classes
 {
-    public sealed class FixedRecordTypedPage<TRecordType> : TypedPage where TRecordType : TypedRecord, new()
+    public sealed class FixedRecordTypedPage<TRecordType> :  IPage<TRecordType> where TRecordType : TypedRecord, new()
     {
         PageReference _reference;
         private IPageAccessor _accessor;
@@ -25,9 +25,9 @@ namespace Pager.Classes
           
         }
 
-        public override PageReference Reference => _reference;
+        public  PageReference Reference => _reference;
 
-        public override double PageFullness =>0;
+        public  double PageFullness =>0;
 
         public IEnumerable<TRecordType> IterateRecords()
         {
@@ -53,7 +53,7 @@ namespace Pager.Classes
                 var bytes = _accessor.GetByteArray(offset, size);
                 var r = new TRecordType();
                 r.Reference = reference;
-                _config.RecordType.FillFromBytes(bytes, r);
+                _config.RecordMap.FillFromBytes(bytes, r);
                 return r;
             }
             return null;
@@ -61,7 +61,7 @@ namespace Pager.Classes
 
         public bool AddRecord(TRecordType type)
         {
-            var record = _headers.TakeNewRecord(0, (ushort)_config.RecordType.GetSize);
+            var record = _headers.TakeNewRecord(0, (ushort)_config.RecordMap.GetSize);
             if (record == -1)
                 return false;
             SetRecord(record, type);
@@ -76,7 +76,7 @@ namespace Pager.Classes
             var recordStart = _headers.RecordShift((ushort)offset);
             var recordSize = _headers.RecordSize((ushort)offset);
             var bytes = _accessor.GetByteArray(recordStart, recordSize);
-            _config.RecordType.FillBytes(record, bytes);
+            _config.RecordMap.FillBytes(record, bytes);
             _accessor.SetByteArray(bytes, recordStart, recordSize);
         }
 
@@ -96,14 +96,35 @@ namespace Pager.Classes
             record.Reference.Record = -1;
         }
 
-        public override void Flush()
+        public  void Flush()
         {
             _accessor.Flush();
         }
 
-        public override void Dispose()
+        private bool disposedValue = false;
+        void Dispose(bool disposing)
         {
-            _accessor.Flush();
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Flush();
+                }
+
+                disposedValue = true;
+            }
         }
+        ~FixedRecordTypedPage()
+        {
+            Dispose(true);
+        }
+
+
+        public  void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
     }
 }

@@ -7,8 +7,8 @@
     <ProjectGuid>{48462091-CDBC-4E4E-AEE7-F63665E15A64}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Pager</RootNamespace>
-    <AssemblyName>Pager</AssemblyName>
+    <RootNamespace>File.Paging.PhysicalLevel</RootNamespace>
+    <AssemblyName>File.Paging.PhysicalLevel</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -73,6 +73,8 @@
     <Compile Include="Classes\Configurations\PageConfiguration.cs" />
     <Compile Include="Classes\Configurations\RecordDeclaration.cs" />
     <Compile Include="Classes\Configurations\VariableRecordTypeConfiguration.cs" />
+    <Compile Include="Classes\Pages\IHeaderedPage.cs" />
+    <Compile Include="Classes\Pages\IPage.cs" />
     <Compile Include="Contracts\IPageHeaders.cs" />
     <Compile Include="Exceptions\FileSizeInsufficientException.cs" />
     <Compile Include="Exceptions\RecordWriteConflictException.cs" />
@@ -89,12 +91,11 @@
     <Compile Include="Implementations\PageHeadersBase.cs" />
     <Compile Include="Implementations\PageManager.cs" />
     <Compile Include="Implementations\PageManagerFactory.cs" />
-    <Compile Include="Classes\Configurations\PageMapConfiguration.cs" />
+    <Compile Include="Classes\Configurations\PageManagerConfiguration.cs" />
     <Compile Include="Classes\PageRecordReference.cs" />
     <Compile Include="Implementations\UnderyingFileOperator.cs" />
     <Compile Include="Implementations\VariableRecordPageHeaders.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Classes\Pages\TypedPage.cs" />
     <Compile Include="Classes\TypedRecord.cs" />
     <Compile Include="Contracts\IUnderlyingFileOperator.cs" />
   </ItemGroup>

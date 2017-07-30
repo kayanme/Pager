@@ -30,7 +30,7 @@ namespace Benchmark.Pager
             var config = new PageManagerConfiguration { SizeOfPage = PageSize };
             var pconfig = new FixedRecordTypePageConfiguration<TestRecord>
             {
-                RecordType = new FixedSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
+                RecordMap = new FixedSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
             };
             var vconfig = new VariableRecordTypePageConfiguration<TestRecord>
             {

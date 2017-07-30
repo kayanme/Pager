@@ -29,11 +29,7 @@ namespace Pager
         public int PageSize => _pageSize;
 
         public uint ExtentNumber => _extentNumber;
-
-        public void Dispose()
-        {            
-            _disposer?.ReturnAccessor(_map);
-        }
+   
 
         public void Flush()
         {
@@ -55,6 +51,32 @@ namespace Pager
         public IPageAccessor GetChildAccessorWithStartShift(ushort startShirt)
         {
             return new PageAccessor(_startOffset + startShirt, _pageSize - startShirt, _extentNumber, _map, null);
+        }
+
+        private bool disposedValue = false;
+        void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Flush();
+                    _disposer?.ReturnAccessor(_map);
+                }
+
+                disposedValue = true;
+            }
+        }
+        ~PageAccessor()
+        {
+            Dispose(true);
+        }
+
+
+        public  void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 

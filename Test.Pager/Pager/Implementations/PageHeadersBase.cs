@@ -21,9 +21,7 @@ namespace Pager.Implementations
         
         public ushort RecordCount => (ushort)_recordInfo.Count(k => k != 0);
 
-        protected PageHeadersBase()
-        {           
-        }
+       
 
         protected abstract int[] ScanForHeaders(byte[] page, ushort headerShift);
 

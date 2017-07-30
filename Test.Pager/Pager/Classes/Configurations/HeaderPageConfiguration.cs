@@ -8,14 +8,19 @@ using Pager.Contracts;
 
 namespace Pager.Classes
 {
-    public sealed class HeaderPageConfiguration<THeader> where THeader : new()
+    public abstract class HeaderPageConfiguration
     {
         public PageConfiguration InnerPageMap { get; set; }
+        internal abstract IHeaderedPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize);
+    }
+    public sealed class HeaderPageConfiguration<THeader>: HeaderPageConfiguration where THeader : new()
+    {
+       
         public FixedSizeRecordDeclaration<THeader> Header { get; set; }
 
        
         private ushort HeaderSize => (ushort)Header.GetSize;
-        internal HeaderedPage<THeader> CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize) 
+        internal override IHeaderedPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize) 
         {
             return new HeaderedPage<THeader>(accessor,
                 InnerPageMap.CreatePage(headers, accessor.GetChildAccessorWithStartShift(HeaderSize), reference, pageSize - HeaderSize), reference,this);

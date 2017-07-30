@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Pager.Exceptions
 {
-    class FileSizeInsufficientException
+    class FileSizeInsufficientException:Exception
     {
     }
 }

@@ -14,6 +14,7 @@ namespace Pager
     [Export(typeof(IPageManagerFactory))]
     public sealed class PageManagerFactory : IPageManagerFactory
     {
+        private AssemblyCatalog _catalog;
         public IPageManager CreateManager(string fileName, PageManagerConfiguration configuration, bool createFileIfNotExists)
         {
             FileStream _file;          
@@ -31,13 +32,11 @@ namespace Pager
             }
             else
                 _file = File.Open(fileName, FileMode.Open);
-            var children = new CompositionContainer(new AssemblyCatalog(typeof(PageManagerFactory).Assembly));
+            var children = new CompositionContainer(_catalog);
             var b = new CompositionBatch();
             b.AddExportedValue(configuration);
             b.AddExportedValue(_file);
-            children.Compose(b);
-                        
-            children.Compose(new CompositionBatch());
+            children.Compose(b);                                 
             var a1 = children.GetExport<FileStream>();
             var a2 = children.GetExport<IUnderlyingFileOperator>();
             return children.GetExportedValue<IPageManager>();
@@ -45,7 +44,7 @@ namespace Pager
         private CompositionContainer _container;
         public PageManagerFactory()
         {
-            _container = new CompositionContainer(new AssemblyCatalog(typeof(PageManagerFactory).Assembly));
+            _catalog = new AssemblyCatalog(typeof(PageManagerFactory).Assembly);
         }
     }
 }

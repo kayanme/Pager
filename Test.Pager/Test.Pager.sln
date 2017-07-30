@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Pager.Fixed", "Test.Pager.Fixed.csproj", "{E24D66C5-8B2C-489C-B9C7-A0B6661F848A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Paging.Physical", "Test.Paging.Physical.csproj", "{E24D66C5-8B2C-489C-B9C7-A0B6661F848A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pager", "Pager\Pager.csproj", "{48462091-CDBC-4E4E-AEE7-F63665E15A64}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "File.Paging.PhysicalLevel", "Pager\File.Paging.PhysicalLevel.csproj", "{48462091-CDBC-4E4E-AEE7-F63665E15A64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark.Pager", "..\Benchmark.Pager\Benchmark.Pager.csproj", "{9AABDD8B-1446-4E9F-9D73-0194E0CB6353}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark.Paging.PhysicalLevel", "..\Benchmark.Pager\Benchmark.Paging.PhysicalLevel.csproj", "{9AABDD8B-1446-4E9F-9D73-0194E0CB6353}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "File.Paging.PhysicalLevel.MemoryStubs", "..\File.Paging.PhysicalLevel.MemoryStubs\File.Paging.PhysicalLevel.MemoryStubs.csproj", "{EEC49949-B064-46A7-8382-43CFE538EC6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{9AABDD8B-1446-4E9F-9D73-0194E0CB6353}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9AABDD8B-1446-4E9F-9D73-0194E0CB6353}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9AABDD8B-1446-4E9F-9D73-0194E0CB6353}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEC49949-B064-46A7-8382-43CFE538EC6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEC49949-B064-46A7-8382-43CFE538EC6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEC49949-B064-46A7-8382-43CFE538EC6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEC49949-B064-46A7-8382-43CFE538EC6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

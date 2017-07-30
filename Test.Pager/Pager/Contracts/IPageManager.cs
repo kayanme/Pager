@@ -13,11 +13,10 @@ namespace Pager
         //FixedRecordTypedPage<TRecordType> CreatePage<TRecordType>(FixedRecordTypePageConfiguration<TRecordType> config) where TRecordType : TypedRecord,new();
         //ComplexRecordTypePage<TRecordType> CreatePage<TRecordType>(VariableRecordTypePageConfiguration<TRecordType> config) where TRecordType : TypedRecord, new();
 
-        TypedPage RetrievePage(PageReference pageNum);
-        HeaderedPage<THeader> RetrieveHeaderedPage<THeader>(PageReference pageNum) where THeader : new();
-        TypedPage CreatePage(byte type);
+        IPage RetrievePage(PageReference pageNum);      
+        IPage CreatePage(byte type);
         void DeletePage(PageReference page, bool ensureEmptyness);
 
-        void GroupFlush(params TypedPage[] pages);
+        void GroupFlush(params IPage[] pages);
     }
 }

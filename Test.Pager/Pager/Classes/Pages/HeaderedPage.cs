@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 
 namespace Pager.Classes
 {
-    public class HeaderedPage<THeader> where THeader:new()
+    internal sealed class HeaderedPage<THeader> : IHeaderedPage<THeader> where THeader:new()
     {
         private  IPageAccessor _accessor;
-        private TypedPage _childPage;
+        private IPage _childPage;
+        public IPage Content => _childPage;
         public PageReference Reference { get; }
         private HeaderPageConfiguration<THeader> _config;
-        internal HeaderedPage(IPageAccessor accessor,TypedPage childPage, PageReference reference,HeaderPageConfiguration<THeader> config)
+        internal HeaderedPage(IPageAccessor accessor, IPage childPage, PageReference reference,HeaderPageConfiguration<THeader> config)
         {
             _accessor = accessor;
             _childPage = childPage;
@@ -41,11 +42,33 @@ namespace Pager.Classes
             _accessor.Flush();
         }
 
-        public  void Dispose()
+        private bool disposedValue = false;
+        void Dispose(bool disposing)
         {
-            _childPage.Dispose();         
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Flush();
+                    _childPage.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+        ~HeaderedPage()
+        {
+            Dispose(true);
         }
 
-      
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+
+
     }
 }

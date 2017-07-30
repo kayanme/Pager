@@ -31,7 +31,7 @@ namespace Test.Pager
             config.SizeOfPage = PageManagerConfiguration.PageSize.Kb4;
             var fconfig = new FixedRecordTypePageConfiguration<TestRecord>
             {
-                RecordType = new FixedSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
+                RecordMap = new FixedSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
             };
 
             var vconfig = new VariableRecordTypePageConfiguration<TestRecord>
@@ -187,25 +187,6 @@ namespace Test.Pager
             }        
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
-        public void HeaderedPageForNonheadereddAcqure()
-        {
-
-            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
-
-            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
-            t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
-            t.Expect(k => k.Dispose()).Repeat.Any();
-            blockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            gamMock.Expect(k => k.GetPageType(0)).Return(1);
-            using (var manager = GetManager())
-            {
-                var page = manager.RetrieveHeaderedPage<TestHeader>(new PageReference(0));
-            }
-        }
-
-
 
         [TestMethod]
         public void HeaderedPageAcquire()
@@ -220,10 +201,11 @@ namespace Test.Pager
             gamMock.Expect(k => k.GetPageType(0)).Return(3);
             using (var manager = GetManager())
             {
-                var page = manager.RetrieveHeaderedPage<TestHeader>(new PageReference(0));
+                var page = manager.RetrievePage(new PageReference(0));
                 Assert.AreEqual(new PageReference(0), page.Reference);
                 Assert.IsInstanceOfType(page, typeof(HeaderedPage<TestHeader>));            
             }
+          
             blockMock.VerifyAllExpectations();
         }
 

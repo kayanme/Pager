@@ -48,58 +48,37 @@ namespace Pager
             Interlocked.Decrement(ref _pages);
         }
 
-        public void Dispose()
-        {
-            foreach(var p in _bufferedPages)
-            {
-                p.Value.Accessor.Dispose();                           
-            }
-            _accessor.Dispose();
-            _operatorForDisposal.Dispose();
-        }
+   
 
-        public TypedPage RetrievePage(PageReference pageNum) 
+        public IPage RetrievePage(PageReference pageNum) 
         {
             var page = _bufferedPages.GetOrAdd(pageNum.PageNum, i =>
             {
                 var block = _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
-                var pageType = _accessor.GetPageType(pageNum.PageNum);
-                 if (_config.HeaderConfig.ContainsKey(pageType))
+                var pageType = _accessor.GetPageType(pageNum.PageNum);              
+                var headerType =_config.HeaderConfig.ContainsKey(pageType)?_config.HeaderConfig[pageType] as HeaderPageConfiguration:null;
+                if (headerType == null)
                 {
-                    throw new NotImplementedException("You cannot get page content for headered page for now");
-                }             
-                var type = _config.PageMap[pageType];
-                var headers = type.CreateHeaders(block,0);
-                                                    
-                return new BufferedPage {Accessor = block,Headers =headers,Config = type };
+                    var type = _config.PageMap[pageType];
+                    var headers = type.CreateHeaders(block, 0);
+                    return new BufferedPage { Accessor = block, Headers = headers, Config = type };
+                }
+                else
+                {                  
+                    var type = headerType.InnerPageMap;
+                    if (type == null)
+                        throw new InvalidOperationException();
+                    var headers = type.CreateHeaders(block, 0);
+
+                    return new BufferedPage { Accessor = block, Headers = headers, Config = type, HeaderConfig = headerType };
+                }                                                                              
             });
-            
+            if (page.HeaderConfig != null)
+               return (page.HeaderConfig as HeaderPageConfiguration).CreatePage(page.Headers, page.Accessor, pageNum, _pageSize);
             return page.Config.CreatePage(page.Headers,page.Accessor, pageNum,_pageSize);
         }
 
-        public HeaderedPage<THeader> RetrieveHeaderedPage<THeader>(PageReference pageNum) where THeader:new()
-        {
-            var page = _bufferedPages.GetOrAdd(pageNum.PageNum, i =>
-            {
-                var block = _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
-                var pageType = _accessor.GetPageType(pageNum.PageNum);
-                if (!_config.HeaderConfig.ContainsKey(pageType))
-                    throw new InvalidOperationException("This page has no headers in map");
-                var headerType = _config.HeaderConfig[pageType] as HeaderPageConfiguration<THeader>;
-                if (headerType == null)
-                    throw new ArgumentException("Header does not match page type");
-                var type = headerType.InnerPageMap;
-                if (type == null)
-                    throw new InvalidOperationException();
-                var headers = type.CreateHeaders(block, 0);
-
-                return new BufferedPage { Accessor = block, Headers = headers, Config = type,HeaderConfig = headerType };
-            });
-
-            return (page.HeaderConfig as HeaderPageConfiguration<THeader>).CreatePage(page.Headers, page.Accessor, pageNum, _pageSize);
-        }
-
-        public void GroupFlush(params TypedPage[] pages)
+        public void GroupFlush(params IPage[] pages)
         {
             foreach(var t in  pages.Select(k=>_bufferedPages[k.Reference.PageNum]).GroupBy(k=>k.Accessor.PageSize).Select(k=>k.First()))
             {
@@ -108,7 +87,7 @@ namespace Pager
         }
 
 
-        public TypedPage CreatePage(byte type)
+        public IPage CreatePage(byte type)
         {
             
             if (type == 0)
@@ -116,6 +95,37 @@ namespace Pager
             var newPageNum = _accessor.MarkPageUsed(type);
             Interlocked.Increment(ref _pages);
             return RetrievePage(new PageReference(newPageNum));
+        }      
+
+
+        private bool disposedValue = false;
+        void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    foreach (var p in _bufferedPages)
+                    {
+                        p.Value.Accessor.Dispose();
+                    }
+                    _accessor.Dispose();
+                    _operatorForDisposal.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+        ~PageManager()
+        {
+            Dispose(true);
+        }
+
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

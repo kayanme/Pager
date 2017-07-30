@@ -42,8 +42,7 @@ namespace Pager.Implementations
         }
 
         
-        private bool disposedValue = false; // To detect redundant calls
-
+        private bool disposedValue = false; 
         void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -53,27 +52,22 @@ namespace Pager.Implementations
                     foreach(var t in _accessorsLent.Values)
                     {
                         t.Dispose();
-                    }
-                    GC.SuppressFinalize(this);
+                    }              
                 }
 
                 disposedValue = true;
             }
         }
-
-
         ~ExtentAccessorFactory()
         {
             Dispose(false);
         }
 
-        // This code added to correctly implement the disposable pattern.
+       
         public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
+        {          
+            Dispose(true);           
+            GC.SuppressFinalize(this);
         }
     }
 }
