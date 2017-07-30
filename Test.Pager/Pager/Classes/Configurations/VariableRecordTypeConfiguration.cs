@@ -10,8 +10,16 @@ namespace Pager.Classes
 {
     public class VariableRecordTypePageConfiguration<TRecord> : PageConfiguration where TRecord:TypedRecord,new()
     {
-      
-        public Dictionary<byte, VariableSizeRecordDeclaration<TRecord>> RecordMap = new Dictionary<byte, VariableSizeRecordDeclaration<TRecord>>();
+        private readonly Func<TRecord, byte> _getRecordType;
+        public byte GetRecordType(TRecord record) => _getRecordType(record);
+        internal Dictionary<byte, VariableSizeRecordDeclaration<TRecord>> RecordMap = new Dictionary<byte, VariableSizeRecordDeclaration<TRecord>>();
+
+        public VariableRecordTypePageConfiguration(Func<TRecord, byte> typeGet=null)
+        {
+            if (typeGet == null)
+                _getRecordType = _ => 1;
+            _getRecordType = typeGet;
+        }
 
         internal override TypedPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize)
         {

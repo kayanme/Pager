@@ -7,11 +7,11 @@ using Pager;
 
 namespace Benchmark.Pager
 {
-    public class TestRecord:TypedRecord
+    public class TestRecord : TypedRecord
     {
         public byte[] Values = new byte[7];
 
-        public  ushort RecordSize
+        public ushort RecordSize
         {
             get
             {
@@ -19,15 +19,15 @@ namespace Benchmark.Pager
             }
         }
 
-        public  void FillByteArray(IList<byte> b)
+        public void FillByteArray(IList<byte> b)
         {
-          for (int i=0;i<RecordSize;i++)
+            for (int i = 0; i < RecordSize; i++)
             {
                 b[i] = Values[i];
             }
         }
 
-        public  void FillFromByteArray(IList<byte> b)
+        public void FillFromByteArray(IList<byte> b)
         {
 
             for (int i = 0; i < RecordSize; i++)
@@ -35,5 +35,10 @@ namespace Benchmark.Pager
                 Values[i] = b[i];
             }
         }
+    }
+
+    public class TestRecord2 : TestRecord
+    {
+
     }
 }

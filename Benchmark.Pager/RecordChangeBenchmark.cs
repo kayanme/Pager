@@ -44,8 +44,9 @@ namespace Benchmark.Pager
             };
             var vconfig = new VariableRecordTypePageConfiguration<TestRecord>
             {
-                RecordMap = new Dictionary<byte, VariableSizeRecordDeclaration<TestRecord>> { { 1,
-                          new VariableSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, _=>7) } }
+                RecordMap = new Dictionary<byte, VariableSizeRecordDeclaration<TestRecord>> {
+                    { 1, new VariableSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, _=>7) },
+                    { 2, new VariableSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, _=>7) } }
 
             };
             config.PageMap.Add(1, pconfig);

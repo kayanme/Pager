@@ -16,6 +16,7 @@ namespace Pager
     {
 
         public Dictionary<byte, PageConfiguration> PageMap = new Dictionary<byte, PageConfiguration>();
+        public Dictionary<byte, object> HeaderConfig = new Dictionary<byte, object>();
 
         public enum PageSize { Kb4 = 4*1024, Kb8 = 8 * 1024 }
 

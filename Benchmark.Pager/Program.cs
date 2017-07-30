@@ -13,14 +13,14 @@ namespace Benchmark.Pager
     {
         public static void Main()
         {
-            //var t = new RecordChangeBenchmark { WriteMethod = WriteMethod.VariableSize };
+            var t = new RecordChangeBenchmark { WriteMethod = WriteMethod.VariableSize };
+            t.Init();
+            t.AddRecord();
+            t.DeleteFile();
             //t.Init();
             //t.AddRecord();
             //t.DeleteFile();
-            //t.Init();
-            //t.AddRecord();
-            //t.DeleteFile();
-            BenchmarkDotNet.Running.BenchmarkRunner.Run<RecordAddBenchmark>(new C());
+            //   BenchmarkDotNet.Running.BenchmarkRunner.Run<RecordAddBenchmark>(new C());
             Console.ReadKey();
         }
     }

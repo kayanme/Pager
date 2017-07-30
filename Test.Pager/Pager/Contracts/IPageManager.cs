@@ -14,7 +14,7 @@ namespace Pager
         //ComplexRecordTypePage<TRecordType> CreatePage<TRecordType>(VariableRecordTypePageConfiguration<TRecordType> config) where TRecordType : TypedRecord, new();
 
         TypedPage RetrievePage(PageReference pageNum);
-
+        HeaderedPage<THeader> RetrieveHeaderedPage<THeader>(PageReference pageNum) where THeader : new();
         TypedPage CreatePage(byte type);
         void DeletePage(PageReference page, bool ensureEmptyness);
 

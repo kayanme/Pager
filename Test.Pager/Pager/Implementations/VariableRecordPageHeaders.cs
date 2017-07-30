@@ -83,6 +83,9 @@ namespace Pager.Implementations
             }
         }
 
+
+
+
         protected override ushort SetUsed(ushort record, ushort size, byte type)
         {
            
@@ -109,6 +112,14 @@ namespace Pager.Implementations
                 return (ushort)(shift+2);
             }
           
+        }
+
+
+        protected override void UpdateUsed(ushort record, ushort shift, ushort size, byte type)
+        {
+            var val = type << 12 | size;
+            var toWrite = new byte[] { (byte)(val >> 8), (byte)(val & 0xFF) };
+            _accessor.SetByteArray(toWrite, shift, 2);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Pager.Contracts;
 
@@ -23,16 +24,21 @@ namespace Pager.Classes
         }
 
 
-        private void SetRecord<TType>(int offset, TType record,RecordDeclaration<TType> config) where TType : TRecordType
+        private void SetRecord<TType>(ushort offset, TType record,RecordDeclaration<TType> config) where TType : TRecordType
         {
             var recordStart = _headers.RecordShift((ushort)offset);
             var recordSize = _headers.RecordSize((ushort)offset);
+            var type = _config.GetRecordType(record);
             var bytes = _accessor.GetByteArray(recordStart, recordSize);
             config.FillBytes(record, bytes);
+
+            Thread.BeginCriticalRegion();
+            _headers.SetNewRecordInfo(offset,recordSize, type);
             _accessor.SetByteArray(bytes, recordStart, recordSize);
+            Thread.EndCriticalRegion();
         }
 
-        private RecordDeclaration<TType> FindConfig<TType>() where TType : TRecordType
+        private VariableSizeRecordDeclaration<TType> FindConfig<TType>() where TType : TRecordType
         {
             byte t;
             var config = FindConfig<TType>(out t);
@@ -51,12 +57,13 @@ namespace Pager.Classes
 
         public bool AddRecord<TType>(TType type) where TType : TRecordType
         {
-            byte mapKey;
-            var config = FindConfig<TType>(out mapKey);
+           
+            var mapKey = _config.GetRecordType(type);
+            var config = _config.RecordMap[mapKey];
             var record = _headers.TakeNewRecord(mapKey, (ushort)config.GetSize(type));
             if (record == -1)
                 return false;
-            SetRecord(record, type,config);
+            SetRecord((ushort)record, type,config);
             if (type.Reference == null)
                 type.Reference = new PageRecordReference { Page = Reference };
             type.Reference.Record = record;
@@ -76,7 +83,7 @@ namespace Pager.Classes
                 var bytes = _accessor.GetByteArray(offset, size);
                 var r = new TRecordType();
                 r.Reference = reference;             
-                var config = _config.RecordMap[type] as IVariableSizeRecordDeclaration<TRecordType>;
+                var config = _config.RecordMap[type] as VariableSizeRecordDeclaration<TRecordType>;
                 config.FillFromBytes(bytes, r);
                 return r;
             }
@@ -87,8 +94,12 @@ namespace Pager.Classes
         {
             if (record.Reference.Page != this.Reference)
                 throw new ArgumentException();
+            if (record.Reference.Record == -1)
+                throw new ArgumentException();
             var config = FindConfig<TType>();
-            SetRecord(record.Reference.Record, record, config);
+            if (_headers.RecordSize((ushort)record.Reference.Record) < config.GetSize(record))
+                throw new ArgumentException("Record size is more, than slot space available");
+            SetRecord((ushort)record.Reference.Record, record, config);
         }
 
         public void FreeRecord(TRecordType record)

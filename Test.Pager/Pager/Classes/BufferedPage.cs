@@ -12,5 +12,6 @@ namespace Pager.Classes
         public IPageAccessor Accessor;
         public IPageHeaders Headers;
         public PageConfiguration Config;
+        public object HeaderConfig;
     }
 }

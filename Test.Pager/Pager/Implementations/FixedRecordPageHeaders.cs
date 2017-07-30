@@ -92,5 +92,10 @@ namespace Pager.Implementations
                yield return i;
             };
         }
+
+        protected override void UpdateUsed(ushort record, ushort shift, ushort size, byte type)
+        {
+            throw new NotImplementedException();//оно и не должно использоваться, т.к. у записи фиксированного размера ничего не меняется
+        }
     }
 }

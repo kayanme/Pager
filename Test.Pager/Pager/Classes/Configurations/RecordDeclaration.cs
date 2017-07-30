@@ -48,22 +48,20 @@ namespace Pager.Classes
         }
     }
 
-    public class VariableSizeRecordDeclaration<TRecordType> : RecordDeclaration<TRecordType>, IVariableSizeRecordDeclaration< TRecordType>
+    public class VariableSizeRecordDeclaration<TRecordType> : RecordDeclaration<TRecordType>
     {
         public int GetSize(TRecordType record) => _sizeGet(record);
         private readonly Func<TRecordType, int> _sizeGet;
 
-        public VariableSizeRecordDeclaration(Action<TRecordType, IList<byte>> fillBytes, Action<IList<byte>, TRecordType> fillFromByte, Func<TRecordType, int> sizeGet):base(fillBytes,fillFromByte)
+    
+        public VariableSizeRecordDeclaration(Action<TRecordType, IList<byte>> fillBytes, Action<IList<byte>, TRecordType> fillFromByte, 
+            Func<TRecordType, int> sizeGet):base(fillBytes,fillFromByte)
         {
-
+           
             _sizeGet = sizeGet;
             IsVariableLength = true;
         }
     }
 
-    internal interface IVariableSizeRecordDeclaration<in TRecordType> 
-    {
-         void FillBytes(TRecordType record, IList<byte> bytes);
-         void FillFromBytes(IList<byte> bytes, TRecordType record);
-    }
+  
 }

@@ -33,6 +33,8 @@ namespace Pager.Implementations
 
         protected abstract ushort SetUsed(ushort record, ushort size, byte type);
 
+        protected abstract void UpdateUsed(ushort record,ushort shift, ushort size, byte type);
+
         public void FreeRecord(ushort record)
         {
 
@@ -65,6 +67,7 @@ namespace Pager.Implementations
         {
             return RecordType(record) == 0; ;
         }
+
         protected abstract ushort TotalRecords { get; }
         protected int FormRecordInf(byte rType, ushort rSize, ushort rShift) => (rShift << 18) | (rSize << 4) | (rType);
         public short TakeNewRecord(byte rType,ushort rSize)
@@ -104,6 +107,15 @@ namespace Pager.Implementations
         }
 
         public IEnumerable<ushort> NonFreeRecords()=>  _recordInfo.Where(k => k != 0).Select((k, i) => i).Cast<ushort>();
-        
+
+        public void SetNewRecordInfo(ushort recordNum,ushort rSize, byte rType)
+        {
+            var oldInf = _recordInfo[recordNum];
+            var shift = RecordShift(recordNum);
+            var t = FormRecordInf(rType, rSize, shift);
+            if (Interlocked.CompareExchange(ref _recordInfo[recordNum], t, oldInf) != oldInf)
+                throw new RecordWriteConflictException();
+            UpdateUsed(recordNum, shift, rSize, rType);
+        }
     }
 }

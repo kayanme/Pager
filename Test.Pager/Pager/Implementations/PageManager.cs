@@ -63,14 +63,40 @@ namespace Pager
             var page = _bufferedPages.GetOrAdd(pageNum.PageNum, i =>
             {
                 var block = _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
-                
-                var type = _config.PageMap[_accessor.GetPageType(pageNum.PageNum)];
+                var pageType = _accessor.GetPageType(pageNum.PageNum);
+                 if (_config.HeaderConfig.ContainsKey(pageType))
+                {
+                    throw new NotImplementedException("You cannot get page content for headered page for now");
+                }             
+                var type = _config.PageMap[pageType];
                 var headers = type.CreateHeaders(block,0);
                                                     
                 return new BufferedPage {Accessor = block,Headers =headers,Config = type };
             });
             
             return page.Config.CreatePage(page.Headers,page.Accessor, pageNum,_pageSize);
+        }
+
+        public HeaderedPage<THeader> RetrieveHeaderedPage<THeader>(PageReference pageNum) where THeader:new()
+        {
+            var page = _bufferedPages.GetOrAdd(pageNum.PageNum, i =>
+            {
+                var block = _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
+                var pageType = _accessor.GetPageType(pageNum.PageNum);
+                if (!_config.HeaderConfig.ContainsKey(pageType))
+                    throw new InvalidOperationException("This page has no headers in map");
+                var headerType = _config.HeaderConfig[pageType] as HeaderPageConfiguration<THeader>;
+                if (headerType == null)
+                    throw new ArgumentException("Header does not match page type");
+                var type = headerType.InnerPageMap;
+                if (type == null)
+                    throw new InvalidOperationException();
+                var headers = type.CreateHeaders(block, 0);
+
+                return new BufferedPage { Accessor = block, Headers = headers, Config = type,HeaderConfig = headerType };
+            });
+
+            return (page.HeaderConfig as HeaderPageConfiguration<THeader>).CreatePage(page.Headers, page.Accessor, pageNum, _pageSize);
         }
 
         public void GroupFlush(params TypedPage[] pages)
