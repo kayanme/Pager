@@ -148,5 +148,21 @@ namespace Pager.Classes
         {
             _accessor.Flush();
         }
+
+        private void CheckReferenceToPageAffinity(PageRecordReference reference)
+        {
+            if (reference.Page != Reference)
+                throw new ArgumentException("The record is on another page");
+        }
+        public void SwapRecords(TRecordType record1, TRecordType record2)
+        {
+            CheckReferenceToPageAffinity(record1.Reference);
+            CheckReferenceToPageAffinity(record2.Reference);
+            if (record1.Reference.Record == -1)
+                throw new ArgumentException("record1 was deleted");
+            if (record2.Reference.Record == -1)
+                throw new ArgumentException("record2 was deleted");
+            _headers.SwapRecords((ushort)record1.Reference.Record, (ushort)record2.Reference.Record);
+        }
     }
 }

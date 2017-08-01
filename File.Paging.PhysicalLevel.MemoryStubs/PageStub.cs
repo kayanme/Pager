@@ -91,6 +91,16 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             }
         }
 
+        public void SwapRecords(TRecord record1, TRecord record2)
+        {
+            lock(_records)
+            {
+                var t = _records[record1.Reference];
+                _records[record1.Reference] = _records[record2.Reference];
+                _records[record2.Reference] = t;
+            }
+        }
+
         public TRecord GetRecord(PageRecordReference reference)
         {
             lock (_records)
@@ -187,6 +197,8 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             Dispose(true);          
             GC.SuppressFinalize(this);
         }
+
+       
         #endregion
 
     }

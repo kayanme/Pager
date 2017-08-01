@@ -17,5 +17,6 @@ namespace Pager.Contracts
         byte RecordType(ushort record);
         ushort RecordSize(ushort record);
         void SetNewRecordInfo(ushort record,ushort rSize, byte rType);
+        void SwapRecords(ushort recordOne, ushort recordTwo);
     }
 }

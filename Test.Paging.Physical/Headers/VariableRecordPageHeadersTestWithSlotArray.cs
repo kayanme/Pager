@@ -132,5 +132,28 @@ namespace Test.Pager
             Assert.AreEqual(1, headers.RecordType(1));
             
         }
+
+        [TestMethod]
+        public void SwapRecords()
+        {
+            var pageContent = new byte[] { 0x10, 0x02, 0, 0x01, 0, 0, 0x20, 0x03, 0, 0, 0, 0, 0, 0 };
+            var headers = Create(pageContent);
+            
+            page.BackToRecord();
+            page.Expect(k => k.SetByteArray(new byte[] { 0,0 }, 2, 2));
+            page.Expect(k => k.SetByteArray(new byte[] { 0,0x01 }, 8, 2));
+            page.Replay();
+
+            headers.SwapRecords(0, 1);
+            page.VerifyAllExpectations();
+
+            Assert.AreEqual(10, headers.RecordShift(1));
+            Assert.AreEqual(3, headers.RecordSize(1));
+            Assert.AreEqual(2, headers.RecordType(1));
+
+            Assert.AreEqual(4, headers.RecordShift(0));
+            Assert.AreEqual(2, headers.RecordSize(0));
+            Assert.AreEqual(1, headers.RecordType(0));
+        }
     }
 }

@@ -12,6 +12,9 @@ namespace Pager.Classes
         private IPage _childPage;
         public IPage Content => _childPage;
         public PageReference Reference { get; }
+
+        public double PageFullness => _childPage.PageFullness;
+
         private HeaderPageConfiguration<THeader> _config;
         internal HeaderedPage(IPageAccessor accessor, IPage childPage, PageReference reference,HeaderPageConfiguration<THeader> config)
         {

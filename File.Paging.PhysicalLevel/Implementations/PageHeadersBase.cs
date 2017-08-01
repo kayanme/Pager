@@ -42,8 +42,7 @@ namespace Pager.Implementations
             var newInf = FormRecordInf(0, RecordSize(record), RecordShift(record));
             if (Interlocked.CompareExchange(ref _recordInfo[record], newInf, r) == r)
             {
-                SetFree(record);
-                
+                SetFree(record);                
             }
             else
                 throw new RecordWriteConflictException();
@@ -69,6 +68,10 @@ namespace Pager.Implementations
         }
 
         protected abstract ushort TotalRecords { get; }
+        protected virtual void SetNewLogicalRecordNum(ushort logicalRecordNum,ushort shift)
+        {
+            throw new InvalidOperationException("Not supported");
+        }
         protected int FormRecordInf(byte rType, ushort rSize, ushort rShift) => (rShift << 18) | (rSize << 4) | (rType);
         public short TakeNewRecord(byte rType,ushort rSize)
         {
@@ -116,6 +119,26 @@ namespace Pager.Implementations
             if (Interlocked.CompareExchange(ref _recordInfo[recordNum], t, oldInf) != oldInf)
                 throw new RecordWriteConflictException();
             UpdateUsed(recordNum, shift, rSize, rType);
+        }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void SwapRecords(ushort recordOne, ushort recordTwo)
+        {
+            if (RecordType(recordOne) == 0 || RecordType(recordTwo) == 0)
+                throw new InvalidOperationException();
+            int oldOne;
+            int oldTwo;
+
+            oldTwo = _recordInfo[recordTwo];
+            oldOne = Interlocked.Exchange(ref _recordInfo[recordOne], _recordInfo[recordTwo]);
+            if (Interlocked.CompareExchange(ref _recordInfo[recordTwo], oldOne, oldTwo) != oldTwo)
+            {
+                Interlocked.CompareExchange(ref _recordInfo[recordOne], oldOne, oldTwo);
+                throw new RecordWriteConflictException();
+            }
+            SetNewLogicalRecordNum(recordOne, RecordShift(recordOne));
+            SetNewLogicalRecordNum(recordTwo, RecordShift(recordTwo));
+
         }
     }
 }

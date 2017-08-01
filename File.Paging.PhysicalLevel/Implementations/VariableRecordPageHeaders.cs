@@ -149,5 +149,16 @@ namespace Pager.Implementations
         {
              SetNewRecordInfo(size, type, shift, record);
         }
+
+        protected override void SetNewLogicalRecordNum(ushort logicalRecordNum, ushort shift)
+        {
+            if (!_slotArrayApplied)
+              base.SetNewLogicalRecordNum(logicalRecordNum, shift);
+            else
+            {
+                var toWrite = new byte[] { (byte)(logicalRecordNum >> 8), (byte)(logicalRecordNum & 0xFF) };
+                _accessor.SetByteArray(toWrite, shift-2, 2);
+            }
+        }
     }
 }
