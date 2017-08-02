@@ -22,6 +22,11 @@ namespace Pager
             return obj is PageReference && ((PageReference)obj)._pageNum == _pageNum;
         }
 
+        public override string ToString()
+        {
+            return "logical num: " + _pageNum;
+        }
+
         public override int GetHashCode()
         {
             return _pageNum; 
@@ -40,11 +45,12 @@ namespace Pager
     public class PageRecordReference
     {
         public PageReference Page { get; internal set; }
-        internal int Record { get; set; }
+        internal int LogicalRecordNum { get; set; }
+        
 
-        public static bool operator == (PageRecordReference r1,PageRecordReference r2)=>r1?.Page == r2?.Page && r1?.Record == r2?.Record;
+        public static bool operator == (PageRecordReference r1,PageRecordReference r2)=>r1?.Page == r2?.Page && r1?.LogicalRecordNum == r2?.LogicalRecordNum;
 
-        public static bool operator !=(PageRecordReference r1, PageRecordReference r2) => r1?.Page != r2?.Page || r1?.Record != r2?.Record;
+        public static bool operator !=(PageRecordReference r1, PageRecordReference r2) => r1?.Page != r2?.Page || r1?.LogicalRecordNum != r2?.LogicalRecordNum;
 
         public override bool Equals(object obj)
         {
@@ -56,12 +62,17 @@ namespace Pager
 
         public override int GetHashCode()
         {
-            return Page.GetHashCode() ^ Record;
+            return Page.GetHashCode() ^ LogicalRecordNum;
+        }
+
+        public override string ToString()
+        {
+            return $"Page {Page}, logical record {LogicalRecordNum} ";
         }
 
         public PageRecordReference Copy()
         {
-            return new PageRecordReference { Record = Record, Page = Page.Copy() };
+            return new PageRecordReference { LogicalRecordNum = LogicalRecordNum, Page = Page.Copy() };
         }
     }
 }

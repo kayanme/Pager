@@ -23,9 +23,9 @@ namespace Pager.Classes
             UseLogicalSlotInfo = useLogcalSlotInfo;
         }
 
-        internal override IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize)
+        internal override IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType)
         {
-            return new ComplexRecordTypePage<TRecord>(headers, accessor, reference, pageSize, this);
+            return new ComplexRecordTypePage<TRecord>(headers, accessor, reference, pageSize,pageType, this);
         }
 
         internal override IPageHeaders CreateHeaders(IPageAccessor accessor,ushort shift)

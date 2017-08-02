@@ -60,6 +60,8 @@ namespace Pager
         {
             if (disposedValue)
                 throw new ObjectDisposedException("IPageAccessor");
+            if (startShirt == 0)
+                return this;
             return new PageAccessor(_startOffset + startShirt, _pageSize - startShirt, _extentNumber, _map, null);
         }
 

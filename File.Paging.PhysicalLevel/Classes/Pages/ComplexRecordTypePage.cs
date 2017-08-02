@@ -15,14 +15,25 @@ namespace Pager.Classes
         private IPageAccessor _accessor;
      
         private VariableRecordTypePageConfiguration<TRecordType> _config;
-        internal ComplexRecordTypePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize, VariableRecordTypePageConfiguration<TRecordType> config)
+        internal ComplexRecordTypePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType, VariableRecordTypePageConfiguration<TRecordType> config)
         {
             Reference = reference;
             _headers  = headers;
             _accessor = accessor;
             _config = config;
+            RegisteredPageType = pageType;
         }
 
+        public IEnumerable<TRecordType> IterateRecords()
+        {
+            foreach (var i in _headers.NonFreeRecords())
+            {
+                var t = GetRecord(new PageRecordReference { LogicalRecordNum = i, Page = Reference });
+                if (t != null)
+                    yield return t;
+
+            }
+        }
 
         private void SetRecord<TType>(ushort offset, TType record,RecordDeclaration<TType> config) where TType : TRecordType
         {
@@ -66,7 +77,7 @@ namespace Pager.Classes
             SetRecord((ushort)record, type,config);
             if (type.Reference == null)
                 type.Reference = new PageRecordReference { Page = Reference };
-            type.Reference.Record = record;
+            type.Reference.LogicalRecordNum = record;
             return true;
         }
 
@@ -75,11 +86,11 @@ namespace Pager.Classes
             if (Reference != reference.Page)
                 throw new ArgumentException("The record is on another page");
 
-            if (!_headers.IsRecordFree((ushort)reference.Record))
+            if (!_headers.IsRecordFree((ushort)reference.LogicalRecordNum))
             {
-                var offset = _headers.RecordShift((ushort)reference.Record);
-                var size = _headers.RecordSize((ushort)reference.Record);
-                var type = _headers.RecordType((ushort)reference.Record);
+                var offset = _headers.RecordShift((ushort)reference.LogicalRecordNum);
+                var size = _headers.RecordSize((ushort)reference.LogicalRecordNum);
+                var type = _headers.RecordType((ushort)reference.LogicalRecordNum);
                 var bytes = _accessor.GetByteArray(offset, size);
                 var r = new TRecordType();
                 r.Reference = reference;             
@@ -94,23 +105,23 @@ namespace Pager.Classes
         {
             if (record.Reference.Page != this.Reference)
                 throw new ArgumentException();
-            if (record.Reference.Record == -1)
+            if (record.Reference.LogicalRecordNum == -1)
                 throw new ArgumentException();
             var mapKey = _config.GetRecordType(record);
             var config = _config.RecordMap[mapKey];
-            if (_headers.RecordSize((ushort)record.Reference.Record) < config.GetSize(record))
+            if (_headers.RecordSize((ushort)record.Reference.LogicalRecordNum) < config.GetSize(record))
                 throw new ArgumentException("Record size is more, than slot space available");
-            SetRecord((ushort)record.Reference.Record, record, config);
+            SetRecord((ushort)record.Reference.LogicalRecordNum, record, config);
         }
 
         public void FreeRecord(TRecordType record)
         {
             if (record == null)
                 throw new ArgumentNullException("record");
-            if (record.Reference.Record == -1)
+            if (record.Reference.LogicalRecordNum == -1)
                 throw new ArgumentException("Trying to delete deleted record");
-            _headers.FreeRecord((ushort)record.Reference.Record);
-            record.Reference.Record = -1;
+            _headers.FreeRecord((ushort)record.Reference.LogicalRecordNum);
+            record.Reference.LogicalRecordNum = -1;
         }
 
       
@@ -118,6 +129,8 @@ namespace Pager.Classes
         public  double PageFullness => 0;
 
         public  PageReference Reference { get;  }
+
+        public byte RegisteredPageType { get; }
 
         private bool disposedValue = false;
         void Dispose(bool disposing)
@@ -154,15 +167,15 @@ namespace Pager.Classes
             if (reference.Page != Reference)
                 throw new ArgumentException("The record is on another page");
         }
-        public void SwapRecords(TRecordType record1, TRecordType record2)
+        public void SwapRecords(PageRecordReference record1, PageRecordReference record2)
         {
-            CheckReferenceToPageAffinity(record1.Reference);
-            CheckReferenceToPageAffinity(record2.Reference);
-            if (record1.Reference.Record == -1)
+            CheckReferenceToPageAffinity(record1);
+            CheckReferenceToPageAffinity(record2);
+            if (record1.LogicalRecordNum == -1)
                 throw new ArgumentException("record1 was deleted");
-            if (record2.Reference.Record == -1)
+            if (record2.LogicalRecordNum == -1)
                 throw new ArgumentException("record2 was deleted");
-            _headers.SwapRecords((ushort)record1.Reference.Record, (ushort)record2.Reference.Record);
+            _headers.SwapRecords((ushort)record1.LogicalRecordNum, (ushort)record2.LogicalRecordNum);
         }
     }
 }

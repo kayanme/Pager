@@ -18,9 +18,9 @@ namespace Pager.Classes
             return new FixedRecordPageHeaders(accessor.GetChildAccessorWithStartShift(shift), (ushort)RecordMap.GetSize);
         }
 
-        internal override IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize)
+        internal override IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType)
         {
-            return new FixedRecordTypedPage<TRecordType>(headers, accessor, reference, pageSize, this);
+            return new FixedRecordTypedPage<TRecordType>(headers, accessor, reference, pageSize, this, pageType);
         }
     }
 }

@@ -109,7 +109,7 @@ namespace Pager.Implementations
 
         }
 
-        public IEnumerable<ushort> NonFreeRecords()=>  _recordInfo.Where(k => k != 0).Select((k, i) => i).Cast<ushort>();
+        public IEnumerable<ushort> NonFreeRecords()=>  _recordInfo.Where((k,i) => RecordType((ushort)i) != 0).Select((k, i) => (ushort)i);
 
         public void SetNewRecordInfo(ushort recordNum,ushort rSize, byte rType)
         {

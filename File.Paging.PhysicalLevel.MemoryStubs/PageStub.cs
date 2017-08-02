@@ -17,11 +17,12 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         private Dictionary<PageRecordReference, byte> _recordType = new Dictionary<PageRecordReference, byte>();
         private int _pageSize;
         private PageConfiguration _config;
-        public PageStub(PageReference r,PageConfiguration config,int pageSize)
+        public PageStub(PageReference r,PageConfiguration config,int pageSize,byte pageType)
         {
             Reference = r;
             _config = config;
             _pageSize = pageSize;
+            RegisteredPageType = pageType;
         }      
 
         public double PageFullness
@@ -33,6 +34,8 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         }
 
         public PageReference Reference { get; }
+
+        public byte RegisteredPageType { get; }
 
         public bool AddRecord(TRecord record)
         {
@@ -62,7 +65,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                 }
                 for (int i = 0; i < ushort.MaxValue; i++)
                 {
-                    var r = new PageRecordReference { Page = Reference, Record = i };
+                    var r = new PageRecordReference { Page = Reference, LogicalRecordNum = i };
                   
                     if (!_records.ContainsKey(r))
                     {
@@ -91,46 +94,42 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             }
         }
 
-        public void SwapRecords(TRecord record1, TRecord record2)
-        {
-            lock(_records)
-            {
-                var t = _records[record1.Reference];
-                _records[record1.Reference] = _records[record2.Reference];
-                _records[record2.Reference] = t;
-            }
-        }
-
+      
         public TRecord GetRecord(PageRecordReference reference)
         {
             lock (_records)
             {
                 if (_records.ContainsKey(reference))
                 {
-                    int size = 0;
-                    byte type = 1;
-                    byte[] d = null;
-                    var record = _records[reference];
-                    var nr = new TRecord();
-                    if (_config is FixedRecordTypePageConfiguration<TRecord>)
-                    {
-                        var c = _config as FixedRecordTypePageConfiguration<TRecord>;
-                        size = c.RecordMap.GetSize;
-                        d = new byte[size];
-                        c.RecordMap.FillFromBytes(record, nr);
-                    }
-                    if (_config is VariableRecordTypePageConfiguration<TRecord>)
-                    {
-                        var c = _config as VariableRecordTypePageConfiguration<TRecord>;
-                        type = _recordType[reference];
-                        size =_recordSize[reference];
-                        d = new byte[size];
-                        c.RecordMap[type].FillFromBytes(record, nr);
-                    }
-                    return nr;
+                    return Retrieve(reference);
                 }
                 return null;
             }
+        }
+
+        private TRecord Retrieve(PageRecordReference reference)
+        {
+            int size = 0;
+            byte type = 1;
+            byte[] d = null;
+            var record = _records[reference];
+            var nr = new TRecord();
+            if (_config is FixedRecordTypePageConfiguration<TRecord>)
+            {
+                var c = _config as FixedRecordTypePageConfiguration<TRecord>;
+                size = c.RecordMap.GetSize;
+                d = new byte[size];
+                c.RecordMap.FillFromBytes(record, nr);
+            }
+            if (_config is VariableRecordTypePageConfiguration<TRecord>)
+            {
+                var c = _config as VariableRecordTypePageConfiguration<TRecord>;
+                type = _recordType[reference];
+                size = _recordSize[reference];
+                d = new byte[size];
+                c.RecordMap[type].FillFromBytes(record, nr);
+            }
+            return nr;
         }
 
         public void StoreRecord(TRecord record)
@@ -198,7 +197,23 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             GC.SuppressFinalize(this);
         }
 
-       
+        public void SwapRecords(PageRecordReference record1, PageRecordReference record2)
+        {
+            lock (_records)
+            {
+                var t = _records[record1];
+                _records[record1] = _records[record2];
+                _records[record2] = t;
+            }
+        }
+
+        public IEnumerable<TRecord> IterateRecords()
+        {
+            lock (_records)
+                return _records.Keys.Select(Retrieve).ToArray();
+        }
+
+
         #endregion
 
     }

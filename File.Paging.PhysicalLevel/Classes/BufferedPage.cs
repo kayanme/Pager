@@ -9,6 +9,7 @@ namespace Pager.Classes
 {
     internal class BufferedPage
     {
+        public byte PageType;
         public IPageAccessor Accessor;
         public IPageHeaders Headers;
         public PageConfiguration Config;

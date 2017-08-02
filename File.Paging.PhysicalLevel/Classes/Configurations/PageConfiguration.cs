@@ -11,7 +11,7 @@ namespace Pager.Classes
     {
         internal abstract Type RecordType { get; }
 
-        internal abstract IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize);
+        internal abstract IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType);
 
         internal abstract IPageHeaders CreateHeaders(IPageAccessor accessor,ushort initShift);
     }

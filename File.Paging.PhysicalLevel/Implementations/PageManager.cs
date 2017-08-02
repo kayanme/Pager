@@ -74,19 +74,19 @@ namespace Pager
                         throw new InvalidOperationException();
                     var headers = type.CreateHeaders(block, 0);
 
-                    return new BufferedPage { Accessor = block, Headers = headers, Config = type, HeaderConfig = headerType };
+                    return new BufferedPage { Accessor = block, Headers = headers, Config = type, HeaderConfig = headerType,PageType = pageType };
                 }                                                                              
             });
             if (page.HeaderConfig != null)
-               return (page.HeaderConfig as HeaderPageConfiguration).CreatePage(page.Headers, page.Accessor, pageNum, _pageSize);
-            return page.Config.CreatePage(page.Headers,page.Accessor, pageNum,_pageSize);
+               return (page.HeaderConfig as HeaderPageConfiguration).CreatePage(page.Headers, page.Accessor, pageNum, _pageSize,page.PageType);
+            return page.Config.CreatePage(page.Headers,page.Accessor, pageNum,_pageSize, page.PageType);
         }
 
         public void GroupFlush(params IPage[] pages)
         {
             if (disposedValue)
                 throw new ObjectDisposedException("IPageManager");
-            foreach (var t in  pages.Select(k=>_bufferedPages[k.Reference.PageNum]).GroupBy(k=>k.Accessor.PageSize).Select(k=>k.First()))
+            foreach (var t in  pages.Select(k=>_bufferedPages[k.Reference.PageNum]).GroupBy(k=>k.Accessor.ExtentNumber).Select(k=>k.First()))
             {
                 t.Accessor.Flush();
             }

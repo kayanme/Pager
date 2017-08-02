@@ -16,12 +16,15 @@ namespace Pager.Classes
      
      
         private FixedRecordTypePageConfiguration<TRecordType> _config;
-        internal FixedRecordTypedPage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize, FixedRecordTypePageConfiguration<TRecordType> config)
+        internal FixedRecordTypedPage(IPageHeaders headers, IPageAccessor accessor, PageReference reference,
+            int pageSize, FixedRecordTypePageConfiguration<TRecordType> config,
+            byte pageType)
         {
             _reference = reference;
             _accessor = accessor;
             _headers = headers;       
             _config = config;
+            RegisteredPageType = pageType;
           
         }
 
@@ -29,12 +32,13 @@ namespace Pager.Classes
 
         public  double PageFullness =>0;
 
+        public byte RegisteredPageType { get; }
+
         public IEnumerable<TRecordType> IterateRecords()
         {
             foreach (var i in _headers.NonFreeRecords())
-            {
-                
-                    var t = GetRecord(new PageRecordReference { Record = i, Page = Reference });
+            {                
+                    var t = GetRecord(new PageRecordReference { LogicalRecordNum = i, Page = Reference });
                     if (t != null)
                         yield return t;
                 
@@ -45,12 +49,12 @@ namespace Pager.Classes
         {
             if (Reference != reference.Page)
                 throw new ArgumentException("The record is on another page");
-            if (reference.Record == -1)
+            if (reference.LogicalRecordNum == -1)
                 return null;
-            if (!_headers.IsRecordFree((ushort)reference.Record))
+            if (!_headers.IsRecordFree((ushort)reference.LogicalRecordNum))
             {
-                var offset = _headers.RecordShift((ushort)reference.Record);
-                var size = _headers.RecordSize((ushort)reference.Record);
+                var offset = _headers.RecordShift((ushort)reference.LogicalRecordNum);
+                var size = _headers.RecordSize((ushort)reference.LogicalRecordNum);
                 var bytes = _accessor.GetByteArray(offset, size);
                 var r = new TRecordType();
                 r.Reference = reference;
@@ -68,7 +72,7 @@ namespace Pager.Classes
             SetRecord(record, type);
             if (type.Reference == null)
                 type.Reference = new PageRecordReference { Page = Reference };
-            type.Reference.Record = record;
+            type.Reference.LogicalRecordNum = record;
             return true;
         }
 
@@ -85,7 +89,7 @@ namespace Pager.Classes
         {
             if (record.Reference.Page != this.Reference)
                 throw new ArgumentException();
-            SetRecord(record.Reference.Record, record);
+            SetRecord(record.Reference.LogicalRecordNum, record);
 
         }
 
@@ -93,10 +97,10 @@ namespace Pager.Classes
         {
             if (record == null)
                 throw new ArgumentNullException("record");
-            if (record.Reference.Record == -1)
+            if (record.Reference.LogicalRecordNum == -1)
                 throw new ArgumentException("Trying to delete deleted record");
-            _headers.FreeRecord((ushort)record.Reference.Record);
-            record.Reference.Record = -1;
+            _headers.FreeRecord((ushort)record.Reference.LogicalRecordNum);
+            record.Reference.LogicalRecordNum = -1;
         }
 
         public  void Flush()
@@ -133,15 +137,15 @@ namespace Pager.Classes
             if (reference.Page != Reference)
                 throw new ArgumentException("The record is on another page");
         }
-        public void SwapRecords(TRecordType record1, TRecordType record2)
+        public void SwapRecords(PageRecordReference record1, PageRecordReference record2)
         {
-            CheckReferenceToPageAffinity(record1.Reference);
-            CheckReferenceToPageAffinity(record2.Reference);
-            if (record1.Reference.Record == -1)
+            CheckReferenceToPageAffinity(record1);
+            CheckReferenceToPageAffinity(record2);
+            if (record1.LogicalRecordNum == -1)
                 throw new ArgumentException("record1 was deleted");
-            if (record2.Reference.Record == -1)
+            if (record2.LogicalRecordNum == -1)
                 throw new ArgumentException("record2 was deleted");
-            _headers.SwapRecords((ushort)record1.Reference.Record, (ushort)record2.Reference.Record);
+            _headers.SwapRecords((ushort)record1.LogicalRecordNum, (ushort)record2.LogicalRecordNum);
         }
     }
 }

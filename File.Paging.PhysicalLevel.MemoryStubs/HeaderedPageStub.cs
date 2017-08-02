@@ -18,6 +18,8 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
 
         public double PageFullness => _childPage.PageFullness;
 
+        public byte RegisteredPageType => _childPage.RegisteredPageType;
+
         private HeaderPageConfiguration<THeader> _config;
         internal HeaderedPageStub(IPage childPage, PageReference reference, HeaderPageConfiguration<THeader> config)
         {

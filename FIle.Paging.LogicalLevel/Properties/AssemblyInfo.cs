@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Pager")]
+[assembly: AssemblyTitle("FIle.Paging.LogicalLevel")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Hewlett-Packard")]
-[assembly: AssemblyProduct("Pager")]
+[assembly: AssemblyProduct("FIle.Paging.LogicalLevel")]
 [assembly: AssemblyCopyright("Copyright © Hewlett-Packard 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("48462091-cdbc-4e4e-aee7-f63665e15a64")]
+[assembly: Guid("09d1ee6b-62e5-4c98-be83-951d5c025308")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -34,9 +34,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly:InternalsVisibleTo("Test.Pager")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
-[assembly: InternalsVisibleTo("Benchmark.Paging.PhysicalLevel")]
-[assembly: InternalsVisibleTo("File.Paging.LogicalLevel")]
-[assembly: InternalsVisibleTo("File.Paging.PhysicalLevel.MemoryStubs")]
 [assembly: InternalsVisibleTo("Test.Paging.LogicalLevel")]
