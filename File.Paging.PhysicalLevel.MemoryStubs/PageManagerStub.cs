@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager;
-using Pager.Classes;
-using Pager.Exceptions;
+using File.Paging.PhysicalLevel.Classes;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.MemoryStubs
 {
     internal sealed class PageManagerStub : IPageManager
     {
-        private Dictionary<PageReference, IPage> _pages = new Dictionary<PageReference, IPage>();
-        private Dictionary<PageReference, object> _headeredPages = new Dictionary<PageReference, object>();
-        private Dictionary<PageReference, byte> _pageTypes = new Dictionary<PageReference, byte>();
-        private PageManagerConfiguration _config;
-        private int _size;
+        private readonly Dictionary<PageReference, IPage> _pages = new Dictionary<PageReference, IPage>();
+        private readonly Dictionary<PageReference, object> _headeredPages = new Dictionary<PageReference, object>();
+        private readonly Dictionary<PageReference, byte> _pageTypes = new Dictionary<PageReference, byte>();
+        private readonly PageManagerConfiguration _config;
+        private readonly int _size;
         internal PageManagerStub(PageManagerConfiguration config)
         {
             _config = config;

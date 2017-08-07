@@ -1,50 +1,50 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
-using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager.Implementations;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager
+namespace File.Paging.PhysicalLevel.Implementations
 {
     [Export(typeof(IPageManagerFactory))]
-    public sealed class PageManagerFactory : IPageManagerFactory
+    public sealed class PageManagerFactory : IPageManagerFactory,IDisposable
     {
-        private AssemblyCatalog _catalog;
+        private readonly AssemblyCatalog _catalog;
         public IPageManager CreateManager(string fileName, PageManagerConfiguration configuration, bool createFileIfNotExists)
         {
-            FileStream _file;          
+            FileStream file;          
 
-            bool shouldInit = false;
-            if (!File.Exists(fileName))
+            
+            if (!System.IO.File.Exists(fileName))
             {
                 if (createFileIfNotExists)
                 {
-                    _file = File.Create(fileName);
-                    shouldInit = true;
+                    file = System.IO.File.Create(fileName);                   
                 }
                 else
                     throw new FileNotFoundException($"Page file {fileName} not found");
             }
             else
-                _file = File.Open(fileName, FileMode.Open);
+                file = System.IO.File.Open(fileName, FileMode.Open);
             var children = new CompositionContainer(_catalog);
             var b = new CompositionBatch();
             b.AddExportedValue(configuration);
-            b.AddExportedValue(_file);
+            b.AddExportedValue(file);
             children.Compose(b);                                 
             var a1 = children.GetExport<FileStream>();
             var a2 = children.GetExport<IUnderlyingFileOperator>();
             return children.GetExportedValue<IPageManager>();
         }
-        private CompositionContainer _container;
+        
         public PageManagerFactory()
         {
             _catalog = new AssemblyCatalog(typeof(PageManagerFactory).Assembly);
+        }
+
+        public void Dispose()
+        {
+            _catalog.Dispose();
         }
     }
 }

@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager.Classes;
+using File.Paging.PhysicalLevel.Classes;
+using File.Paging.PhysicalLevel.Classes.Pages;
 
-namespace Pager
+namespace File.Paging.PhysicalLevel.Contracts
 {
 
     public interface IPageManager:IDisposable

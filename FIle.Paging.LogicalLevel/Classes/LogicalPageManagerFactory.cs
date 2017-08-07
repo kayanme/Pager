@@ -1,28 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Contracts;
+using File.Paging.PhysicalLevel.Implementations;
 using FIle.Paging.LogicalLevel.Classes.Configurations;
 using FIle.Paging.LogicalLevel.Contracts;
-using Pager;
 
 namespace FIle.Paging.LogicalLevel.Classes
 {
     public sealed class LogicalPageManagerFactory : ILogicalPageManagerFactory
     {
-        public IPageManager CreateManager(string fileName, Pager.PageManagerConfiguration configuration, bool createFileIfNotExists)
+        public IPageManager CreateManager(string fileName, PageManagerConfiguration configuration, bool createFileIfNotExists)
         {
             var phys = _factory.CreateManager(fileName, configuration, createFileIfNotExists);
-            if (configuration is Configurations.LogicalPageManagerConfiguration)
-            {
-                return new LogicalPageManager((IPageManager)phys, (Configurations.LogicalPageManagerConfiguration)(configuration as Configurations.LogicalPageManagerConfiguration));
-            }
-            else
-                return phys;
+            var config = configuration as LogicalPageManagerConfiguration;
+            return config != null ? new LogicalPageManager(phys, config) : phys;
         }
 
-        IPageManagerFactory _factory;
+        readonly IPageManagerFactory _factory;
         public LogicalPageManagerFactory()
         {
             _factory = new PageManagerFactory();

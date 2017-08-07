@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Pager.Contracts;
-using Pager.Exceptions;
+using File.Paging.PhysicalLevel.Contracts;
+using File.Paging.PhysicalLevel.Exceptions;
 
-namespace Pager.Implementations
+namespace File.Paging.PhysicalLevel.Implementations
 {
     internal abstract class PageHeadersBase : IPageHeaders
     {
@@ -16,11 +14,11 @@ namespace Pager.Implementations
       
         private const byte RecordUseMask = 0xFF;
 
-        protected abstract  int[] _recordInfo { get; }
+        protected abstract  int[] RecordInfo { get; }
         
 
 
-        public ushort RecordCount => (ushort)_recordInfo.Count(k => RecordType(0) != 0);
+        public ushort RecordCount => (ushort)RecordInfo.Count(k => RecordType(0) != 0);
 
        
 
@@ -38,9 +36,9 @@ namespace Pager.Implementations
         {
 
             Thread.BeginCriticalRegion();
-            var r = _recordInfo[record];
+            var r = RecordInfo[record];
             var newInf = FormRecordInf(0, RecordSize(record), RecordShift(record));
-            if (Interlocked.CompareExchange(ref _recordInfo[record], newInf, r) == r)
+            if (Interlocked.CompareExchange(ref RecordInfo[record], newInf, r) == r)
             {
                 SetFree(record);                
             }
@@ -55,16 +53,16 @@ namespace Pager.Implementations
         private const uint TypeMask = 0x0000000F;
 
         [MethodImpl(methodImplOptions: MethodImplOptions.AggressiveInlining)]
-        public virtual ushort RecordShift(ushort record) => (ushort)((_recordInfo[record] & ShiftMask) >> 18);//14 бит = 16384
+        public virtual ushort RecordShift(ushort record) => (ushort)((RecordInfo[record] & ShiftMask) >> 18);//14 бит = 16384
         [MethodImpl(methodImplOptions: MethodImplOptions.AggressiveInlining)]
-        public byte RecordType(ushort record) => (byte)(_recordInfo[record] & TypeMask);//4 бит = 16
+        public byte RecordType(ushort record) => (byte)(RecordInfo[record] & TypeMask);//4 бит = 16
         [MethodImpl(methodImplOptions: MethodImplOptions.AggressiveInlining)]
-        public ushort RecordSize(ushort record) => (ushort)((_recordInfo[record] & SizeMask) >> 4);//14 бит = 16384
+        public ushort RecordSize(ushort record) => (ushort)((RecordInfo[record] & SizeMask) >> 4);//14 бит = 16384
 
 
         public bool IsRecordFree(ushort record)
         {
-            return RecordType(record) == 0; ;
+            return RecordType(record) == 0; 
         }
 
         protected abstract ushort TotalRecords { get; }
@@ -81,26 +79,26 @@ namespace Pager.Implementations
             foreach (var i in PossibleRecordsToInsert())
             {
                 var it = FormRecordInf(rType, rSize, ushort.MaxValue);
-                if (Interlocked.CompareExchange(ref _recordInfo[i], it, 0) == 0)
+                if (Interlocked.CompareExchange(ref RecordInfo[i], it, 0) == 0)
                 {                    
                     var shift = SetUsed((ushort)i, rSize, rType);
                     if (shift == ushort.MaxValue)//если запись данного размера не влезает в свободое место
                     {
-                        _recordInfo[i] = 0;
+                        RecordInfo[i] = 0;
                         break;                    
                     }                  
                     else
                     {
-                        _recordInfo[i] = FormRecordInf(rType, rSize, shift);
+                        RecordInfo[i] = FormRecordInf(rType, rSize, shift);
                         index = (short)i;
                         break;
                     }
                 }
-            };
+            }
             Thread.EndCriticalRegion();
             if (index!=-1)
             {
-                return (short)(index);
+                return index;
             }
             else
             {
@@ -109,14 +107,14 @@ namespace Pager.Implementations
 
         }
 
-        public IEnumerable<ushort> NonFreeRecords()=>  _recordInfo.Where((k,i) => RecordType((ushort)i) != 0).Select((k, i) => (ushort)i);
+        public IEnumerable<ushort> NonFreeRecords()=>  RecordInfo.Where((k,i) => RecordType((ushort)i) != 0).Select((k, i) => (ushort)i);
 
         public void SetNewRecordInfo(ushort recordNum,ushort rSize, byte rType)
         {
-            var oldInf = _recordInfo[recordNum];
+            var oldInf = RecordInfo[recordNum];
             var shift = RecordShift(recordNum);
             var t = FormRecordInf(rType, rSize, shift);
-            if (Interlocked.CompareExchange(ref _recordInfo[recordNum], t, oldInf) != oldInf)
+            if (Interlocked.CompareExchange(ref RecordInfo[recordNum], t, oldInf) != oldInf)
                 throw new RecordWriteConflictException();
             UpdateUsed(recordNum, shift, rSize, rType);
         }
@@ -126,14 +124,12 @@ namespace Pager.Implementations
         {
             if (RecordType(recordOne) == 0 || RecordType(recordTwo) == 0)
                 throw new InvalidOperationException();
-            int oldOne;
-            int oldTwo;
 
-            oldTwo = _recordInfo[recordTwo];
-            oldOne = Interlocked.Exchange(ref _recordInfo[recordOne], _recordInfo[recordTwo]);
-            if (Interlocked.CompareExchange(ref _recordInfo[recordTwo], oldOne, oldTwo) != oldTwo)
+            var oldTwo = RecordInfo[recordTwo];
+            var oldOne = Interlocked.Exchange(ref RecordInfo[recordOne], RecordInfo[recordTwo]);
+            if (Interlocked.CompareExchange(ref RecordInfo[recordTwo], oldOne, oldTwo) != oldTwo)
             {
-                Interlocked.CompareExchange(ref _recordInfo[recordOne], oldOne, oldTwo);
+                Interlocked.CompareExchange(ref RecordInfo[recordOne], oldOne, oldTwo);
                 throw new RecordWriteConflictException();
             }
             SetNewLogicalRecordNum(recordOne, RecordShift(recordOne));

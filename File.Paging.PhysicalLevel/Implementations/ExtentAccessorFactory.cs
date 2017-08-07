@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager.Implementations
+namespace File.Paging.PhysicalLevel.Implementations
 {
     [Export(typeof(IExtentAccessorFactory))]
     internal class ExtentAccessorFactory : IExtentAccessorFactory
     {
-        IUnderlyingFileOperator _file;
+        readonly IUnderlyingFileOperator _file;
 
-        private ConcurrentDictionary<MemoryMappedViewAccessor, MemoryMappedFile> _accessorsLent = new ConcurrentDictionary<MemoryMappedViewAccessor, MemoryMappedFile>();
+        private readonly ConcurrentDictionary<MemoryMappedViewAccessor, MemoryMappedFile> _accessorsLent = new ConcurrentDictionary<MemoryMappedViewAccessor, MemoryMappedFile>();
 
         [ImportingConstructor]
         internal ExtentAccessorFactory(IUnderlyingFileOperator file)
@@ -35,17 +32,16 @@ namespace Pager.Implementations
 
         public void ReturnAccessor(MemoryMappedViewAccessor map)
         {
-            map.Dispose();
-            MemoryMappedFile f;
-            _accessorsLent.TryRemove(map, out f);
+            map.Dispose();            
+            _accessorsLent.TryRemove(map, out MemoryMappedFile f);
             _file.ReturnMappedFile(f);
         }
 
         
-        private bool disposedValue = false; 
+        private bool _disposedValue = false; 
         void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
@@ -55,7 +51,7 @@ namespace Pager.Implementations
                     }              
                 }
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
         ~ExtentAccessorFactory()

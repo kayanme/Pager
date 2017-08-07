@@ -3,19 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager;
+using File.Paging.PhysicalLevel.Classes;
 
 namespace Durability.Paging.PhysicalLevel
 {
     internal class SharedDataStore
     {
 
-        private ConcurrentDictionary<PageRecordReference, TestRecord> _store = new ConcurrentDictionary<PageRecordReference, TestRecord>();
-        private Random _rnd = new Random();
+        private readonly ConcurrentDictionary<PageRecordReference, TestRecord> _store = new ConcurrentDictionary<PageRecordReference, TestRecord>();
+        private readonly Random _rnd = new Random();
 
-        private HashSet<PageRecordReference> _inUse = new HashSet<PageRecordReference>();
+        private readonly HashSet<PageRecordReference> _inUse = new HashSet<PageRecordReference>();
 
         public void Add(PageRecordReference reference,TestRecord data)
         {
@@ -36,9 +34,8 @@ namespace Durability.Paging.PhysicalLevel
         }
 
         public void Delete(PageRecordReference reference,TestRecord old)
-        {
-            TestRecord rec;
-            if (!_store.TryRemove(reference, out rec) || rec.Data != old.Data)
+        {            
+            if (!_store.TryRemove(reference, out var rec) || rec.Data != old.Data)
                 Debugger.Break();
             _inUse.Remove(reference);
         }
@@ -65,9 +62,8 @@ namespace Durability.Paging.PhysicalLevel
         }
 
         public void Check(TestRecord data)
-        {
-            TestRecord rec;
-            if (!_store.TryGetValue(data.Reference,out rec) || rec.Data != data.Data)
+        {            
+            if (!_store.TryGetValue(data.Reference,out var rec) || rec.Data != data.Data)
                 Debugger.Break();
         }
     }

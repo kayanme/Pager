@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Pager
+namespace File.Paging.PhysicalLevel.Contracts
 {
-    internal interface IGAMAccessor:IDisposable
+    internal interface IGamAccessor:IDisposable
     {
-        void InitializeGAM();
+        void InitializeGam();
         byte GetPageType(int pageNum);
         int MarkPageUsed(byte pageType);
         void MarkPageFree(int pageNum);

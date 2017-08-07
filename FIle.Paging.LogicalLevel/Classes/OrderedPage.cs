@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using File.Paging.PhysicalLevel.Classes;
+using File.Paging.PhysicalLevel.Classes.Pages;
 using FIle.Paging.LogicalLevel.Contracts;
-using Pager;
-using Pager.Classes;
 
 namespace FIle.Paging.LogicalLevel.Classes
 {
@@ -19,8 +17,8 @@ namespace FIle.Paging.LogicalLevel.Classes
         }
 
 
-        private IPage<TRecord> _physicalPage;
-        private Func<TRecord, TKey> _keySelector;
+        private readonly IPage<TRecord> _physicalPage;
+        private readonly Func<TRecord, TKey> _keySelector;
         private List<TKey> _keys = new List<TKey>();
         private List<Guid> _references = new List<Guid>();
         private Dictionary<Guid, int> _backwardReferences = new Dictionary<Guid, int>();
@@ -28,6 +26,7 @@ namespace FIle.Paging.LogicalLevel.Classes
         internal OrderedPage(IPage<TRecord> physicalPage, Func<TRecord, TKey> keySelector)
         {
             _physicalPage = physicalPage;
+            Debug.Assert(physicalPage is IPhysicalLevelManipulation, "physicalPage is IPhysicalLevelManipulation");
             _keySelector = keySelector;
             Initialize();
         }
@@ -47,7 +46,7 @@ namespace FIle.Paging.LogicalLevel.Classes
         private Stack<TRecord> _sortingDeleteQueue = new Stack<TRecord>();
 
         
-        private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         public PageReference Reference => _physicalPage.Reference;
 
@@ -57,12 +56,7 @@ namespace FIle.Paging.LogicalLevel.Classes
 
         private int FindLogicalRecordByOrderNum(Guid orderNum) =>_backwardReferences.ContainsKey(orderNum)?_backwardReferences[orderNum]:-1;
 
-        private enum ShiftDirection { Back,Forth}
-        private struct ShiftOperation
-        {
-            public ShiftDirection ShiftDirection;
-            public int StartPosition;
-        }
+       
 
         private struct KeyWrap:IComparable<KeyWrap>,IComparable
         {
@@ -126,7 +120,7 @@ namespace FIle.Paging.LogicalLevel.Classes
                     {
                         var r1 = new PageRecordReference { Page = Reference, LogicalRecordNum = i };
                         var r2 = new PageRecordReference { Page = Reference, LogicalRecordNum = permutation[i] };
-                        _physicalPage.SwapRecords(r1,r2 );
+                        (_physicalPage as IPhysicalLevelManipulation).SwapRecords(r1,r2 );
                         temp[permutation[i]].Original.Reference = r1;
                     }                    
                 }
@@ -137,12 +131,14 @@ namespace FIle.Paging.LogicalLevel.Classes
                     _references.Add(temp2[permutation[i]]);
                     _backwardReferences.Add(temp2[permutation[i]], _references.Count - 1);
                     if (permutation[i] < i)
-                        _physicalPage.SwapRecords(new PageRecordReference { Page = Reference, LogicalRecordNum = i }, new PageRecordReference { Page = Reference, LogicalRecordNum = permutation[i] });
+                        (_physicalPage as IPhysicalLevelManipulation).SwapRecords(new PageRecordReference { Page = Reference, LogicalRecordNum = i }, new PageRecordReference { Page = Reference, LogicalRecordNum = permutation[i] });
                 }
                 
             }
             foreach(var t in temp.Where(k=>k.Original != null))
                 _physicalPage.FreeRecord(t.Original);
+
+            (_physicalPage as IPhysicalLevelManipulation).Flush();
         }
 
         public bool AddRecord(TRecord type)
@@ -238,12 +234,7 @@ namespace FIle.Paging.LogicalLevel.Classes
             }
             finally { _lock.ExitWriteLock(); }
         }
-       
-        public void Flush()
-        {
-            _physicalPage.Flush();
-        }
-
+      
         public void Dispose()
         {
             _physicalPage.Dispose();

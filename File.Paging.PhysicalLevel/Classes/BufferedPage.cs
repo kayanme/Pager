@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager.Contracts;
+﻿using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager.Classes
+namespace File.Paging.PhysicalLevel.Classes
 {
     internal class BufferedPage
     {
         public byte PageType;
         public IPageAccessor Accessor;
         public IPageHeaders Headers;
-        public PageConfiguration Config;
-        public HeaderPageConfiguration HeaderConfig;
+        public PageContentConfiguration Config;
+        public PageHeadersConfiguration HeaderConfig;
     }
 }

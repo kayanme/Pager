@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager;
-using Pager.Classes;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Contracts;
+using File.Paging.PhysicalLevel.Implementations;
 
 namespace Durability.Paging.PhysicalLevel
 {
@@ -19,16 +17,10 @@ namespace Durability.Paging.PhysicalLevel
         private static SharedDataStore _store;
         static void Main(string[] args)
         {
-            if (File.Exists("teststress"))
-               File.Delete("teststress");
-            var config = new PageManagerConfiguration { SizeOfPage = PageManagerConfiguration.PageSize.Kb8 };
-            config.PageMap = new Dictionary<byte, PageConfiguration>
-            { {2,new FixedRecordTypePageConfiguration<TestRecord> {
-                RecordMap = new FixedSizeRecordDeclaration<TestRecord>((r,b)=>Buffer.BlockCopy(r.Data.ToByteArray(),0,b,0,b.Count()),(b,r)=>r.Data =new Guid(b.ToArray()),16) } },
-             {1,new VariableRecordTypePageConfiguration<TestRecord>(_=>1) {
-                RecordMap = new Dictionary<byte, VariableSizeRecordDeclaration<TestRecord>>
-                         { { 1, new VariableSizeRecordDeclaration<TestRecord>((r,b)=>Buffer.BlockCopy(r.Data.ToByteArray(),0,b,0,b.Count()),(b,r)=>r.Data =new Guid(b.ToArray()),_=>16) }
-                     } } } };
+            if (System.IO.File.Exists("teststress"))
+                System.IO.File.Delete("teststress");
+            var config = new PageConfig(PageManagerConfiguration.PageSize.Kb8);
+          
             var f = new PageManagerFactory();
             _pageManager = f.CreateManager("teststress", config, true);
             _lastunempty = _pageManager.CreatePage(1) as IPage<TestRecord>;
@@ -41,7 +33,7 @@ namespace Durability.Paging.PhysicalLevel
          
             d.Dispose();
             _pageManager.Dispose();
-            File.Delete("teststress");
+            System.IO.File.Delete("teststress");
             GC.Collect();
 
             Console.ReadKey();

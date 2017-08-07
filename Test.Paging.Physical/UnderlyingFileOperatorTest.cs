@@ -1,10 +1,8 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Pager;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
-using Pager.Implementations;
+using File.Paging.PhysicalLevel;
+using File.Paging.PhysicalLevel.Contracts;
+using File.Paging.PhysicalLevel.Implementations;
 
 namespace Test.Pager
 {
@@ -28,7 +26,7 @@ namespace Test.Pager
         private FileStream _file;
         private IUnderlyingFileOperator GetOperator(int initSize)
         {
-            _file = File.Open(FileName, FileMode.OpenOrCreate);
+            _file = System.IO.File.Open(FileName, FileMode.OpenOrCreate);
             _file.SetLength(initSize);
             _file.Flush();
             return new UnderyingFileOperator(_file);
@@ -40,7 +38,7 @@ namespace Test.Pager
           
             try
             {
-                File.Delete(FileName);
+                System.IO.File.Delete(FileName);
             }
             catch { }
         }
@@ -53,7 +51,7 @@ namespace Test.Pager
             opr.Dispose();
             map.Dispose();            
             _file.Dispose();
-            var f = File.Open(FileName, FileMode.OpenOrCreate);
+            var f = System.IO.File.Open(FileName, FileMode.OpenOrCreate);
             Assert.AreEqual(Extent.Size * 2, f.Length);
             f.Dispose();
         }
@@ -66,7 +64,7 @@ namespace Test.Pager
             opr.Dispose();
             map.Dispose();
             _file.Dispose();
-            var f = File.Open(FileName, FileMode.OpenOrCreate);
+            var f = System.IO.File.Open(FileName, FileMode.OpenOrCreate);
             Assert.AreEqual(Extent.Size * 2, f.Length);
             f.Dispose();
         }

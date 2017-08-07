@@ -2,25 +2,52 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager.Classes;
-using Pager.Contracts;
-using Pager.Implementations;
+using System.Runtime.CompilerServices;
+using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
 
-namespace Pager
+namespace File.Paging.PhysicalLevel.Classes.Configurations
 {
 
-    [Export]
+    
     public class PageManagerConfiguration
     {
 
-        public Dictionary<byte, PageConfiguration> PageMap = new Dictionary<byte, PageConfiguration>();
-        public Dictionary<byte, object> HeaderConfig = new Dictionary<byte, object>();
+        internal Dictionary<byte, PageContentConfiguration> PageMap = new Dictionary<byte, PageContentConfiguration>();
+        internal Dictionary<byte, PageHeadersConfiguration> HeaderConfig = new Dictionary<byte, PageHeadersConfiguration>();
 
         public enum PageSize { Kb4 = 4*1024, Kb8 = 8 * 1024 }
 
-        public PageSize SizeOfPage { get; set; }
+        internal PageSize SizeOfPage { get; set; }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        protected IPageDefinitionBuilder DefinePageType(byte num)
+        {
+            if (PageMap.ContainsKey(num))
+                throw new InvalidOperationException("Page with such number where already registered");
+
+            PageMap.Add(num,null);
+            return new PageDefinitionBuilder(this,num);
+        }
+
+        internal PageManagerConfiguration()
+        {           
+        }
+
+        protected PageManagerConfiguration(PageSize sizeOfPage)
+        {
+            SizeOfPage = sizeOfPage;
+        }
+
+        internal void Verify()
+        {
+            foreach (var pageContentConfiguration in PageMap)
+            {
+              
+                if (pageContentConfiguration.Value ==null)
+                    throw new ArgumentException($"Page type configuration {pageContentConfiguration.Key} is incomplete");
+                pageContentConfiguration.Value.Verify();
+            }
+        }
     }
 
    

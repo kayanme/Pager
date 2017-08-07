@@ -1,14 +1,11 @@
-﻿using System;
-using System.ComponentModel.Composition.Hosting;
-using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Pager;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Collections.Generic;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Rhino.Mocks;
-using System.IO.MemoryMappedFiles;
-using Pager.Classes;
+using File.Paging.PhysicalLevel;
+using File.Paging.PhysicalLevel.Classes;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Contracts;
+using File.Paging.PhysicalLevel.Implementations;
 
 namespace Test.Pager
 {
@@ -21,14 +18,16 @@ namespace Test.Pager
         [TestInitialize]
         public void Init()
         {
-            var gamMock = MockRepository.GenerateMock<IGAMAccessor>();
+            var gamMock = MockRepository.GenerateMock<IGamAccessor>();
             var blockFactoryMock = MockRepository.GenerateMock<IExtentAccessorFactory>();
             var fileOperator = MockRepository.GenerateMock<IUnderlyingFileOperator>();
             TestContext.Properties.Add("IGAMAccessor", gamMock);
             TestContext.Properties.Add("IExtentAccessorFactory", blockFactoryMock);
             TestContext.Properties.Add("IUnderlyingFileOperator", fileOperator);
-            var config = new PageManagerConfiguration();
-            config.SizeOfPage = PageManagerConfiguration.PageSize.Kb4;
+            var config = new PageManagerConfiguration()
+            {
+                SizeOfPage = PageManagerConfiguration.PageSize.Kb4
+            };
             var fconfig = new FixedRecordTypePageConfiguration<TestRecord>
             {
                 RecordMap = new FixedSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
@@ -40,7 +39,7 @@ namespace Test.Pager
                 
                 //RecordType = new RecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
             };
-            var hconfig = new HeaderPageConfiguration<TestHeader>
+            var hconfig = new PageHeadersConfiguration<TestHeader>
             {
                 Header = new FixedSizeRecordDeclaration<TestHeader>((t, b) => { t.FillFromByteArray(b); },  (b, t) => { t.FillByteArray(b); },7),
                 InnerPageMap = fconfig
@@ -65,13 +64,13 @@ namespace Test.Pager
         }
 
         private string FileName => TestContext.TestName;
-        private byte fconfig => 1;
-        private byte vconfig => 2;
+        private byte Fconfig => 1;
+        private byte Vconfig => 2;
 
 
-        private IGAMAccessor gamMock => TestContext.Properties["IGAMAccessor"] as IGAMAccessor;
-        private IUnderlyingFileOperator fileMock => TestContext.Properties["IUnderlyingFileOperator"] as IUnderlyingFileOperator;
-        private IExtentAccessorFactory blockMock => TestContext.Properties["IExtentAccessorFactory"] as IExtentAccessorFactory;
+        private IGamAccessor GamMock => TestContext.Properties["IGAMAccessor"] as IGamAccessor;
+        private IUnderlyingFileOperator FileMock => TestContext.Properties["IUnderlyingFileOperator"] as IUnderlyingFileOperator;
+        private IExtentAccessorFactory BlockMock => TestContext.Properties["IExtentAccessorFactory"] as IExtentAccessorFactory;
 
      
         [TestMethod]
@@ -83,15 +82,15 @@ namespace Test.Pager
             t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
             t.Expect(k => k.Dispose()).Repeat.Any();
             t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            blockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            gamMock.Expect(k => k.MarkPageUsed(1)).Return(0);
-            gamMock.Expect(k => k.GetPageType(0)).Return(1);
+            BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
+            GamMock.Expect(k => k.MarkPageUsed(1)).Return(0);
+            GamMock.Expect(k => k.GetPageType(0)).Return(1);
             var manager = GetManager();
-            var page = manager.CreatePage(fconfig);
+            var page = manager.CreatePage(Fconfig);
             manager.Dispose();
            
           
-            gamMock.VerifyAllExpectations();
+            GamMock.VerifyAllExpectations();
           
         }
 
@@ -104,16 +103,16 @@ namespace Test.Pager
             t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
             t.Expect(k => k.Dispose()).Repeat.Any();
             t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            blockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            gamMock.Expect(k => k.MarkPageUsed(2)).Return(0);
-            gamMock.Expect(k => k.GetPageType(0)).Return(2);
+            BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
+            GamMock.Expect(k => k.MarkPageUsed(2)).Return(0);
+            GamMock.Expect(k => k.GetPageType(0)).Return(2);
             var manager = GetManager();
-            var page = manager.CreatePage(vconfig);
+            var page = manager.CreatePage(Vconfig);
             manager.Dispose();
 
             t.VerifyAllExpectations();
-            blockMock.VerifyAllExpectations();
-            gamMock.VerifyAllExpectations();
+            BlockMock.VerifyAllExpectations();
+            GamMock.VerifyAllExpectations();
 
         }
 
@@ -121,12 +120,12 @@ namespace Test.Pager
         public void PageDeletion()
         {                            
 
-            gamMock.Expect(k => k.MarkPageFree(0));
+            GamMock.Expect(k => k.MarkPageFree(0));
             var manager = GetManager();
             manager.DeletePage(new PageReference(0),true);
             manager.Dispose();
                      
-            gamMock.VerifyAllExpectations();
+            GamMock.VerifyAllExpectations();
             
         }
 
@@ -141,15 +140,15 @@ namespace Test.Pager
             t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
             t.Expect(k => k.Dispose()).Repeat.Any();
             t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            blockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            gamMock.Expect(k => k.GetPageType(0)).Return(1);
+            BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
+            GamMock.Expect(k => k.GetPageType(0)).Return(1);
             using (var manager = GetManager())
             {
                 var page = manager.RetrievePage(new PageReference(0));              
                 Assert.AreEqual(new PageReference(0), page.Reference);
                 Assert.IsInstanceOfType(page, typeof(FixedRecordTypedPage<TestRecord>));
             }
-            blockMock.VerifyAllExpectations();
+            BlockMock.VerifyAllExpectations();
         }
 
         [TestMethod]
@@ -162,15 +161,15 @@ namespace Test.Pager
             t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
             t.Expect(k => k.Dispose()).Repeat.Any();
             t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            blockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            gamMock.Expect(k => k.GetPageType(0)).Return(2);
+            BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
+            GamMock.Expect(k => k.GetPageType(0)).Return(2);
             using (var manager = GetManager())
             {
                 var page = manager.RetrievePage(new PageReference(0));
                 Assert.AreEqual(new PageReference(0), page.Reference);
                 Assert.IsInstanceOfType(page, typeof(ComplexRecordTypePage<TestRecord>));
             }
-            blockMock.VerifyAllExpectations();
+            BlockMock.VerifyAllExpectations();
         }
 
        
@@ -186,8 +185,8 @@ namespace Test.Pager
             t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
             t.Expect(k => k.Dispose()).Repeat.Any();
             t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            blockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            gamMock.Expect(k => k.GetPageType(0)).Return(3);
+            BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
+            GamMock.Expect(k => k.GetPageType(0)).Return(3);
             using (var manager = GetManager())
             {
                 var page = manager.RetrievePage(new PageReference(0));
@@ -195,7 +194,7 @@ namespace Test.Pager
                 Assert.IsInstanceOfType(page, typeof(HeaderedPage<TestHeader>));            
             }
           
-            blockMock.VerifyAllExpectations();
+            BlockMock.VerifyAllExpectations();
         }
 
     }

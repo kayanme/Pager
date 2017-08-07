@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Paging.Physical", "Test.Paging.Physical\Test.Paging.Physical.csproj", "{E24D66C5-8B2C-489C-B9C7-A0B6661F848A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Paging.PhysicalLevel", "Test.Paging.Physical\Test.Paging.PhysicalLevel.csproj", "{E24D66C5-8B2C-489C-B9C7-A0B6661F848A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "File.Paging.PhysicalLevel", "File.Paging.PhysicalLevel\File.Paging.PhysicalLevel.csproj", "{48462091-CDBC-4E4E-AEE7-F63665E15A64}"
 EndProject

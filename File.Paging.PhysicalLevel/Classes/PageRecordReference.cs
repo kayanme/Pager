@@ -1,47 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Pager
+﻿namespace File.Paging.PhysicalLevel.Classes
 {
-    public class PageReference
-    {
-        private int _pageNum;
-
-        internal int PageNum => _pageNum;
-
-        internal PageReference(int pageNum)
-        {
-            _pageNum = pageNum;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is PageReference && ((PageReference)obj)._pageNum == _pageNum;
-        }
-
-        public override string ToString()
-        {
-            return "logical num: " + _pageNum;
-        }
-
-        public override int GetHashCode()
-        {
-            return _pageNum; 
-        }
-
-        public static bool operator ==(PageReference r1, PageReference r2) => r1?.PageNum == r2?.PageNum;
-
-        public static bool operator !=(PageReference r1, PageReference r2) => r1?.PageNum != r2?.PageNum;
-
-        public PageReference Copy()
-        {
-            return new PageReference(_pageNum);
-        }
-    }
-
     public class PageRecordReference
     {
         public PageReference Page { get; internal set; }

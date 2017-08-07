@@ -1,18 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager.Contracts;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager.Classes
+namespace File.Paging.PhysicalLevel.Classes.Configurations
 {
-    public abstract class PageConfiguration
+    internal abstract class PageContentConfiguration
     {
+        public ConsistencyConfiguration ConsistencyConfiguration;
+
         internal abstract Type RecordType { get; }
 
         internal abstract IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType);
 
         internal abstract IPageHeaders CreateHeaders(IPageAccessor accessor,ushort initShift);
+
+        public abstract void Verify();
     }
 }

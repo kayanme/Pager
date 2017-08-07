@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.IO.MemoryMappedFiles;
+using File.Paging.PhysicalLevel;
+using File.Paging.PhysicalLevel.Contracts;
+using File.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Pager;
 using Rhino.Mocks;
-using Test.Pager;
 
 namespace Test.Pager
 {
@@ -15,7 +14,7 @@ namespace Test.Pager
         public TestContext TestContext { get; set; }
 
 
-        private static byte[] CreateEmptyGAM() => new byte[Extent.Size];
+        private static byte[] CreateEmptyGam() => new byte[Extent.Size];
 
     
         private static void MarkInGamFilled(byte[] gam, int pageNum,byte type)
@@ -32,27 +31,27 @@ namespace Test.Pager
         private void CheckFile(byte[] gam)
         {
             _map.Dispose();
-            var file = File.ReadAllBytes(FileName);
+            var file = System.IO.File.ReadAllBytes(FileName);
             CollectionAssert.AreEqual(gam, file);
         }
         private string FileName=>TestContext.TestName;
         private MemoryMappedFile _map;
-        private IGAMAccessor GetManager()
+        private IGamAccessor GetManager()
         {
-            _map = MemoryMappedFile.CreateFromFile(FileName, System.IO.FileMode.OpenOrCreate, FileName, Extent.Size);
+            _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, FileName, Extent.Size);
             var file = new MockRepository().StrictMock<IUnderlyingFileOperator>();
             file.Expect(k => k.GetMappedFile(Extent.Size)).Return(_map);
             file.Expect(k => k.ReturnMappedFile(_map));
             file.Replay();
-            return new GAMAccessor(file);
+            return new GamAccessor(file);
         }
         [TestCleanup]
         public void Clean()
         {
             try
             {
-              
-                File.Delete(FileName);
+
+                System.IO.File.Delete(FileName);
             }
             catch { }
         }
@@ -66,7 +65,7 @@ namespace Test.Pager
                 Assert.AreEqual(0, pageNum);
             }
 
-            var gam = CreateEmptyGAM();
+            var gam = CreateEmptyGam();
             MarkInGamFilled(gam, 0, 1);
             CheckFile(gam);
         }
@@ -74,9 +73,9 @@ namespace Test.Pager
         [TestMethod]
         public void MarkUsed_WhenOnePageUsed()
         {
-            var gam = CreateEmptyGAM();
+            var gam = CreateEmptyGam();
             MarkInGamFilled(gam, 0, 1);
-            using (var file = File.Create(FileName))
+            using (var file = System.IO.File.Create(FileName))
             {
                 file.Write(new byte[] { 1 }, 0, 1);
             }
@@ -95,9 +94,9 @@ namespace Test.Pager
         [TestMethod]
         public void MarkFree()
         {
-            var gam = CreateEmptyGAM();
+            var gam = CreateEmptyGam();
             MarkInGamFilled(gam, 0, 1);
-            using (var file = File.Create(FileName))
+            using (var file = System.IO.File.Create(FileName))
             {
                 file.Write(new byte[] { 1 }, 0, 1);
             }

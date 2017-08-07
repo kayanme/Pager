@@ -1,32 +1,29 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
-using System.IO.MemoryMappedFiles;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Pager.Classes;
-using Pager.Implementations;
+using File.Paging.PhysicalLevel.Classes;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager
+namespace File.Paging.PhysicalLevel.Implementations
 {
     [Export(typeof(IPageManager))]
     internal sealed class PageManager : IPageManager
     {
        
-        private IExtentAccessorFactory _blockFactory;
-        private IGAMAccessor _accessor;
-        private int _pageSize;
-        private PageManagerConfiguration _config;
-        private IUnderlyingFileOperator _operatorForDisposal;
+        private readonly IExtentAccessorFactory _blockFactory;
+        private readonly IGamAccessor _accessor;
+        private readonly int _pageSize;
+        private readonly PageManagerConfiguration _config;
+        private readonly IUnderlyingFileOperator _operatorForDisposal;
         private ConcurrentDictionary<int, BufferedPage> _bufferedPages = new ConcurrentDictionary<int, BufferedPage>();
         private int _pages;
 
         [ImportingConstructor]
-        internal PageManager(PageManagerConfiguration config,IGAMAccessor accessor,
+        internal PageManager(PageManagerConfiguration config,IGamAccessor accessor,
             IExtentAccessorFactory blockFactory,IUnderlyingFileOperator operatorForDisposal)
         {
           
@@ -44,7 +41,7 @@ namespace Pager
 
         public void DeletePage(PageReference page, bool ensureEmptyness)
         {
-            if (disposedValue)
+            if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
             _accessor.MarkPageFree(page.PageNum);
             Interlocked.Decrement(ref _pages);
@@ -54,13 +51,13 @@ namespace Pager
 
         public IPage RetrievePage(PageReference pageNum) 
         {
-            if (disposedValue)
+            if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
             var page = _bufferedPages.GetOrAdd(pageNum.PageNum, i =>
             {
                 var block = _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
                 var pageType = _accessor.GetPageType(pageNum.PageNum);              
-                var headerType =_config.HeaderConfig.ContainsKey(pageType)?_config.HeaderConfig[pageType] as HeaderPageConfiguration:null;
+                var headerType =_config.HeaderConfig.ContainsKey(pageType)?_config.HeaderConfig[pageType] as PageHeadersConfiguration:null;
                 if (headerType == null)
                 {
                     var type = _config.PageMap[pageType];
@@ -78,13 +75,13 @@ namespace Pager
                 }                                                                              
             });
             if (page.HeaderConfig != null)
-               return (page.HeaderConfig as HeaderPageConfiguration).CreatePage(page.Headers, page.Accessor, pageNum, _pageSize,page.PageType);
+               return (page.HeaderConfig as PageHeadersConfiguration).CreatePage(page.Headers, page.Accessor, pageNum, _pageSize,page.PageType);
             return page.Config.CreatePage(page.Headers,page.Accessor, pageNum,_pageSize, page.PageType);
         }
 
         public void GroupFlush(params IPage[] pages)
         {
-            if (disposedValue)
+            if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
             foreach (var t in  pages.Select(k=>_bufferedPages[k.Reference.PageNum]).GroupBy(k=>k.Accessor.ExtentNumber).Select(k=>k.First()))
             {
@@ -95,7 +92,7 @@ namespace Pager
 
         public IPage CreatePage(byte type)
         {
-            if (disposedValue)
+            if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
             if (type == 0)
                 throw new ArgumentException("TRecordType");
@@ -105,10 +102,10 @@ namespace Pager
         }      
 
 
-        private bool disposedValue = false;
+        private bool _disposedValue = false;
         void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
@@ -121,7 +118,7 @@ namespace Pager
                     _bufferedPages = null;                    
                 }
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
         ~PageManager()

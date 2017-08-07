@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager.Contracts;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager.Classes
+namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    public sealed class FixedRecordTypedPage<TRecordType> :  IPage<TRecordType> where TRecordType : TypedRecord, new()
+    public sealed class FixedRecordTypedPage<TRecordType> :  IPage<TRecordType>, IPhysicalLevelManipulation where TRecordType : TypedRecord, new()
     {
-        PageReference _reference;
-        private IPageAccessor _accessor;
-        private IPageHeaders _headers;
+        private readonly IPageAccessor _accessor;
+        private readonly IPageHeaders _headers;
      
      
      
-        private FixedRecordTypePageConfiguration<TRecordType> _config;
+        private readonly FixedRecordTypePageConfiguration<TRecordType> _config;
         internal FixedRecordTypedPage(IPageHeaders headers, IPageAccessor accessor, PageReference reference,
             int pageSize, FixedRecordTypePageConfiguration<TRecordType> config,
             byte pageType)
         {
-            _reference = reference;
+            Reference = reference;
             _accessor = accessor;
             _headers = headers;       
             _config = config;
@@ -28,7 +25,7 @@ namespace Pager.Classes
           
         }
 
-        public  PageReference Reference => _reference;
+        public  PageReference Reference { get; }
 
         public  double PageFullness =>0;
 
@@ -56,8 +53,10 @@ namespace Pager.Classes
                 var offset = _headers.RecordShift((ushort)reference.LogicalRecordNum);
                 var size = _headers.RecordSize((ushort)reference.LogicalRecordNum);
                 var bytes = _accessor.GetByteArray(offset, size);
-                var r = new TRecordType();
-                r.Reference = reference;
+                var r = new TRecordType()
+                {
+                    Reference = reference
+                };
                 _config.RecordMap.FillFromBytes(bytes, r);
                 return r;
             }
@@ -87,7 +86,7 @@ namespace Pager.Classes
 
         public void StoreRecord(TRecordType record)
         {
-            if (record.Reference.Page != this.Reference)
+            if (record.Reference.Page != Reference)
                 throw new ArgumentException();
             SetRecord(record.Reference.LogicalRecordNum, record);
 
@@ -96,7 +95,7 @@ namespace Pager.Classes
         public void FreeRecord(TRecordType record)
         {
             if (record == null)
-                throw new ArgumentNullException("record");
+                throw new ArgumentNullException(nameof(record));
             if (record.Reference.LogicalRecordNum == -1)
                 throw new ArgumentException("Trying to delete deleted record");
             _headers.FreeRecord((ushort)record.Reference.LogicalRecordNum);
@@ -108,17 +107,17 @@ namespace Pager.Classes
             _accessor.Flush();
         }
 
-        private bool disposedValue = false;
+        private bool _disposedValue = false;
         void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
                     Flush();
                 }
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
         ~FixedRecordTypedPage()
@@ -146,6 +145,11 @@ namespace Pager.Classes
             if (record2.LogicalRecordNum == -1)
                 throw new ArgumentException("record2 was deleted");
             _headers.SwapRecords((ushort)record1.LogicalRecordNum, (ushort)record2.LogicalRecordNum);
+        }
+
+        public void Compact()
+        {
+            throw new NotImplementedException();
         }
     }
 }

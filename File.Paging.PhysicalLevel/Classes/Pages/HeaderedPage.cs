@@ -1,27 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager.Classes
+namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal sealed class HeaderedPage<THeader> : IHeaderedPage<THeader> where THeader:new()
+    internal sealed class HeaderedPage<THeader> : IHeaderedPage<THeader>,IHeaderedPageInt where THeader:new()
     {
-        private  IPageAccessor _accessor;
-        private IPage _childPage;
-        public IPage Content => _childPage;
+        private readonly IPageAccessor _accessor;
+        public IPage Content { get; private set; }
+
         public PageReference Reference { get; }
         
-        public double PageFullness => _childPage.PageFullness;
+        public double PageFullness => Content.PageFullness;
 
-        public byte RegisteredPageType => _childPage.RegisteredPageType;
+        public byte RegisteredPageType => Content.RegisteredPageType;
 
-        private HeaderPageConfiguration<THeader> _config;
-        internal HeaderedPage(IPageAccessor accessor, IPage childPage, PageReference reference,HeaderPageConfiguration<THeader> config)
+        private readonly PageHeadersConfiguration<THeader> _config;
+        internal HeaderedPage(IPageAccessor accessor, IPage childPage, PageReference reference,PageHeadersConfiguration<THeader> config)
         {
             _accessor = accessor;
-            _childPage = childPage;
+            Content = childPage;
             _config = config;
             Reference = reference;
         }
@@ -40,25 +38,21 @@ namespace Pager.Classes
             var bytes = new byte[_config.Header.GetSize];
             _config.Header.FillBytes(header, bytes);
             _accessor.SetByteArray(bytes, 0, bytes.Length);
-        }
-
-        public  void Flush()
-        {
             _accessor.Flush();
-        }
+        }     
 
-        private bool disposedValue = false;
+        private bool _disposedValue = false;
         void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
-                    Flush();
-                    _childPage.Dispose();
+                    _accessor.Flush();
+                    Content.Dispose();
                 }
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
         ~HeaderedPage()
@@ -73,7 +67,9 @@ namespace Pager.Classes
             GC.SuppressFinalize(this);
         }
 
-
-
+        public void SwapContent(IPage page)
+        {
+            Content = page;
+        }
     }
 }

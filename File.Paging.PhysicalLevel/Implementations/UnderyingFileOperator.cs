@@ -1,24 +1,21 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager.Implementations
+namespace File.Paging.PhysicalLevel.Implementations
 {
     [Export(typeof(IUnderlyingFileOperator))]
     internal sealed class UnderyingFileOperator : IUnderlyingFileOperator
     {
-        private FileStream _file;
+        private readonly FileStream _file;
         private MemoryMappedFile _map;
 
-        private ConcurrentDictionary<MemoryMappedFile,int> _oldMaps = new ConcurrentDictionary<MemoryMappedFile,int>();
+        private readonly ConcurrentDictionary<MemoryMappedFile,int> _oldMaps = new ConcurrentDictionary<MemoryMappedFile,int>();
 
         [ImportingConstructor]
         internal UnderyingFileOperator(FileStream file)
@@ -30,7 +27,7 @@ namespace Pager.Implementations
 
         public long FileSize => _file.Length;
 
-        private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         public MemoryMappedFile GetMappedFile(long desiredFileLength)
         {
@@ -63,9 +60,8 @@ namespace Pager.Implementations
         private void CheckMapForCleaning(MemoryMappedFile oldMap)
         {
             if (_oldMaps[oldMap] == 0)
-            {
-                int i;
-                _oldMaps.TryRemove(oldMap, out i);
+            {                
+                _oldMaps.TryRemove(oldMap, out int i);
                 Debug.Assert(i == 0, "i==0");
                 oldMap.Dispose();
             }
@@ -83,20 +79,20 @@ namespace Pager.Implementations
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool _disposedValue = false; // To detect redundant calls
 
         void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
                     _map.Dispose();
                     _file.Dispose();
-               
+                    _lock.Dispose();
                 }
                 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 

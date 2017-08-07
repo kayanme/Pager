@@ -1,29 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager
+namespace File.Paging.PhysicalLevel.Implementations
 {
-    [Export(typeof(IGAMAccessor))]
-    internal class GAMAccessor:IGAMAccessor
+    [Export(typeof(IGamAccessor))]
+    internal class GamAccessor:IGamAccessor
     {
-        private IUnderlyingFileOperator _fileOperator;
-        private MemoryMappedViewAccessor _accessor;
-        private MemoryMappedFile _mapToReturn;
+        private readonly IUnderlyingFileOperator _fileOperator;
+        private readonly MemoryMappedViewAccessor _accessor;
+        private readonly MemoryMappedFile _mapToReturn;
         [ImportingConstructor]
-        internal GAMAccessor(IUnderlyingFileOperator fileOperator)
+        internal GamAccessor(IUnderlyingFileOperator fileOperator)
         {
             _fileOperator = fileOperator;
             _mapToReturn = _fileOperator.GetMappedFile(Extent.Size);
             _accessor = _mapToReturn.CreateViewAccessor(0, Extent.Size);
         }
 
-        public void InitializeGAM()
+        public void InitializeGam()
         {                         
             
         }
@@ -57,10 +53,10 @@ namespace Pager
             }
         }
 
-        private bool disposedValue = false;
+        private bool _disposedValue = false;
         void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
@@ -68,10 +64,10 @@ namespace Pager
                     _accessor.Dispose();
                 }
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
-        ~GAMAccessor()
+        ~GamAccessor()
         {
             Dispose(true);
         }

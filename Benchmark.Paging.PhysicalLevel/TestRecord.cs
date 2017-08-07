@@ -1,23 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager;
+﻿using System.Collections.Generic;
+using File.Paging.PhysicalLevel.Classes;
 
-namespace Benchmark.Pager
+namespace Benchmark.Paging.PhysicalLevel
 {
     public class TestRecord : TypedRecord
     {
         public byte[] Values = new byte[7];
 
-        public ushort RecordSize
-        {
-            get
-            {
-                return 7;
-            }
-        }
+        public ushort RecordSize => 7;
 
         public void FillByteArray(IList<byte> b)
         {
@@ -35,10 +25,5 @@ namespace Benchmark.Pager
                 Values[i] = b[i];
             }
         }
-    }
-
-    public class TestRecord2 : TestRecord
-    {
-
     }
 }

@@ -1,25 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Pager;
-using Pager.Classes;
-using static Pager.PageManagerConfiguration;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Contracts;
+using File.Paging.PhysicalLevel.Implementations;
 
-namespace Benchmark.Pager
+namespace Benchmark.Paging.PhysicalLevel
 {
     public class RecordAddBenchmark
     {
         IPageManager _manager;
-        [Params(PageSize.Kb4,PageSize.Kb8)]        
-        public PageSize PageSize;
+        [Params(PageManagerConfiguration.PageSize.Kb4,PageManagerConfiguration.PageSize.Kb8)]        
+        public PageManagerConfiguration.PageSize PageSize;
 
         [Params(WriteMethod.Naive, WriteMethod.FixedSize, WriteMethod.VariableSize)]
         public WriteMethod WriteMethod;
+
+        private class PageConfig : PageManagerConfiguration
+        {
+            public PageConfig(PageManagerConfiguration.PageSize size) : base(size)
+            {
+                DefinePageType(1)
+                    .AsPageWithRecordType<TestRecord>()
+                    .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7);
+
+
+                DefinePageType(2)
+                    .AsPageWithRecordType<TestRecord>()
+                    .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, _ => 7);
+            }
+        }
 
         private FixedRecordTypedPage<TestRecord> _page;
         private ComplexRecordTypePage<TestRecord> _page2;
@@ -27,23 +39,12 @@ namespace Benchmark.Pager
         [GlobalSetup]
         public void Init()
         {
-            var config = new PageManagerConfiguration { SizeOfPage = PageSize };
-            var pconfig = new FixedRecordTypePageConfiguration<TestRecord>
-            {
-                RecordMap = new FixedSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
-            };
-            var vconfig = new VariableRecordTypePageConfiguration<TestRecord>
-            {
-                RecordMap = new Dictionary<byte, VariableSizeRecordDeclaration<TestRecord>> { { 1,
-                          new VariableSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, _=>7) } }
-                
-            };
-            config.PageMap.Add(1, pconfig);
-            config.PageMap.Add(2, vconfig);
+            var config = new PageConfig( PageSize);
+           
             _manager = new PageManagerFactory().CreateManager("testFile", config,true);
             _page = _manager.CreatePage(1) as FixedRecordTypedPage<TestRecord>;
             _page2 = _manager.CreatePage(2) as ComplexRecordTypePage<TestRecord>;
-            _other = File.Open("testfile2" , FileMode.OpenOrCreate);
+            _other = System.IO.File.Open("testfile2" , FileMode.OpenOrCreate);
         }
 
         [Benchmark]
@@ -79,8 +80,8 @@ namespace Benchmark.Pager
             Thread.Sleep(100);
             try
             {
-                File.Delete("testFile");
-                File.Delete("testFile2");
+                System.IO.File.Delete("testFile");
+                System.IO.File.Delete("testFile2");
             }
             catch
             {

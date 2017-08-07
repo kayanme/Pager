@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using File.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Pager.Contracts;
-using Pager.Implementations;
 using Rhino.Mocks;
 
-namespace Test.Pager
+namespace Test.Pager.Headers
 {
 
 
@@ -20,26 +17,26 @@ namespace Test.Pager
         {
             protected TestHeaders(int maxRecordCount) : base()
             {
-                _recordInfo = new int[maxRecordCount];
+                RecordInfo = new int[maxRecordCount];
             }
 
             public abstract IEnumerable<Tuple<int, int, int>>  FillHeadersMock();
 
-            protected sealed override int[] _recordInfo { get; }
+            protected sealed override int[] RecordInfo { get; }
 
             public void FillHeaders()
             {
                 var d = FillHeadersMock().Select(k => FormRecordInf((byte)k.Item3, (ushort)k.Item2, (ushort)k.Item1)).ToArray();
 
-                for (int i=0;i<_recordInfo.Length;i++)
+                for (int i=0;i<RecordInfo.Length;i++)
                 {
-                    _recordInfo[i] = d[i];
+                    RecordInfo[i] = d[i];
                 }
             }
 
             protected sealed override IEnumerable<int> PossibleRecordsToInsert()
             {
-                return Enumerable.Range(0, _recordInfo.Length);
+                return Enumerable.Range(0, RecordInfo.Length);
             }
 
             protected sealed override void SetFree(ushort record)

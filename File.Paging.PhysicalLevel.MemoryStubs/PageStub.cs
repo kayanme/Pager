@@ -1,23 +1,21 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager;
-using Pager.Classes;
-using Pager.Exceptions;
+using File.Paging.PhysicalLevel.Classes;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Exceptions;
 
 namespace File.Paging.PhysicalLevel.MemoryStubs
 {
     internal sealed class PageStub<TRecord> : IPage<TRecord> where TRecord:TypedRecord,new()
     {
-        private Dictionary<PageRecordReference, byte[]> _records = new Dictionary<PageRecordReference, byte[]>();
-        private Dictionary<PageRecordReference, int> _recordSize = new Dictionary<PageRecordReference, int>();
-        private Dictionary<PageRecordReference, byte> _recordType = new Dictionary<PageRecordReference, byte>();
-        private int _pageSize;
-        private PageConfiguration _config;
-        public PageStub(PageReference r,PageConfiguration config,int pageSize,byte pageType)
+        private readonly Dictionary<PageRecordReference, byte[]> _records = new Dictionary<PageRecordReference, byte[]>();
+        private readonly Dictionary<PageRecordReference, int> _recordSize = new Dictionary<PageRecordReference, int>();
+        private readonly Dictionary<PageRecordReference, byte> _recordType = new Dictionary<PageRecordReference, byte>();
+        private readonly int _pageSize;
+        private readonly PageContentConfiguration _config;
+        public PageStub(PageReference r,PageContentConfiguration config,int pageSize,byte pageType)
         {
             Reference = r;
             _config = config;
@@ -25,13 +23,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             RegisteredPageType = pageType;
         }      
 
-        public double PageFullness
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public double PageFullness => throw new NotImplementedException();
 
         public PageReference Reference { get; }
 
@@ -110,7 +102,6 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         private TRecord Retrieve(PageRecordReference reference)
         {
             int size = 0;
-            byte type = 1;
             byte[] d = null;
             var record = _records[reference];
             var nr = new TRecord();
@@ -124,7 +115,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             if (_config is VariableRecordTypePageConfiguration<TRecord>)
             {
                 var c = _config as VariableRecordTypePageConfiguration<TRecord>;
-                type = _recordType[reference];
+                var type = _recordType[reference];
                 size = _recordSize[reference];
                 d = new byte[size];
                 c.RecordMap[type].FillFromBytes(record, nr);
@@ -169,18 +160,18 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         }
 
         #region IDisposable Support
-        private bool disposedValue = false;
+        private bool _disposedValue = false;
 
         void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
                    
                 }
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 

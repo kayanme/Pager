@@ -1,27 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager.Contracts;
-using Pager.Implementations;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Contracts;
+using File.Paging.PhysicalLevel.Implementations;
 
-namespace Pager.Classes
+namespace File.Paging.PhysicalLevel.Classes.Configurations
 {
-    public class VariableRecordTypePageConfiguration<TRecord> : PageConfiguration where TRecord:TypedRecord,new()
+    internal sealed class VariableRecordTypePageConfiguration<TRecord> : PageContentConfiguration where TRecord:TypedRecord,new()
     {
         internal override Type RecordType => typeof(TRecord);
         private readonly Func<TRecord, byte> _getRecordType;
         public byte GetRecordType(TRecord record) => _getRecordType(record);
         public Dictionary<byte, VariableSizeRecordDeclaration<TRecord>> RecordMap = new Dictionary<byte, VariableSizeRecordDeclaration<TRecord>>();
-        public bool UseLogicalSlotInfo { get; }
-        public VariableRecordTypePageConfiguration(Func<TRecord, byte> typeGet=null,bool useLogcalSlotInfo = false)
+        public bool UseLogicalSlotInfo { get; set; }
+
+        public VariableRecordTypePageConfiguration(Func<TRecord, byte> typeGet = null)
         {
             if (typeGet == null)
                 _getRecordType = _ => 1;
             _getRecordType = typeGet;
-            UseLogicalSlotInfo = useLogcalSlotInfo;
+
+            ConsistencyConfiguration = new ConsistencyConfiguration {ConsistencyAbilities = ConsistencyAbilities.None};
+
         }
+
+
 
         internal override IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType)
         {
@@ -32,6 +36,12 @@ namespace Pager.Classes
         {
 
             return new VariableRecordPageHeaders(accessor.GetChildAccessorWithStartShift(shift),UseLogicalSlotInfo);
+        }
+
+        public override void Verify()
+        {
+            if (!RecordMap.Any())
+                throw new ArgumentException($"No record definitions");
         }
     }
 

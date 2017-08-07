@@ -1,29 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Pager.Contracts;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager.Implementations
+namespace File.Paging.PhysicalLevel.Implementations
 {
     internal sealed class VariableRecordPageHeaders : PageHeadersBase
     {
-        IPageAccessor _accessor;
-        int _pageSize;
+        readonly IPageAccessor _accessor;
+        readonly int _pageSize;
         
         
         private readonly bool _slotArrayApplied;
-        protected override int[] _recordInfo { get; }
+        protected override int[] RecordInfo { get; }
         public VariableRecordPageHeaders(IPageAccessor accessor,bool slotInfoApplied)
         {
             _pageSize = accessor.PageSize;
-            var _page = accessor.GetByteArray(0, accessor.PageSize);
+            var page = accessor.GetByteArray(0, accessor.PageSize);
         
              _accessor = accessor;
             _slotArrayApplied = slotInfoApplied;
-            _recordInfo = ScanForHeaders(_page);
+            RecordInfo = ScanForHeaders(page);
 
 
         }
@@ -44,10 +41,9 @@ namespace Pager.Implementations
         protected override ushort TotalRecords => _totalRecords;
         private int _firstFreeRecord;
         private int SlotArraySize => _firstFreeRecord * 2;
-        protected  int[] ScanForHeaders(byte[] page)
+        private  int[] ScanForHeaders(byte[] page)
         {
             ushort physicalRecordNum = 0;
-            ushort logicalPosition = 0;
             _firstFreeRecord = -1;
             var records =new int[page.Length / 4+4];
             for (ushort i = 0;i<page.Length;)
@@ -61,6 +57,7 @@ namespace Pager.Implementations
                     _firstFreeRecord = physicalRecordNum;
                     break;
                 }
+                ushort logicalPosition = 0;
                 if (_slotArrayApplied)
                 {
                      logicalPosition = (ushort)(page[i + 2] << 8 | page[i + 3]);                    
@@ -89,7 +86,7 @@ namespace Pager.Implementations
         }
         protected override IEnumerable<int> PossibleRecordsToInsert()
         {
-            if (_firstFreeRecord == -1 || _firstFreeRecord == _recordInfo.Length)
+            if (_firstFreeRecord == -1 || _firstFreeRecord == RecordInfo.Length)
                 yield break;
             var cuBorder = 0;
             for (ushort i =(ushort) _firstFreeRecord; cuBorder < _pageSize;)

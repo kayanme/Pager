@@ -1,45 +1,48 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Benchmark.Paging.LogicalLevel;
 using BenchmarkDotNet.Attributes;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Contracts;
 using FIle.Paging.LogicalLevel.Classes;
 using FIle.Paging.LogicalLevel.Classes.Configurations;
-using Pager;
-using Pager.Classes;
-using static Pager.PageManagerConfiguration;
 
-namespace Benchmark.Pager
+namespace Benchmark.Paging.LogicalLevel
 {
     public class RecordAddBenchmark
     {
         IPageManager _manager;
-        [Params(PageSize.Kb4,PageSize.Kb8)]        
-        public PageSize PageSize;
+        [Params(PageManagerConfiguration.PageSize.Kb4,PageManagerConfiguration.PageSize.Kb8)]        
+        public PageManagerConfiguration.PageSize PageSize;
 
-       
+        private class Config : LogicalPageManagerConfiguration
+        {
+
+            public Config(PageSize pageSize) : base(pageSize)
+            {
+                DefinePageType(1)
+                    .AsPageWithRecordType<TestRecord>()
+                    .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 4)
+                    .ApplyRecordOrdering((a) => a.Order);
+
+                DefinePageType(2)
+                    .AsPageWithRecordType<TestRecord>()
+                    .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 4);
+            }
+        }
+
 
         private IPage<TestRecord>[] _pages;
         
         private FileStream _other;
-        private Random _rnd = new Random();
+        private readonly Random _rnd = new Random();
         [GlobalSetup]
         public void Init()
         {
-            var config = new LogicalPageManagerConfiguration { SizeOfPage = PageSize };
-            var pconfig = new FixedRecordTypePageConfiguration<TestRecord>
-            {
-                RecordMap = new FixedSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 4)
-            };
+            var config = new Config( PageSize );
            
-            var orderConfig = new OrderedLogicalPageConfiguration<TestRecord, int> { KeySelector = (a) => a.Order };
-            config.Configuration.Add(1, orderConfig);            
-            config.PageMap.Add(1, pconfig);
-            config.PageMap.Add(2, pconfig);
             _manager = new LogicalPageManagerFactory().CreateManager("testFile", config,true);
             _pages = new IPage<TestRecord>[4];
             _pages[0] = _manager.CreatePage(1) as IPage<TestRecord>;
@@ -48,7 +51,7 @@ namespace Benchmark.Pager
             _pages[3] = _manager.CreatePage(2) as IPage<TestRecord>;
             while (_pages[2].AddRecord(new TestRecord { Order = _rnd.Next(1000) })) ;
             while (_pages[3].AddRecord(new TestRecord { Order = _rnd.Next(1000) })) ;
-            _other = File.Open("testfile2" , FileMode.OpenOrCreate);
+            _other = System.IO.File.Open("testfile2" , FileMode.OpenOrCreate);
 
         }
 
@@ -100,8 +103,8 @@ namespace Benchmark.Pager
             
             try
             {
-                File.Delete("testFile");
-                File.Delete("testFile2");
+                System.IO.File.Delete("testFile");
+                System.IO.File.Delete("testFile2");
             }
             catch
             {

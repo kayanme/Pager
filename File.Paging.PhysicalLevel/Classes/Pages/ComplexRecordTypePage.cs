@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Pager.Contracts;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager.Classes
+namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    public sealed class ComplexRecordTypePage<TRecordType> :  IPage<TRecordType> where TRecordType : TypedRecord, new()
+    public sealed class ComplexRecordTypePage<TRecordType> :  IPage<TRecordType>, IPhysicalLevelManipulation where TRecordType : TypedRecord, new()
     {
 
-        private IPageHeaders _headers;
-        private IPageAccessor _accessor;
+        private readonly IPageHeaders _headers;
+        private readonly IPageAccessor _accessor;
      
-        private VariableRecordTypePageConfiguration<TRecordType> _config;
+        private readonly VariableRecordTypePageConfiguration<TRecordType> _config;
         internal ComplexRecordTypePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType, VariableRecordTypePageConfiguration<TRecordType> config)
         {
             Reference = reference;
@@ -37,8 +36,8 @@ namespace Pager.Classes
 
         private void SetRecord<TType>(ushort offset, TType record,RecordDeclaration<TType> config) where TType : TRecordType
         {
-            var recordStart = _headers.RecordShift((ushort)offset);
-            var recordSize = _headers.RecordSize((ushort)offset);
+            var recordStart = _headers.RecordShift(offset);
+            var recordSize = _headers.RecordSize(offset);
             var type = _config.GetRecordType(record);
             var bytes = _accessor.GetByteArray(recordStart, recordSize);
             config.FillBytes(record, bytes);
@@ -50,9 +49,8 @@ namespace Pager.Classes
         }
 
         private VariableSizeRecordDeclaration<TType> FindConfig<TType>() where TType : TRecordType
-        {
-            byte t;
-            var config = FindConfig<TType>(out t);
+        {         
+            var config = FindConfig<TType>(out byte t);
             return config;
         }
 
@@ -92,8 +90,10 @@ namespace Pager.Classes
                 var size = _headers.RecordSize((ushort)reference.LogicalRecordNum);
                 var type = _headers.RecordType((ushort)reference.LogicalRecordNum);
                 var bytes = _accessor.GetByteArray(offset, size);
-                var r = new TRecordType();
-                r.Reference = reference;             
+                var r = new TRecordType()
+                {
+                    Reference = reference
+                };
                 var config = _config.RecordMap[type] as VariableSizeRecordDeclaration<TRecordType>;
                 config.FillFromBytes(bytes, r);
                 return r;
@@ -103,7 +103,7 @@ namespace Pager.Classes
 
         public void StoreRecord(TRecordType record)
         {
-            if (record.Reference.Page != this.Reference)
+            if (record.Reference.Page != Reference)
                 throw new ArgumentException();
             if (record.Reference.LogicalRecordNum == -1)
                 throw new ArgumentException();
@@ -117,7 +117,7 @@ namespace Pager.Classes
         public void FreeRecord(TRecordType record)
         {
             if (record == null)
-                throw new ArgumentNullException("record");
+                throw new ArgumentNullException(nameof(record));
             if (record.Reference.LogicalRecordNum == -1)
                 throw new ArgumentException("Trying to delete deleted record");
             _headers.FreeRecord((ushort)record.Reference.LogicalRecordNum);
@@ -132,17 +132,17 @@ namespace Pager.Classes
 
         public byte RegisteredPageType { get; }
 
-        private bool disposedValue = false;
+        private bool _disposedValue = false;
         void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
                     Flush();
                 }
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
         ~ComplexRecordTypePage()
@@ -176,6 +176,11 @@ namespace Pager.Classes
             if (record2.LogicalRecordNum == -1)
                 throw new ArgumentException("record2 was deleted");
             _headers.SwapRecords((ushort)record1.LogicalRecordNum, (ushort)record2.LogicalRecordNum);
+        }
+
+        public void Compact()
+        {
+            throw new NotImplementedException();
         }
     }
 }

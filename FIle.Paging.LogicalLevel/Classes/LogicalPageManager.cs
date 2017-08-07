@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using File.Paging.PhysicalLevel.Classes;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Contracts;
 using FIle.Paging.LogicalLevel.Classes.Configurations;
 using FIle.Paging.LogicalLevel.Contracts;
-using Pager;
-using Pager.Classes;
 
 namespace FIle.Paging.LogicalLevel.Classes
 {
     
     internal sealed class LogicalPageManager : ILogicalPageManager
     {
-        private IPageManager _physicalManager;
-        private LogicalPageManagerConfiguration _config;
+        private readonly IPageManager _physicalManager;
+        private readonly LogicalPageManagerConfiguration _config;
         public LogicalPageManager (IPageManager manager,LogicalPageManagerConfiguration config)
         {
             _physicalManager = manager;

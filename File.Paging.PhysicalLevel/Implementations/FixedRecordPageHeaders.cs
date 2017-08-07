@@ -1,25 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Pager;
-using Pager.Contracts;
-using Pager.Exceptions;
-using Pager.Implementations;
+using File.Paging.PhysicalLevel.Contracts;
 
-namespace Pager.Implementations
+namespace File.Paging.PhysicalLevel.Implementations
 {
     internal sealed class FixedRecordPageHeaders:PageHeadersBase
     {
         private const byte RecordUseMask = 0x80;
       
-        private ushort _fixedRecordSize;
+        private readonly ushort _fixedRecordSize;
    
-        private IPageAccessor _accessor;
-        protected override int[] _recordInfo { get; }
+        private readonly IPageAccessor _accessor;
+        protected override int[] RecordInfo { get; }
         private int _lastKnownNotFree;
         
 
@@ -31,7 +24,7 @@ namespace Pager.Implementations
             _fixedRecordSize = recordSize;
             _accessor = accessor;
             
-            _recordInfo = ScanForHeaders(accessor.GetByteArray(0, accessor.PageSize));
+            RecordInfo = ScanForHeaders(accessor.GetByteArray(0, accessor.PageSize));
                       
         }
 
@@ -58,7 +51,7 @@ namespace Pager.Implementations
                     }               
                 }
                 recordNum++;
-            };
+            }
            
             return records;
         }
@@ -90,7 +83,7 @@ namespace Pager.Implementations
             for (var i = _lastKnownNotFree == -1 ? 0 : _lastKnownNotFree; i < TotalRecords; i += 1)
             {
                yield return i;
-            };
+            }
         }
 
         protected override void UpdateUsed(ushort record, ushort shift, ushort size, byte type)

@@ -1,30 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pager;
-using Pager.Classes;
+﻿using File.Paging.PhysicalLevel.Classes;
+using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.Pages;
 
 namespace File.Paging.PhysicalLevel.MemoryStubs
 {
     internal sealed class HeaderedPageStub<THeader> : IHeaderedPage<THeader> where THeader:new()
     {
+        public IPage Content { get; }
 
-    
-        private IPage _childPage;
-        public IPage Content => _childPage;
         public PageReference Reference { get; }
 
-        public double PageFullness => _childPage.PageFullness;
+        public double PageFullness => Content.PageFullness;
 
-        public byte RegisteredPageType => _childPage.RegisteredPageType;
+        public byte RegisteredPageType => Content.RegisteredPageType;
 
-        private HeaderPageConfiguration<THeader> _config;
-        internal HeaderedPageStub(IPage childPage, PageReference reference, HeaderPageConfiguration<THeader> config)
+        private PageHeadersConfiguration<THeader> _config;
+        internal HeaderedPageStub(IPage childPage, PageReference reference, PageHeadersConfiguration<THeader> config)
         {
            
-            _childPage = childPage;
+            Content = childPage;
             _config = config;
             Reference = reference;
           

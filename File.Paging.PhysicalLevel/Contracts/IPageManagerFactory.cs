@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using File.Paging.PhysicalLevel.Classes.Configurations;
 
-namespace Pager
+namespace File.Paging.PhysicalLevel.Contracts
 {
     public interface IPageManagerFactory
     {
