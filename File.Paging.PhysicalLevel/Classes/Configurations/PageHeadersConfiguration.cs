@@ -18,7 +18,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         private ushort HeaderSize => (ushort)Header.GetSize;
         internal override IHeaderedPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize, byte pageType)
         {
-            return new HeaderedPage<THeader>(accessor,
+            return new HeaderedPage<THeader>(headers,accessor,
                 InnerPageMap.CreatePage(headers, accessor.GetChildAccessorWithStartShift(HeaderSize), reference, pageSize - HeaderSize, pageType), reference, this);
         }
     }

@@ -137,8 +137,8 @@ namespace Benchmark.Paging.PhysicalLevel
         {
             switch (WriteMethod)
             {
-                case WriteMethod.FixedSize: _manager.GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
-                case WriteMethod.VariableSize: _manager.GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
+                case WriteMethod.FixedSize: (_manager as IPagePhysicalManipulation).GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
+                case WriteMethod.VariableSize: (_manager as IPagePhysicalManipulation).GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
                 case WriteMethod.Naive:
                     for (int i = 0; i <= 50; i++)
                     {

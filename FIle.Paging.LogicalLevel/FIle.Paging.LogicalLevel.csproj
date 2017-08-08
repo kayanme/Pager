@@ -42,21 +42,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Configurations\BindedToPhysicalPageConfiguration.cs" />
     <Compile Include="Classes\Configurations\ExtensionBuilder.cs" />
     <Compile Include="Classes\Configurations\LogicalPageConfiguration.cs" />
     <Compile Include="Classes\Configurations\LogicalPageManagerConfiguration.cs" />
-    <Compile Include="Classes\Configurations\NoTransactionConfiguration.cs" />
-    <Compile Include="Classes\Configurations\OrderedLogicalPageConfiguration.cs" />
-    <Compile Include="Classes\Configurations\TransactionConfigurationWithHeader.cs" />
-    <Compile Include="Classes\Configurations\TransactionConfigurationWithoutHeader.cs" />
-    <Compile Include="Classes\Configurations\TransactionParticipancyConfiguration.cs" />
+    <Compile Include="Classes\Configurations\VirtualPageConfiguration.cs" />
+    <Compile Include="Classes\ContiniousHeapPage\ContiniousHeapPageConfiguration.cs" />
+    <Compile Include="Classes\ContiniousHeapPage\HeapHeader.cs" />
+    <Compile Include="Classes\ContiniousHeapPage\LinkedPageHeaderBase.cs" />
+    <Compile Include="Classes\ContiniousHeapPage\VirtualContiniousPage.cs" />
+    <Compile Include="Classes\Transactions\NoTransactionConfiguration.cs" />
+    <Compile Include="Classes\OrderedPage\OrderedLogicalPageConfiguration.cs" />
+    <Compile Include="Classes\Transactions\TransactionConfigurationWithHeader.cs" />
+    <Compile Include="Classes\Transactions\TransactionConfigurationWithoutHeader.cs" />
+    <Compile Include="Classes\Transactions\TransactionParticipancyConfiguration.cs" />
     <Compile Include="Classes\LogicalPageManager.cs" />
     <Compile Include="Classes\LogicalPageManagerFactory.cs" />
-    <Compile Include="Classes\OrderedPage.cs" />
+    <Compile Include="Classes\OrderedPage\OrderedPage.cs" />
     <Compile Include="Classes\Transactions\TransactionContentResource.cs" />
     <Compile Include="Classes\Transactions\TransactionHeaderResource.cs" />
     <Compile Include="Classes\Transactions\TransactionProxyHeaderedPage.cs" />
     <Compile Include="Classes\Transactions\TransactionProxyPage.cs" />
+    <Compile Include="Classes\VirtualPageReference.cs" />
     <Compile Include="Contracts\ILogicalPageManager.cs" />
     <Compile Include="Contracts\ILogicalPageManagerFactory.cs" />
     <Compile Include="Contracts\IOrderedPage.cs" />

@@ -33,6 +33,8 @@ namespace Test.Pager.Headers
             Page.Expect(k => k.SetByteArray(new byte[] { 0 }, 0, 1));
             Page.Replay();
             headers.FreeRecord(0);
+            Assert.AreEqual(0,headers.RecordCount);
+            Assert.AreEqual(0, headers.TotalUsedSize);
             Page.VerifyAllExpectations();
         }
 
@@ -60,7 +62,9 @@ namespace Test.Pager.Headers
             var pos = headers.TakeNewRecord(0,7);
             Assert.AreEqual(1, pos);
             Assert.AreEqual(10,headers.RecordShift(1));
-            Assert.AreEqual(7, headers.RecordSize(1));            
+            Assert.AreEqual(7, headers.RecordSize(1));
+            Assert.AreEqual(2, headers.RecordCount);
+            Assert.AreEqual(14, headers.TotalUsedSize);
             Page.VerifyAllExpectations();
         }
 

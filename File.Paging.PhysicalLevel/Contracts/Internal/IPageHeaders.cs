@@ -14,5 +14,7 @@ namespace File.Paging.PhysicalLevel.Contracts
         ushort RecordSize(ushort record);
         void SetNewRecordInfo(ushort record,ushort rSize, byte rType);
         void SwapRecords(ushort recordOne, ushort recordTwo);
+        void Compact();
+        int TotalUsedSize { get; }
     }
 }

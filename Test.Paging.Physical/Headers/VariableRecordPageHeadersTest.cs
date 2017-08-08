@@ -127,6 +127,9 @@ namespace Test.Pager.Headers
             Assert.AreEqual(6 , headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));
             Assert.AreEqual(2, headers.RecordType(1));
+
+            Assert.AreEqual(2, headers.RecordCount);
+            Assert.AreEqual(9, headers.TotalUsedSize);
         }
     }
 }

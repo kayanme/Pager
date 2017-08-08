@@ -37,8 +37,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             var toWrite = new byte[] { (byte)(val >> 8)};
             _accessor.SetByteArray(toWrite, recordPosition, 1);
         }
-        private ushort _totalRecords = 0;
-        protected override ushort TotalRecords => _totalRecords;
+      
         private int _firstFreeRecord;
         private int SlotArraySize => _firstFreeRecord * 2;
         private  int[] ScanForHeaders(byte[] page)
@@ -68,18 +67,19 @@ namespace File.Paging.PhysicalLevel.Implementations
                 }
                 byte type =(byte)(header >> 12);
                 var size =(ushort)( header & 0x0FFF);
-                var shift = _slotArrayApplied ? i +4: i + 2;
+                var shift = i+ HeaderOverheadSize;
                 if (type != 0)
                 {                  
-                    records[logicalPosition] =(FormRecordInf(type, size, (ushort)shift));                  
-                    _totalRecords++;
+                    records[logicalPosition] =(FormRecordInf(type, size, (ushort)shift));
+                    TotalUsedSize += (size + HeaderOverheadSize);
+                    TotalUsedRecords++;
                 }
                 else
                 {
                     records[logicalPosition] =  0;
                 }
                 physicalRecordNum++;
-                i +=(ushort)(size + (_slotArrayApplied ? i + 4 : i + 2));
+                i +=(ushort)(size + HeaderOverheadSize);
 
             }          
             return records.ToArray();            
@@ -156,6 +156,13 @@ namespace File.Paging.PhysicalLevel.Implementations
                 var toWrite = new byte[] { (byte)(logicalRecordNum >> 8), (byte)(logicalRecordNum & 0xFF) };
                 _accessor.SetByteArray(toWrite, shift-2, 2);
             }
+        }
+
+        protected override int HeaderOverheadSize => _slotArrayApplied ? 4 : 2;
+
+        public override void Compact()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

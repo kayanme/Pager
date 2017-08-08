@@ -1,8 +1,8 @@
 namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 {
-    public interface IHeaderedVariablePageWithOneRecordBuilder
+    public interface IHeaderedVariablePageWithOneRecordBuilder<TRecord, THeader>
     {
-        IVariablePageWithOneRecordTypeBuilder ApplyLogicalSortIndex();
-        IVariablePageWithOneRecordTypeBuilder WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities);
+        IHeaderedVariablePageWithOneRecordBuilder<TRecord, THeader> ApplyLogicalSortIndex();
+        IHeaderedVariablePageWithOneRecordBuilder<TRecord, THeader> WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities);
     }
 }

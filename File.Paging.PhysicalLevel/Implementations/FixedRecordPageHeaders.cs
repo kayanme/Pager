@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
@@ -13,12 +15,12 @@ namespace File.Paging.PhysicalLevel.Implementations
    
         private readonly IPageAccessor _accessor;
         protected override int[] RecordInfo { get; }
-        private int _lastKnownNotFree;
-        
+        private readonly ConcurrentBag<ushort> _freeRecordNumbers = new ConcurrentBag<ushort>();
+     
 
         public FixedRecordPageHeaders(IPageAccessor accessor,ushort recordSize):base()
         {
-            TotalRecords =(ushort)( accessor.PageSize / (recordSize + 1));
+          
             Debug.Assert(recordSize >= 3, "recordSize >= 3");
            
             _fixedRecordSize = recordSize;
@@ -28,26 +30,28 @@ namespace File.Paging.PhysicalLevel.Implementations
                       
         }
 
-        protected override ushort TotalRecords { get; }
+      
 
         private  int[] ScanForHeaders(byte[] page)
         {
             ushort recordNum = 0;
-            var fullRecordSize = (ushort)(_fixedRecordSize + 1);
+            var fullRecordSize = (ushort)(_fixedRecordSize + HeaderOverheadSize);
             var records = new int[(page.Length)/ fullRecordSize + 1];
            
             for (ushort i = 0; i< page.Length; i+= fullRecordSize)
             {
                 if ((page[i] & RecordUseMask) == 0)
                 {
-                    records[recordNum] = FormRecordInf(0,0,0);                  
+                    records[recordNum] = FormRecordInf(0,0,0);         
+                    _freeRecordNumbers.Add(recordNum);
                 }
                 else
                 {
                     checked
                     {
-                        records[recordNum] = FormRecordInf(1, _fixedRecordSize, (ushort)(i+1));
-                        _lastKnownNotFree = recordNum;
+                        records[recordNum] = FormRecordInf(1, _fixedRecordSize, (ushort)(i+ HeaderOverheadSize));                      
+                        TotalUsedSize += _fixedRecordSize+ HeaderOverheadSize;
+                        TotalUsedRecords++;
                     }               
                 }
                 recordNum++;
@@ -56,33 +60,36 @@ namespace File.Paging.PhysicalLevel.Implementations
             return records;
         }
 
-        public override ushort RecordShift(ushort record)=> (ushort)(base.RecordShift(record)+1);
+        public override ushort RecordShift(ushort record)=> (ushort)(base.RecordShift(record)+ HeaderOverheadSize);
 
-       
+        protected override int HeaderOverheadSize => 1;
 
+        public override void Compact()
+        {
+           
+        }
 
         protected override void SetFree(ushort record)
         {
-            _accessor.SetByteArray(new[] { (byte)0 }, record * (_fixedRecordSize + 1), 1);
+            _accessor.SetByteArray(new[] { (byte)0 }, record * (_fixedRecordSize + HeaderOverheadSize), 1);
         }
 
         protected override  ushort SetUsed(ushort record, ushort size, byte type)
         {
-            _accessor.SetByteArray(new[] { RecordUseMask }, record*(_fixedRecordSize+1), 1);
+            _accessor.SetByteArray(new[] { RecordUseMask }, record*(_fixedRecordSize+ HeaderOverheadSize), 1);
             checked
-            {
-                if (_lastKnownNotFree != -1)
-                    _lastKnownNotFree = record;
+            {               
 
-                return (ushort)(record * (_fixedRecordSize + 1)+1);
+                return (ushort)(record * (_fixedRecordSize + HeaderOverheadSize) + HeaderOverheadSize);
             }
         }
 
         protected override IEnumerable<int> PossibleRecordsToInsert()
         {
-            for (var i = _lastKnownNotFree == -1 ? 0 : _lastKnownNotFree; i < TotalRecords; i += 1)
+           while(_freeRecordNumbers.TryTake(out var free))
             {
-               yield return i;
+                yield return free;
+                _freeRecordNumbers.Add(free);
             }
         }
 

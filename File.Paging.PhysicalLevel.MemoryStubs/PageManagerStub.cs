@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Pages;
@@ -59,11 +60,50 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         {
             lock (_pages)
             {
+                if (_pageTypes.ContainsKey(page))
+                    _pageTypes.Remove(page);
                 if (_pages.ContainsKey(page))
                 {
                     _pages.Remove(page);
-                    _pageTypes.Remove(page);
+                   
                 }
+                if (_headeredPages.ContainsKey(page))
+                {
+                    _headeredPages.Remove(page);
+                }
+            }
+        }
+
+        public void RecreatePage(PageReference pageNum, byte type)
+        {
+            lock (_pages)
+            {
+                if (_pages.ContainsKey(pageNum))
+                {
+                    _pages.Remove(pageNum);
+                    _pageTypes[pageNum] = type;
+                }
+                var headerConfig = _config.HeaderConfig.ContainsKey(type) ? _config.HeaderConfig[type] : null;
+                var pageConfig = _config.PageMap[type];
+                var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), pageNum, pageConfig, _size) as IPage;            
+                if (headerConfig == null)
+                {
+                    _pages[pageNum]  = page;                   
+                }
+                else
+                {
+                    var hp = Activator.CreateInstance(typeof(HeaderedPageStub<>).MakeGenericType(headerConfig.GetType().GetGenericArguments()[0]), page, pageNum, pageConfig) as IHeaderedPage;
+                    _headeredPages[pageNum] = hp;                 
+                }
+            }
+        }
+
+        public IEnumerable<IPage> IteratePages(byte pageType)
+        {
+
+            foreach (var pageReference in _pageTypes.Where(k => k.Value == pageType).Select(k => k.Key))
+            {
+                yield return RetrievePage(pageReference);
             }
         }
 

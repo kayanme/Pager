@@ -94,21 +94,25 @@
     <Compile Include="Classes\Configurations\PageContentConfiguration.cs" />
     <Compile Include="Classes\Configurations\RecordDeclaration.cs" />
     <Compile Include="Classes\Configurations\VariableRecordTypePageConfiguration.cs" />
-    <Compile Include="Classes\Pages\IHeaderedPage.cs" />
-    <Compile Include="Classes\Pages\IHeaderedPageInt.cs" />
-    <Compile Include="Classes\Pages\IPage.cs" />
-    <Compile Include="Classes\Pages\IPhysicalLevelManipulation.cs" />
-    <Compile Include="Classes\Pages\IPhysicalLocks.cs" />
-    <Compile Include="Classes\Pages\IRowVersionControl.cs" />
-    <Compile Include="Contracts\IPageHeaders.cs" />
+    <Compile Include="Classes\Pages\Contracts\IHeaderedPage.cs" />
+    <Compile Include="Classes\Pages\Contracts\IHeaderedPageInt.cs" />
+    <Compile Include="Classes\Pages\Contracts\IPage.cs" />
+    <Compile Include="Classes\Pages\Contracts\IPhysicalLevelManipulation.cs" />
+    <Compile Include="Classes\Pages\Contracts\IPhysicalLocks.cs" />
+    <Compile Include="Classes\Pages\Contracts\IRowVersionControl.cs" />
+    <Compile Include="Classes\Pages\TypedPageBase.cs" />
+    <Compile Include="Contracts\Internal\IPageHeaders.cs" />
+    <Compile Include="Contracts\IPagePhysicalManipulation.cs" />
+    <Compile Include="Events\NewPageCreatedEvent.cs" />
+    <Compile Include="Events\PageRemovedFromBufferEvent.cs" />
     <Compile Include="Exceptions\FileSizeInsufficientException.cs" />
     <Compile Include="Exceptions\RecordWriteConflictException.cs" />
     <Compile Include="Extent.cs" />
     <Compile Include="Implementations\FixedRecordPageHeaders.cs" />
     <Compile Include="Implementations\GAMAccessor.cs" />
-    <Compile Include="Contracts\IGAMAccessor.cs" />
-    <Compile Include="Contracts\IPageAccessor.cs" />
-    <Compile Include="Contracts\IExtentAccessorFactory.cs" />
+    <Compile Include="Contracts\Internal\IGAMAccessor.cs" />
+    <Compile Include="Contracts\Internal\IPageAccessor.cs" />
+    <Compile Include="Contracts\Internal\IExtentAccessorFactory.cs" />
     <Compile Include="Contracts\IPageManager.cs" />
     <Compile Include="Contracts\IPageManagerFactory.cs" />
     <Compile Include="Implementations\PageAccessor.cs" />
@@ -122,7 +126,7 @@
     <Compile Include="Implementations\VariableRecordPageHeaders.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Classes\TypedRecord.cs" />
-    <Compile Include="Contracts\IUnderlyingFileOperator.cs" />
+    <Compile Include="Contracts\Internal\IUnderlyingFileOperator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

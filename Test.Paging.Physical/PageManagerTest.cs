@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Rhino.Mocks;
 using File.Paging.PhysicalLevel;
 using File.Paging.PhysicalLevel.Classes;
@@ -197,5 +198,85 @@ namespace Test.Pager
             BlockMock.VerifyAllExpectations();
         }
 
+        [TestMethod]
+        public void RemovePageFromBuffer()
+        {
+            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
+
+            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
+            t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
+            t.Expect(k => k.Dispose()).Repeat.Any();
+            t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
+            t.Expect(k => k.Flush());
+            BlockMock.Expect(k => k.GetAccessor(Extent.Size+4096, 4096)).Return(t);
+            GamMock.Expect(k => k.GetPageType(1)).Return(1);
+            bool pageRemoved = false;
+            using (var manager = GetManager())
+            {
+                (manager as IPagePhysicalManipulation).PageRemovedFromBuffer += (_, ea) => {Assert.AreEqual(1,ea.Page.PageNum); pageRemoved = true; };
+                using (var page = manager.RetrievePage(new PageReference(1)))
+                {
+                    (manager as IPagePhysicalManipulation).MarkPageToRemoveFromBuffer(page.Reference);
+                    Assert.IsFalse(pageRemoved);
+                }
+                Assert.IsTrue(pageRemoved);
+            }
+            BlockMock.VerifyAllExpectations();
+        }
+
+
+        [TestMethod]
+        public void RemovePageFromBufferWithConcurrentCreation()
+        {
+            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
+
+            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
+            t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
+            t.Expect(k => k.Dispose()).Repeat.Any();
+            t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
+            t.Expect(k => k.Flush()).Repeat.Twice();
+            BlockMock.Expect(k => k.GetAccessor(Extent.Size + 4096, 4096)).Return(t);
+            GamMock.Expect(k => k.GetPageType(1)).Return(1);
+            bool pageRemoved = false;
+            using (var manager = GetManager())
+            {
+                IPage page2;
+                (manager as IPagePhysicalManipulation).PageRemovedFromBuffer += (_, ea) => { Assert.AreEqual(1, ea.Page.PageNum); pageRemoved = true; };
+                using (var page = manager.RetrievePage(new PageReference(1)))
+                {
+                    (manager as IPagePhysicalManipulation).MarkPageToRemoveFromBuffer(page.Reference);
+                    Assert.IsFalse(pageRemoved);
+                    page2 = manager.RetrievePage(new PageReference(1));
+                }
+                Assert.IsFalse(pageRemoved);
+                page2.Dispose();
+                Assert.IsTrue(pageRemoved);
+            }
+            BlockMock.VerifyAllExpectations();
+        }
+
+
+
+        [TestMethod]
+        public void PageIteration()
+        {
+
+            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
+
+            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
+            t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
+            t.Expect(k => k.Dispose()).Repeat.Any();
+            t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
+            BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
+            GamMock.Expect(k => k.GetPageType(0)).Return(1);
+            GamMock.Expect(k => k.GetPageType(Arg<byte>.Is.NotEqual(0))).Return(0);
+            using (var manager = GetManager())
+            {
+                var pages = manager.IteratePages(1).ToArray();
+                Assert.AreEqual(1,pages.Length);
+                Assert.AreEqual(new PageReference(0), pages[0].Reference);            
+            }
+            BlockMock.VerifyAllExpectations();
+        }
     }
 }

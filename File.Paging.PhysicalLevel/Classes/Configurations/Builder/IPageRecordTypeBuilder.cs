@@ -11,8 +11,8 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 
 
         IVariablePageBuilder<TRecordType> WithMultipleTypeRecord(Func<TRecordType, byte> discriminatorFunction);
-        IVariablePageWithOneRecordTypeBuilder UsingRecordDefinition(IVariableSizeRecordDefinition<TRecordType> recordDefinition);
-        IVariablePageWithOneRecordTypeBuilder UsingRecordDefinition(Action<TRecordType, byte[]> fillBytes,
+        IVariablePageWithOneRecordTypeBuilder<TRecordType> UsingRecordDefinition(IVariableSizeRecordDefinition<TRecordType> recordDefinition);
+        IVariablePageWithOneRecordTypeBuilder<TRecordType> UsingRecordDefinition(Action<TRecordType, byte[]> fillBytes,
             Action<byte[], TRecordType> fillFromBytes, Func<TRecordType, int> size);
     }
 }

@@ -2,14 +2,47 @@ using System;
 
 namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 {
+    internal class PageDefinitionBuilder<TRecordType, THeader> : PageDefinitionBuilder<TRecordType>,
+        IHeaderedFixedPageBuilder<TRecordType, THeader>,
+        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader>,
+        IHeaderedVariablePageBuilder<TRecordType, THeader> where TRecordType : TypedRecord, new() where THeader:new()
+    {
+        IHeaderedVariablePageBuilder<TRecordType, THeader> IHeaderedVariablePageBuilder<TRecordType, THeader>.ApplyLogicalSortIndex()
+        {
+            return ApplyLogicalSort() as PageDefinitionBuilder<TRecordType, THeader>;
+        }
+
+        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader> IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader>.ApplyLogicalSortIndex()
+        {
+            return ApplyLogicalSort() as PageDefinitionBuilder<TRecordType, THeader>;
+        }
+
+        IHeaderedVariablePageBuilder<TRecordType, THeader> IHeaderedVariablePageBuilder<TRecordType, THeader>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        {
+            return WithConsistencyAbilities(consitencyAbilities) as PageDefinitionBuilder<TRecordType, THeader>;
+        }
+
+        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader> IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        {
+            return WithConsistencyAbilities(consitencyAbilities) as PageDefinitionBuilder<TRecordType, THeader>;
+        }
+
+        IHeaderedFixedPageBuilder<TRecordType, THeader> IHeaderedFixedPageBuilder<TRecordType, THeader>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        {
+            return WithConsistencyAbilities(consitencyAbilities) as PageDefinitionBuilder<TRecordType, THeader>;
+        }
+
+        public PageDefinitionBuilder(PageManagerConfiguration config, byte pageNum) : base(config, pageNum)
+        {
+        }
+    }
+
     internal class PageDefinitionBuilder<TRecordType> : PageDefinitionBuilder,
         IPageRecordTypeBuilder<TRecordType>,
         IFixedPageBuilder<TRecordType>,
         IVariablePageBuilder<TRecordType>,
-        IVariablePageWithOneRecordTypeBuilder,
-        IHeaderedFixedPageBuilder<TRecordType>,
-        IHeaderedVariablePageWithOneRecordBuilder,
-        IHeaderedVariablePageBuilder<TRecordType> where TRecordType : TypedRecord, new()
+        IVariablePageWithOneRecordTypeBuilder<TRecordType>
+         where TRecordType : TypedRecord, new()
     {
       
         public PageDefinitionBuilder(PageManagerConfiguration config, byte pageNum):base(config,pageNum)
@@ -43,7 +76,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return this;
         }
 
-        public IVariablePageWithOneRecordTypeBuilder UsingRecordDefinition(Action<TRecordType, byte[]> fillBytes, Action<byte[], TRecordType> fillFromBytes, Func<TRecordType,int> size)
+        public IVariablePageWithOneRecordTypeBuilder<TRecordType> UsingRecordDefinition(Action<TRecordType, byte[]> fillBytes, Action<byte[], TRecordType> fillFromBytes, Func<TRecordType,int> size)
         {
             if (fillBytes == null) throw new ArgumentNullException(nameof(fillBytes));
             if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
@@ -54,7 +87,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return this;
         }
 
-        public IVariablePageWithOneRecordTypeBuilder UsingRecordDefinition(IVariableSizeRecordDefinition<TRecordType> recordDefinition)
+        public IVariablePageWithOneRecordTypeBuilder<TRecordType> UsingRecordDefinition(IVariableSizeRecordDefinition<TRecordType> recordDefinition)
         {
             if (recordDefinition == null) throw new ArgumentNullException(nameof(recordDefinition));
             var config = new VariableRecordTypePageConfiguration<TRecordType>();
@@ -92,56 +125,35 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return Copy();
         }
 
-        IVariablePageBuilder<TRecordType> IHeaderedVariablePageBuilder<TRecordType>.ApplyLogicalSortIndex()
-        {
-           return ApplyLogicalSort();
-        }
-
-        IVariablePageBuilder<TRecordType> IHeaderedVariablePageBuilder<TRecordType>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
-        {
-            return WithConsistencyAbilities(consitencyAbilities);
-        }
+      
 
         IVariablePageBuilder<TRecordType> IVariablePageBuilder<TRecordType>.ApplyLogicalSortIndex()
         {
             return ApplyLogicalSort();
         }
 
-        IVariablePageWithOneRecordTypeBuilder IVariablePageWithOneRecordTypeBuilder.ApplyLogicalSortIndex()
+        IVariablePageWithOneRecordTypeBuilder<TRecordType> IVariablePageWithOneRecordTypeBuilder<TRecordType>.ApplyLogicalSortIndex()
         {
             return ApplyLogicalSort();
         }
 
-        private PageDefinitionBuilder<TRecordType> ApplyLogicalSort()
+        protected PageDefinitionBuilder<TRecordType> ApplyLogicalSort()
         {
             var config = _config.PageMap[_pageNum] as VariableRecordTypePageConfiguration<TRecordType>;
             config.UseLogicalSlotInfo = true;
             return this;
         }
 
-        private PageDefinitionBuilder<TRecordType> WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        protected PageDefinitionBuilder<TRecordType> WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
         {
             var c = _config.PageMap[_pageNum];
             c.ConsistencyConfiguration = new ConsistencyConfiguration(){ConsistencyAbilities = consitencyAbilities};
             return this;
         }
 
-        IHeaderedVariablePageWithOneRecordBuilder IVariablePageWithOneRecordTypeBuilder.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition)
-        {
-            return CreateHeaderedConfiguration(headerDefinition);
-        }
+       
 
-        IHeaderedVariablePageBuilder<TRecordType> IVariablePageBuilder<TRecordType>.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition)
-        {
-            return CreateHeaderedConfiguration(headerDefinition);
-        }
-
-        IHeaderedFixedPageBuilder<TRecordType> IFixedPageBuilder<TRecordType>.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition)
-        {
-            return CreateHeaderedConfiguration(headerDefinition);
-        }
-
-        private PageDefinitionBuilder<TRecordType> CreateHeaderedConfiguration<THeader>(IHeaderDefinition<THeader> headerDefinition) where THeader:new()
+        private PageDefinitionBuilder<TRecordType, THeader> CreateHeaderedConfiguration<THeader>(IHeaderDefinition<THeader> headerDefinition) where THeader:new()
         {
             var c = _config.PageMap[_pageNum];
             var c2 = new PageHeadersConfiguration<THeader>();
@@ -149,7 +161,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
                 headerDefinition.Size);
             c2.InnerPageMap = c;
             _config.HeaderConfig.Add(_pageNum, c2);
-            return this;
+            return new PageDefinitionBuilder<TRecordType,THeader>(_config,_pageNum);
         }
 
         private PageDefinitionBuilder<TRecordType> Copy()
@@ -167,24 +179,31 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return WithConsistencyAbilities(consitencyAbilities);
         }
 
-        IVariablePageWithOneRecordTypeBuilder IVariablePageWithOneRecordTypeBuilder.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        IVariablePageWithOneRecordTypeBuilder<TRecordType> IVariablePageWithOneRecordTypeBuilder<TRecordType>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
         {
             return WithConsistencyAbilities(consitencyAbilities);
         }
 
-        IHeaderedFixedPageBuilder<TRecordType> IHeaderedFixedPageBuilder<TRecordType>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader> IVariablePageWithOneRecordTypeBuilder<TRecordType>.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition) 
         {
-            return WithConsistencyAbilities(consitencyAbilities);
+            return CreateHeaderedConfiguration(headerDefinition);
         }
 
-        public IVariablePageWithOneRecordTypeBuilder ApplyLogicalSortIndex()
+        IHeaderedVariablePageBuilder<TRecordType, THeader> IVariablePageBuilder<TRecordType>.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition)
+        {
+            return CreateHeaderedConfiguration(headerDefinition);
+        }
+
+        IHeaderedFixedPageBuilder<TRecordType,THeader> IFixedPageBuilder<TRecordType>.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition)
+        {
+            return CreateHeaderedConfiguration(headerDefinition);
+        }
+
+        public IVariablePageWithOneRecordTypeBuilder<TRecordType> ApplyLogicalSortIndex()
         {
             return ApplyLogicalSort();
         }
 
-        IVariablePageWithOneRecordTypeBuilder IHeaderedVariablePageWithOneRecordBuilder.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
-        {
-            return WithConsistencyAbilities(consitencyAbilities);
-        }
+     
     }
 }

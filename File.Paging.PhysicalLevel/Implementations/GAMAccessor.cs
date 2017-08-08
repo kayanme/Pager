@@ -36,6 +36,12 @@ namespace File.Paging.PhysicalLevel.Implementations
         {
             return _accessor.ReadByte(pageNum);
         }
+
+        public void SetPageType(int pageNum, byte pageType)
+        {
+             _accessor.Write(pageNum,pageType);
+        }
+
         public int MarkPageUsed(byte pageType)
         {
             lock (_accessor)

@@ -50,6 +50,11 @@ namespace File.Paging.PhysicalLevel.Implementations
             _map.WriteArray(position + _startOffset, record, 0, length);
         }
 
+        public void ClearPage()
+        {
+            _map.WriteArray(_startOffset, new byte[PageSize], 0, PageSize);
+        }
+
         public IPageAccessor GetChildAccessorWithStartShift(ushort startShirt)
         {
             if (_disposedValue)

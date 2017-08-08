@@ -1,10 +1,9 @@
 namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 {
-    public interface IHeaderedVariablePageBuilder<TRecordType> where TRecordType : TypedRecord, new()
+    public interface IHeaderedVariablePageBuilder<TRecord, THeader>
     {
-        IVariablePageBuilder<TRecordType> UsingRecordDefinition(byte recordType, IVariableSizeRecordDefinition<TRecordType> recordDefinition);
-        IVariablePageBuilder<TRecordType> UsingRecordDefinition(byte recordType, IFixedSizeRecordDefinition<TRecordType> recordDefinition);
-        IVariablePageBuilder<TRecordType> ApplyLogicalSortIndex();
-        IVariablePageBuilder<TRecordType> WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities);
+       
+        IHeaderedVariablePageBuilder<TRecord, THeader> ApplyLogicalSortIndex();
+        IHeaderedVariablePageBuilder<TRecord, THeader> WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities);
     }
 }

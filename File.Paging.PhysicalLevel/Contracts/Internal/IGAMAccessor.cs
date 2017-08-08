@@ -8,6 +8,6 @@ namespace File.Paging.PhysicalLevel.Contracts
         byte GetPageType(int pageNum);
         int MarkPageUsed(byte pageType);
         void MarkPageFree(int pageNum);
-         
+        void SetPageType(int pageNum, byte pageType);
     }
 }

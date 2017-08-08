@@ -57,7 +57,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Configurations\UnitTest1.cs" />
+    <Compile Include="Configurations\ConfigurationBuilderTests.cs" />
     <Compile Include="Headers\VariableRecordPageHeadersTestWithSlotInfo.cs" />
     <Compile Include="Headers\VariableRecordPageHeadersTest.cs" />
     <Compile Include="Headers\FixedRecordPageHeadersTest.cs" />

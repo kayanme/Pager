@@ -4,30 +4,31 @@ using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal sealed class HeaderedPage<THeader> : IHeaderedPage<THeader>,IHeaderedPageInt where THeader:new()
+    internal sealed class HeaderedPage<THeader> : TypedPageBase, IHeaderedPage<THeader>,IHeaderedPageInt where THeader:new()
     {
-        private readonly IPageAccessor _accessor;
+     
         public IPage Content { get; private set; }
 
-        public PageReference Reference { get; }
+     
         
-        public double PageFullness => Content.PageFullness;
+        public override double PageFullness => Content.PageFullness;
 
-        public byte RegisteredPageType => Content.RegisteredPageType;
+       
 
         private readonly PageHeadersConfiguration<THeader> _config;
-        internal HeaderedPage(IPageAccessor accessor, IPage childPage, PageReference reference,PageHeadersConfiguration<THeader> config)
+        internal HeaderedPage(IPageHeaders childHeaders, IPageAccessor accessor, IPage childPage, PageReference reference,PageHeadersConfiguration<THeader> config)
+            :base(childHeaders, accessor,reference,childPage.RegisteredPageType)
         {
-            _accessor = accessor;
+          
             Content = childPage;
             _config = config;
-            Reference = reference;
+           
         }
 
         public THeader GetHeader()
         {          
             var header = new THeader();
-            var bytes = _accessor.GetByteArray(0, _config.Header.GetSize);
+            var bytes = Accessor.GetByteArray(0, _config.Header.GetSize);
             _config.Header.FillFromBytes( bytes,header);
             return header;
          
@@ -37,35 +38,18 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         {
             var bytes = new byte[_config.Header.GetSize];
             _config.Header.FillBytes(header, bytes);
-            _accessor.SetByteArray(bytes, 0, bytes.Length);
-            _accessor.Flush();
-        }     
-
-        private bool _disposedValue = false;
-        void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    _accessor.Flush();
-                    Content.Dispose();
-                }
-
-                _disposedValue = true;
-            }
+            Accessor.SetByteArray(bytes, 0, bytes.Length);
+            Accessor.Flush();
         }
+      
+
         ~HeaderedPage()
         {
             Dispose(true);
         }
 
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+     
 
         public void SwapContent(IPage page)
         {

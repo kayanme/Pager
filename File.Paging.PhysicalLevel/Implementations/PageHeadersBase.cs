@@ -10,19 +10,21 @@ namespace File.Paging.PhysicalLevel.Implementations
 {
     internal abstract class PageHeadersBase : IPageHeaders
     {
+        private int _totalRecordSize;
+        private int _totalUsedRecords;
 
-      
+
         private const byte RecordUseMask = 0xFF;
 
         protected abstract  int[] RecordInfo { get; }
-        
 
+        public int TotalUsedSize
+        {
+            get { return _totalRecordSize; }
+            protected set { _totalRecordSize = value; }
+        }
 
-        public ushort RecordCount => (ushort)RecordInfo.Count(k => RecordType(0) != 0);
-
-       
-
-      
+        public ushort RecordCount => (ushort)_totalUsedRecords;            
 
         protected abstract IEnumerable<int> PossibleRecordsToInsert();
 
@@ -40,7 +42,9 @@ namespace File.Paging.PhysicalLevel.Implementations
             var newInf = FormRecordInf(0, RecordSize(record), RecordShift(record));
             if (Interlocked.CompareExchange(ref RecordInfo[record], newInf, r) == r)
             {
-                SetFree(record);                
+                SetFree(record);
+                Interlocked.Add(ref _totalRecordSize, -RecordSize(record)- HeaderOverheadSize);
+                Interlocked.Add(ref _totalUsedRecords, -1);
             }
             else
                 throw new RecordWriteConflictException();
@@ -65,12 +69,18 @@ namespace File.Paging.PhysicalLevel.Implementations
             return RecordType(record) == 0; 
         }
 
-        protected abstract ushort TotalRecords { get; }
+        public ushort TotalUsedRecords
+        {
+            get { return (ushort) _totalUsedRecords; }
+            protected set { _totalUsedRecords = value; }
+        }
+
         protected virtual void SetNewLogicalRecordNum(ushort logicalRecordNum,ushort shift)
         {
             throw new InvalidOperationException("Not supported");
         }
         protected int FormRecordInf(byte rType, ushort rSize, ushort rShift) => (rShift << 18) | (rSize << 4) | (rType);
+        protected abstract int HeaderOverheadSize {get;}
         public short TakeNewRecord(byte rType,ushort rSize)
         {
          
@@ -98,6 +108,8 @@ namespace File.Paging.PhysicalLevel.Implementations
             Thread.EndCriticalRegion();
             if (index!=-1)
             {
+                Interlocked.Add(ref _totalRecordSize,rSize+ HeaderOverheadSize);
+                Interlocked.Add(ref _totalUsedRecords, 1);
                 return index;
             }
             else
@@ -113,9 +125,11 @@ namespace File.Paging.PhysicalLevel.Implementations
         {
             var oldInf = RecordInfo[recordNum];
             var shift = RecordShift(recordNum);
+            var oldSize = RecordSize(recordNum);
             var t = FormRecordInf(rType, rSize, shift);
             if (Interlocked.CompareExchange(ref RecordInfo[recordNum], t, oldInf) != oldInf)
                 throw new RecordWriteConflictException();
+            Interlocked.Add(ref _totalRecordSize, rSize- oldSize);
             UpdateUsed(recordNum, shift, rSize, rType);
         }
 
@@ -136,5 +150,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             SetNewLogicalRecordNum(recordTwo, RecordShift(recordTwo));
 
         }
+
+        public abstract void Compact();
     }
 }

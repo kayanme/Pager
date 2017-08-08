@@ -10,7 +10,7 @@ namespace File.Paging.PhysicalLevel.Contracts
         int PageSize { get; }
         void Flush();
         uint ExtentNumber { get; }
-
+        void ClearPage();
         IPageAccessor GetChildAccessorWithStartShift(ushort startShirt);
     }
 }

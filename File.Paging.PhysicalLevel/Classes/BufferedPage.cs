@@ -10,5 +10,7 @@ namespace File.Paging.PhysicalLevel.Classes
         public IPageHeaders Headers;
         public PageContentConfiguration Config;
         public PageHeadersConfiguration HeaderConfig;
+        public bool MarkedForRemoval;
+        public int UserCount;
     }
 }

@@ -12,6 +12,6 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
         IVariablePageBuilder<TRecordType> ApplyLogicalSortIndex();
         IVariablePageBuilder<TRecordType> WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities);
 
-        IHeaderedVariablePageBuilder<TRecordType> WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition) where THeader : new();
+        IHeaderedVariablePageBuilder<TRecordType, THeader> WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition) where THeader : new();
     }
 }

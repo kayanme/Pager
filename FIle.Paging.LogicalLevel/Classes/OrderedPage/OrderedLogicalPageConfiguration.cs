@@ -5,9 +5,10 @@ using File.Paging.PhysicalLevel.Classes.Pages;
 
 namespace FIle.Paging.LogicalLevel.Classes.Configurations
 {
-    internal sealed class OrderedLogicalPageConfiguration<TRecord,TKey>:LogicalPageConfiguration where TRecord:TypedRecord,new() where TKey:IComparable<TKey>
+    internal sealed class OrderedLogicalPageConfiguration<TRecord,TKey>:BindedToPhysicalPageConfiguration where TRecord:TypedRecord,new() where TKey:IComparable<TKey>
     {
         public Func<TRecord, TKey> KeySelector;
+       
 
         public override IPage CreateLogicalPage(IPage physicalPage)
         {
