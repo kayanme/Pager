@@ -63,9 +63,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             if (!_disposedValue)
             {
                 if (disposing)
-                {
-                    
-                    Flush();
+                {                                       
                     CompactionLock.Dispose();
                 }
 

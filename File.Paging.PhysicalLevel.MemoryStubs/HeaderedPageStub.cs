@@ -4,7 +4,8 @@ using File.Paging.PhysicalLevel.Classes.Pages;
 
 namespace File.Paging.PhysicalLevel.MemoryStubs
 {
-    internal sealed class HeaderedPageStub<THeader> : IHeaderedPage<THeader> where THeader:new()
+    internal sealed class HeaderedPageStub<TRecord,THeader> : IHeaderedPage<THeader> where THeader:new()
+        where TRecord:TypedRecord,new()
     {
         public IPage Content { get; }
 
@@ -14,8 +15,8 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
 
         public byte RegisteredPageType => Content.RegisteredPageType;
 
-        private PageHeadersConfiguration<THeader> _config;
-        internal HeaderedPageStub(IPage childPage, PageReference reference, PageHeadersConfiguration<THeader> config)
+        private PageHeadersConfiguration<TRecord,THeader> _config;
+        internal HeaderedPageStub(IPage childPage, PageReference reference, PageHeadersConfiguration<TRecord, THeader> config)
         {
            
             Content = childPage;

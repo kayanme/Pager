@@ -40,7 +40,7 @@ namespace Test.Pager
                 
                 //RecordType = new RecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
             };
-            var hconfig = new PageHeadersConfiguration<TestHeader>
+            var hconfig = new PageHeadersConfiguration<TestRecord,TestHeader>
             {
                 Header = new FixedSizeRecordDeclaration<TestHeader>((t, b) => { t.FillFromByteArray(b); },  (b, t) => { t.FillByteArray(b); },7),
                 InnerPageMap = fconfig
@@ -192,7 +192,7 @@ namespace Test.Pager
             {
                 var page = manager.RetrievePage(new PageReference(0));
                 Assert.AreEqual(new PageReference(0), page.Reference);
-                Assert.IsInstanceOfType(page, typeof(HeaderedPage<TestHeader>));            
+                Assert.IsInstanceOfType(page, typeof(HeaderedPage<TestRecord,TestHeader>));            
             }
           
             BlockMock.VerifyAllExpectations();

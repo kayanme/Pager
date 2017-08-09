@@ -80,9 +80,9 @@
     <Compile Include="VirtualHeapPageTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FIle.Paging.LogicalLevel\FIle.Paging.LogicalLevel.csproj">
+    <ProjectReference Include="..\FIle.Paging.LogicalLevel\File.Paging.LogicalLevel.csproj">
       <Project>{09d1ee6b-62e5-4c98-be83-951d5c025308}</Project>
-      <Name>FIle.Paging.LogicalLevel</Name>
+      <Name>File.Paging.LogicalLevel</Name>
     </ProjectReference>
     <ProjectReference Include="..\File.Paging.PhysicalLevel\File.Paging.PhysicalLevel.csproj">
       <Project>{48462091-cdbc-4e4e-aee7-f63665e15a64}</Project>

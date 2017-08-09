@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Contracts;
 
@@ -9,7 +10,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         internal abstract IHeaderedPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize, byte pageType);
     }
 
-    internal sealed class PageHeadersConfiguration<THeader> : PageHeadersConfiguration where THeader : new()
+    internal sealed class PageHeadersConfiguration<TRecord,THeader> : PageHeadersConfiguration where THeader : new() where TRecord:TypedRecord,new()
     {
 
         public FixedSizeRecordDeclaration<THeader> Header { get; set; }
@@ -18,8 +19,10 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         private ushort HeaderSize => (ushort)Header.GetSize;
         internal override IHeaderedPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize, byte pageType)
         {
-            return new HeaderedPage<THeader>(headers,accessor,
-                InnerPageMap.CreatePage(headers, accessor.GetChildAccessorWithStartShift(HeaderSize), reference, pageSize - HeaderSize, pageType), reference, this);
+           var innerPage = InnerPageMap.CreatePage(headers, accessor.GetChildAccessorWithStartShift(HeaderSize), reference,
+                pageSize - HeaderSize, pageType) as IPage<TRecord>;
+            Debug.Assert(innerPage != null,"innerPage != null");
+            return new HeaderedPage<TRecord, THeader>(headers,accessor, innerPage, reference, this);
         }
     }
 }

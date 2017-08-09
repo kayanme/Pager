@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>RecordAddBenchmark</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.10.9, OS=Windows 8.1 (6.3.9600)
+Processor=Intel Core i7-4510U CPU 2.00GHz (Haswell), ProcessorCount=4
+Frequency=2533191 Hz, Resolution=394.7590 ns, Timer=TSC
+  [Host]     : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
+  Job-YKXKBQ : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
+</code></pre>
+<pre><code>AnalyzeLaunchVariance=True  Runtime=Clr  InvocationCount=96  
+LaunchCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>             Method</th><th>PageSize</th><th>    Mean</th><th> Error</th><th>StdDev</th><th>  Median</th>
+</tr>
+</thead><tbody><tr><td> AddRecordWithOrder</td><td>Kb4</td><td>313.1 ns</td><td>19.34 ns</td><td>81.23 ns</td><td>280.6 ns</td>
+</tr><tr><td>AddRecordInVirtualPage</td><td>Kb4</td><td>3,168.9 ns</td><td>189.70 ns</td><td>933.31 ns</td><td>2,664.2 ns</td>
+</tr><tr><td>AddRecordWithoutOrder</td><td>Kb4</td><td>294.9 ns</td><td>15.70 ns</td><td>79.26 ns</td><td>262.6 ns</td>
+</tr><tr><td>ChangeRecordWithOrder</td><td>Kb4</td><td>560,983.3 ns</td><td>7,585.27 ns</td><td>35,420.78 ns</td><td>550,498.4 ns</td>
+</tr><tr><td>ChangeRecordInVirtualPage</td><td>Kb4</td><td>3,066.9 ns</td><td>162.22 ns</td><td>796.61 ns</td><td>2,675.8 ns</td>
+</tr><tr><td>ChangeRecordWithoutOrder</td><td>Kb4</td><td>1,561.7 ns</td><td>94.57 ns</td><td>412.60 ns</td><td>1,307.6 ns</td>
+</tr><tr><td> AddRecordWithOrder</td><td>Kb8</td><td>346.1 ns</td><td>19.39 ns</td><td>97.39 ns</td><td>294.7 ns</td>
+</tr><tr><td>AddRecordInVirtualPage</td><td>Kb8</td><td>2,696.7 ns</td><td>127.88 ns</td><td>624.37 ns</td><td>2,450.6 ns</td>
+</tr><tr><td>AddRecordWithoutOrder</td><td>Kb8</td><td>310.9 ns</td><td>18.39 ns</td><td>89.81 ns</td><td>268.5 ns</td>
+</tr><tr><td>ChangeRecordWithOrder</td><td>Kb8</td><td>1,064,584.3 ns</td><td>16,153.83 ns</td><td>41,698.19 ns</td><td>1,052,515.0 ns</td>
+</tr><tr><td>ChangeRecordInVirtualPage</td><td>Kb8</td><td>2,745.1 ns</td><td>78.69 ns</td><td>384.93 ns</td><td>2,655.8 ns</td>
+</tr><tr><td>ChangeRecordWithoutOrder</td><td>Kb8</td><td>1,451.4 ns</td><td>75.29 ns</td><td>330.08 ns</td><td>1,304.9 ns</td>
+</tr></tbody></table>
+</body>
+</html>

@@ -156,7 +156,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
         private PageDefinitionBuilder<TRecordType, THeader> CreateHeaderedConfiguration<THeader>(IHeaderDefinition<THeader> headerDefinition) where THeader:new()
         {
             var c = _config.PageMap[_pageNum];
-            var c2 = new PageHeadersConfiguration<THeader>();
+            var c2 = new PageHeadersConfiguration<TRecordType, THeader>();
             c2.Header = new FixedSizeRecordDeclaration<THeader>(headerDefinition.FillBytes, headerDefinition.FillFromBytes,
                 headerDefinition.Size);
             c2.InnerPageMap = c;

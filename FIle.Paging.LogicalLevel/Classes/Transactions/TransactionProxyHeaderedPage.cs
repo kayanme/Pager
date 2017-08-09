@@ -6,7 +6,9 @@ using File.Paging.PhysicalLevel.Classes.Pages;
 
 namespace FIle.Paging.LogicalLevel.Classes.Transactions
 {
-    internal sealed class TransactionProxyHeaderedPage<THeader>:IHeaderedPage<THeader>,IHeaderedPageInt where THeader:new()
+    internal sealed class TransactionProxyHeaderedPage<TRecord,THeader> :IHeaderedPage<THeader>,IHeaderedPageInt<TRecord> 
+        where THeader:new()
+        where TRecord : TypedRecord, new()
     {
         private readonly int _readlock;
         private readonly int _writellock;
@@ -77,7 +79,7 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
             else _inner.ModifyHeader(header);
         }
 
-        public void SwapContent(IPage page)
+        public void SwapContent(IPage<TRecord> page)
         {
             Content = page;
         }

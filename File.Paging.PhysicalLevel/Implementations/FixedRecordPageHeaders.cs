@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
@@ -15,7 +16,7 @@ namespace File.Paging.PhysicalLevel.Implementations
    
         private readonly IPageAccessor _accessor;
         protected override int[] RecordInfo { get; }
-        private readonly ConcurrentBag<ushort> _freeRecordNumbers = new ConcurrentBag<ushort>();
+        private readonly ConcurrentSortedSet<ushort> _freeRecordNumbers = new ConcurrentSortedSet<ushort>();
      
 
         public FixedRecordPageHeaders(IPageAccessor accessor,ushort recordSize):base()
@@ -38,7 +39,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             var fullRecordSize = (ushort)(_fixedRecordSize + HeaderOverheadSize);
             var records = new int[(page.Length)/ fullRecordSize + 1];
            
-            for (ushort i = 0; i< page.Length; i+= fullRecordSize)
+            for (ushort i = 0; i< page.Length-fullRecordSize+1; i+= fullRecordSize)
             {
                 if ((page[i] & RecordUseMask) == 0)
                 {
@@ -86,7 +87,7 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         protected override IEnumerable<int> PossibleRecordsToInsert()
         {
-           while(_freeRecordNumbers.TryTake(out var free))
+           while(_freeRecordNumbers.TryTakeMin(out var free))
             {
                 yield return free;
                 _freeRecordNumbers.Add(free);

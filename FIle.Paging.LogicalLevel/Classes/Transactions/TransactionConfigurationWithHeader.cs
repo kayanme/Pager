@@ -14,8 +14,8 @@ namespace FIle.Paging.LogicalLevel.Classes.Configurations
         {
             var pp = physicalPage as IHeaderedPage<THeader>;
             Debug.Assert(pp !=null, "pp!=null");
-            var tp = new TransactionProxyPage<TRecord>(pp.Content as IPage<TRecord>);
-            var thp = new TransactionProxyHeaderedPage<THeader>(pp,tp);
+            var tp = new TransactionProxyPage<TRecord>(pp as IPage<TRecord>);
+            var thp = new TransactionProxyHeaderedPage<TRecord,THeader>(pp,tp);
             return thp;
         }
         

@@ -18,7 +18,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             _config = config;
         }
        
-        public override double PageFullness =>0;
+        public override double PageFullness =>(double)Headers.TotalUsedSize/_pageSize;
 
         public IEnumerable<TRecordType> IterateRecords()
         {

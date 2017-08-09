@@ -11,19 +11,18 @@ using File.Paging.PhysicalLevel.Implementations;
 
 namespace Benchmark.Paging.PhysicalLevel
 {
-    public class RecordChangeBenchmark
+    public class Physical_RecordChangeBenchmark
     {
         IPageManager _manager;
         
         public static PageManagerConfiguration.PageSize PageSize = PageManagerConfiguration.PageSize.Kb8;
         public static int SizeInKb = PageSize == PageManagerConfiguration.PageSize.Kb4?4:8;
-        //private FixedRecordTypedPage<TestRecord>[] _pages;       
-        //private ComplexRecordTypePage<TestRecord>[] _pages2;
+      
         private FileStream _other;
 
         private static readonly List<Tuple<int,byte>> Changes;
         public static int PageCount = 200;
-        static RecordChangeBenchmark()
+        static Physical_RecordChangeBenchmark()
         {
             var rnd = new Random();
             Changes = Enumerable.Range(0, 20000).Select(k => Tuple.Create(rnd.Next(PageCount* SizeInKb * 1024), (byte)rnd.Next(255))).ToList();
@@ -83,30 +82,33 @@ namespace Benchmark.Paging.PhysicalLevel
         private IPage PageWrite(bool flush)
         {
             var change = Changes[_count];
-            var page = _manager.RetrievePage(new PageReference(change.Item1 / SizeInKb/1024));
-            var shift = change.Item1 % (SizeInKb*1024);
+            var page = _manager.RetrievePage(new PageReference(change.Item1 / SizeInKb / 1024));
+            var shift = change.Item1 % (SizeInKb * 1024);
             if (WriteMethod == WriteMethod.FixedSize)
             {
                 var t = page as FixedRecordTypedPage<TestRecord>;
-                var record = t.GetRecord(new PageRecordReference { LogicalRecordNum = shift / 8, Page = page.Reference });
+                var record = t.GetRecord(new PageRecordReference {LogicalRecordNum = shift / 8, Page = page.Reference});
                 record.Values[shift % 7] = change.Item2;
                 t.StoreRecord(record);
                 _count += _count & Changes.Count;
             }
             else
             {
-              
-                    var t = page as ComplexRecordTypePage<TestRecord>;
-                    var record = t.GetRecord(new PageRecordReference { LogicalRecordNum = shift / 8, Page = page.Reference });
+
+                var t = page as ComplexRecordTypePage<TestRecord>;
+                var record = t.GetRecord(new PageRecordReference {LogicalRecordNum = shift / 8, Page = page.Reference});
+                if (record != null)
+                {
                     record.Values[shift % 7] = change.Item2;
                     t.StoreRecord(record);
                     _count += _count & Changes.Count;
-                
+                }
+
             }
-                if (flush)
-                    (page as IPhysicalLevelManipulation).Flush();
-                return page;
-            
+            if (flush)
+                (page as IPhysicalLevelManipulation).Flush();
+            return page;
+
         }
 
         [Benchmark]

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>Physical_RecordChangeBenchmark</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.10.9, OS=Windows 8.1 (6.3.9600)
+Processor=Intel Core i7-4510U CPU 2.00GHz (Haswell), ProcessorCount=4
+Frequency=2533191 Hz, Resolution=394.7590 ns, Timer=TSC
+  [Host]     : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
+  Job-NQIHYO : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
+</code></pre>
+<pre><code>AnalyzeLaunchVariance=True  Runtime=Clr  InvocationCount=192  
+LaunchCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>           Method</th><th>WriteMethod</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th>
+</tr>
+</thead><tbody><tr><td>        AddRecord</td><td> Naive</td><td>6.273 us</td><td>0.2301 us</td><td>1.1868 us</td><td>6.075 us</td>
+</tr><tr><td>AddRecordWithFlush</td><td> Naive</td><td>6.736 us</td><td>0.2530 us</td><td>1.3094 us</td><td>6.981 us</td>
+</tr><tr><td>AddRecordGroupWithFlush</td><td> Naive</td><td>288.742 us</td><td>8.4995 us</td><td>41.7383 us</td><td>272.638 us</td>
+</tr><tr><td>        AddRecord</td><td>VariableSize</td><td>1.929 us</td><td>0.1005 us</td><td>0.5083 us</td><td>1.633 us</td>
+</tr><tr><td>AddRecordWithFlush</td><td>VariableSize</td><td>73.751 us</td><td>1.0750 us</td><td>5.3888 us</td><td>73.119 us</td>
+</tr><tr><td>AddRecordGroupWithFlush</td><td>VariableSize</td><td>193.849 us</td><td>3.6239 us</td><td>18.0999 us</td><td>188.349 us</td>
+</tr></tbody></table>
+</body>
+</html>

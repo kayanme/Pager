@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Paging.PhysicalLevel", "Test.Paging.Physical\Test.Paging.PhysicalLevel.csproj", "{E24D66C5-8B2C-489C-B9C7-A0B6661F848A}"
 EndProject
@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Durability.Paging.PhysicalL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Paging.LogicalLevel", "Test.Paging.LogicalLevel\Test.Paging.LogicalLevel.csproj", "{F6EFA8E0-235C-48A4-A59B-CD749FDD127E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FIle.Paging.LogicalLevel", "FIle.Paging.LogicalLevel\FIle.Paging.LogicalLevel.csproj", "{09D1EE6B-62E5-4C98-BE83-951D5C025308}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "File.Paging.LogicalLevel", "FIle.Paging.LogicalLevel\File.Paging.LogicalLevel.csproj", "{09D1EE6B-62E5-4C98-BE83-951D5C025308}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark.Paging.LogicalLevel", "Benchmark.Paging.LogicalLevel\Benchmark.Paging.LogicalLevel.csproj", "{4F75BCF7-37BD-47F0-B375-358CCE65F6E4}"
 EndProject

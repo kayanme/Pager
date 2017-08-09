@@ -9,7 +9,7 @@ using File.Paging.PhysicalLevel.Implementations;
 
 namespace Benchmark.Paging.PhysicalLevel
 {
-    public class RecordAddBenchmark
+    public class Physical_RecordAddBenchmark
     {
         IPageManager _manager;
         [Params(PageManagerConfiguration.PageSize.Kb4,PageManagerConfiguration.PageSize.Kb8)]        

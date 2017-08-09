@@ -2,7 +2,7 @@
 {
     public interface IHeaderedPage:IPage
     {      
-        IPage Content { get; }    
+      
     }
 
     public interface IHeaderedPage<THeader>: IHeaderedPage where THeader : new()

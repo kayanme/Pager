@@ -1,7 +1,7 @@
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal interface IHeaderedPageInt : IPage
+    internal interface IHeaderedPageInt<TRecord> : IPage where TRecord:TypedRecord,new()
     {
-        void SwapContent(IPage page);
+        void SwapContent(IPage<TRecord> page);
     }
 }

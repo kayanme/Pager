@@ -16,9 +16,9 @@ namespace FIle.Paging.LogicalLevel.Classes.Configurations
             {
                 case IHeaderedPage i :
                     var p2 = i;
-                    var logic = new OrderedPage<TRecord, TKey>(p2.Content as IPage<TRecord>, KeySelector);
-                    Debug.Assert(physicalPage is IHeaderedPageInt, "physicalPage is IHeaderedPageInt");
-                    ((IHeaderedPageInt) physicalPage).SwapContent(logic);
+                    var logic = new OrderedPage<TRecord, TKey>(p2 as IPage<TRecord>, KeySelector);
+                    Debug.Assert(physicalPage is IHeaderedPageInt<TRecord>, "physicalPage is IHeaderedPageInt");
+                    ((IHeaderedPageInt<TRecord>) physicalPage).SwapContent(logic);
                     return CreateTransactionPage(i);
                 case IPage<TRecord> i:
                     var page = new OrderedPage<TRecord, TKey>(physicalPage as IPage<TRecord>, KeySelector);

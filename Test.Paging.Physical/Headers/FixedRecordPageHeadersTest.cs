@@ -64,7 +64,18 @@ namespace Test.Pager.Headers
             Assert.AreEqual(10,headers.RecordShift(1));
             Assert.AreEqual(7, headers.RecordSize(1));
             Assert.AreEqual(2, headers.RecordCount);
-            Assert.AreEqual(14, headers.TotalUsedSize);
+            Assert.AreEqual(16, headers.TotalUsedSize);
+            Page.VerifyAllExpectations();
+        }
+
+        [TestMethod]
+        public void AcquirePage_WhenAvailable_WithNotRoundPageSize()
+        {
+            var pageContent = new byte[] { 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            var headers = Create(pageContent);
+           
+            var pos = headers.TakeNewRecord(0, 7);
+            Assert.AreEqual(-1, pos);          
             Page.VerifyAllExpectations();
         }
 

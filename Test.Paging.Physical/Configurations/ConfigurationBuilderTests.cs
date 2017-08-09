@@ -316,8 +316,8 @@ namespace Test.Pager.Configurations
             Assert.AreEqual(1, tc.HeaderConfig.Count);
             var c = tc.HeaderConfig[1];
             Assert.AreEqual(tc.PageMap[1], c.InnerPageMap);
-            Assert.IsInstanceOfType(c, typeof(PageHeadersConfiguration<TestHeader>));
-            var c2 = c as PageHeadersConfiguration<TestHeader>;
+            Assert.IsInstanceOfType(c, typeof(PageHeadersConfiguration<TestRecord,TestHeader>));
+            var c2 = c as PageHeadersConfiguration<TestRecord, TestHeader>;
             Assert.IsNotNull(c2.Header);
             Assert.AreEqual(10, c2.Header.GetSize);
             var t2 = new byte[1];

@@ -44,7 +44,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                         }
                         else
                         {
-                            var hp = Activator.CreateInstance(typeof(HeaderedPageStub<>).MakeGenericType(headerConfig.GetType().GetGenericArguments()[0]), page, r, pageConfig) as IHeaderedPage;
+                            var hp = Activator.CreateInstance(typeof(HeaderedPageStub<,>).MakeGenericType(headerConfig.GetType().GetGenericArguments()), page, r, pageConfig) as IHeaderedPage;
                             _headeredPages.Add(r, hp);
                             return hp;
                         }
@@ -92,7 +92,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                 }
                 else
                 {
-                    var hp = Activator.CreateInstance(typeof(HeaderedPageStub<>).MakeGenericType(headerConfig.GetType().GetGenericArguments()[0]), page, pageNum, pageConfig) as IHeaderedPage;
+                    var hp = Activator.CreateInstance(typeof(HeaderedPageStub<,>).MakeGenericType(headerConfig.GetType().GetGenericArguments()), page, pageNum, pageConfig) as IHeaderedPage;
                     _headeredPages[pageNum] = hp;                 
                 }
             }

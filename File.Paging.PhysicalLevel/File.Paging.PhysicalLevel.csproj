@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\BufferedPage.cs" />
+    <Compile Include="Classes\ConcurrentSortedSet.cs" />
     <Compile Include="Classes\Configurations\Builder\IFixedPageBuilder.cs" />
     <Compile Include="Classes\Configurations\Builder\IFixedSizeRecordDefinition.cs" />
     <Compile Include="Classes\Configurations\Builder\IHeaderDefinition.cs" />

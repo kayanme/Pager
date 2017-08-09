@@ -75,7 +75,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             var firstPage = _firstPages.GetOrAdd(pageType, pt =>
             {
                 int pr = 0;
-                while (_accessor.GetPageType(pr) != pt && pr < Extent.Size)
+                while (pr < Extent.Size&&_accessor.GetPageType(pr) != pt)
                 {
                     pr++;
                 }

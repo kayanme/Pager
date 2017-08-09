@@ -9,15 +9,14 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
 {
     internal sealed class ComplexRecordTypePage<TRecordType> : TypedPageBase,  IPage<TRecordType> where TRecordType : TypedRecord, new()
     {
-
-   
+        private readonly int _pageSize;
         private readonly VariableRecordTypePageConfiguration<TRecordType> _config;
         internal ComplexRecordTypePage(IPageHeaders headers, IPageAccessor accessor, 
             PageReference reference, int pageSize,byte pageType, VariableRecordTypePageConfiguration<TRecordType> config):
             base(headers,accessor,reference,pageType)
-        {                   
+        {
+            _pageSize = pageSize;
             _config = config;
-           
         }
 
         public IEnumerable<TRecordType> IterateRecords()
@@ -106,7 +105,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             record.Reference.LogicalRecordNum = -1;
         }      
 
-        public override double PageFullness => 0;                           
+        public override double PageFullness => (double)Headers.TotalUsedSize / _pageSize;                           
         
         ~ComplexRecordTypePage()
         {

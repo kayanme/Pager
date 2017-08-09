@@ -26,13 +26,16 @@ namespace Test.Pager.Headers
 
             public void FillHeaders()
             {
-                var d = FillHeadersMock().Select(k => FormRecordInf((byte)k.Item3, (ushort)k.Item2, (ushort)k.Item1)).ToArray();
-
+                var t = FillHeadersMock();
+                var d = t.Select(k => FormRecordInf((byte)k.Item3, (ushort)k.Item2, (ushort)k.Item1)).ToArray();
+                TotalUsedRecords = (ushort)t.Count(k => k.Item1 != 0);
                 for (int i=0;i<RecordInfo.Length;i++)
                 {
                     RecordInfo[i] = d[i];
                 }
             }
+
+            protected sealed override int HeaderOverheadSize => 0;
 
             protected sealed override IEnumerable<int> PossibleRecordsToInsert()
             {

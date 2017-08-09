@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Contracts;
@@ -19,8 +20,8 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         {
             if (typeGet == null)
                 _getRecordType = _ => 1;
-            _getRecordType = typeGet;
-
+            else
+               _getRecordType = typeGet;         
             ConsistencyConfiguration = new ConsistencyConfiguration {ConsistencyAbilities = ConsistencyAbilities.None};
 
         }

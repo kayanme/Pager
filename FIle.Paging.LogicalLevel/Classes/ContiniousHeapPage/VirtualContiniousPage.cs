@@ -16,8 +16,8 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
         private readonly IPageManager _physicalPageManager;
         private readonly byte _headerPageTypeNum;
         private IPage<HeapHeader> _headersPage;
-        private PageReference _theBestCandidate;
-        public VirtualContiniousPage(IPageManager physicalPageManager, byte headerPageTypeNum, byte pageType)
+        private HeapHeader _theBestCandidate;
+        public VirtualContiniousPage(IPageManager physicalPageManager,  byte pageType, byte headerPageTypeNum)
         {
             _physicalPageManager = physicalPageManager;
             _headerPageTypeNum = headerPageTypeNum;
@@ -25,33 +25,33 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
             Reference = new VirtualPageReference(0,pageType);
             PageFullness = 0;
 
-            _headersPage= (_physicalPageManager.IteratePages(headerPageTypeNum).FirstOrDefault()??
-                                _physicalPageManager.CreatePage(headerPageTypeNum)) as IPage<HeapHeader>;
-
+            var hp = (_physicalPageManager.IteratePages(headerPageTypeNum).FirstOrDefault()??
+                                _physicalPageManager.CreatePage(headerPageTypeNum));
+            _headersPage = hp as IPage<HeapHeader>;
             FindOrCreateNewCandidate();
         }
 
         private void FindOrCreateNewCandidate()
         {
             
-            var theBestCandidate = _headersPage.IterateRecords()
-                .Where(k => k.Fullness < .95)
-                .Select(k => new PageReference((int)k.LogicalPageNum))
-                .FirstOrDefault();
+            var theBestCandidate = _headersPage
+                .IterateRecords()               
+                .FirstOrDefault(k => k.Fullness < .95);
 
             if (theBestCandidate == null)
             {
                 var newPage = _physicalPageManager.CreatePage(RegisteredPageType);
-                theBestCandidate = newPage.Reference;
-                if (!_headersPage.AddRecord(new HeapHeader
+                theBestCandidate =  new HeapHeader
                 {
                     Fullness = 0,
-                    LogicalPageNum = (uint) newPage.Reference.PageNum
-                }))
+                    LogicalPageNum = (uint)newPage.Reference.PageNum
+                };
+                if (!_headersPage.AddRecord(theBestCandidate))
                 {
                     _physicalPageManager.DeletePage(newPage.Reference,false);
                     throw new InvalidOperationException("No more records allowed");
                 }
+                (_headersPage as IPhysicalLevelManipulation).Flush();
             }
             _theBestCandidate = theBestCandidate;
         }
@@ -67,29 +67,57 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
 
         public bool AddRecord(TRecord type)
         {
-            using (var page = _physicalPageManager.RetrievePage(_theBestCandidate) as IPage<TRecord>)
+         
+         
+            bool wereAdded = false;
+            while (!wereAdded)
             {
-                while (!page.AddRecord(type))
+                var currentCandidate = _theBestCandidate;
+                using (var page =
+                    _physicalPageManager.RetrievePage(
+                        new PageReference((int) currentCandidate.LogicalPageNum)) as IPage<TRecord>)
                 {
+                    wereAdded = page.AddRecord(type);
+                    if (wereAdded)
+                    {
+                        currentCandidate.Fullness = page.PageFullness;
+                        _headersPage.StoreRecord(currentCandidate);
+                    }
+                }
+                if (!wereAdded)
+                {
+                    currentCandidate.Fullness = 1;
+                    _headersPage.StoreRecord(currentCandidate);
                     try
                     {
                         FindOrCreateNewCandidate();
+
                     }
                     catch (InvalidOperationException)
                     {
                         return false;
                     }
-                   
-                }
+                }               
             }
+
+            //    (_headersPage as IPhysicalLevelManipulation).Flush();
             return true;
         }
 
         public void FreeRecord(TRecord record)
         {
             using (var page = _physicalPageManager.RetrievePage(record.Reference.Page) as IPage<TRecord>)
-            {             
-                page?.FreeRecord(record);
+            {
+                if (page == null)
+                    return;
+                if (page.RegisteredPageType != RegisteredPageType)
+                    throw new InvalidOperationException($"The record does not belong to this page");
+                page.FreeRecord(record);
+                var curHeader = _headersPage
+                    .IterateRecords()
+                    .First(k => k.LogicalPageNum == page.Reference.PageNum);
+                curHeader.Fullness = page.PageFullness;
+                _headersPage.StoreRecord(curHeader);             
             }
         }
 
@@ -97,7 +125,11 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
         {
             using (var page = _physicalPageManager.RetrievePage(reference.Page) as IPage<TRecord>)
             {
-               return page?.GetRecord(reference);
+                if (page == null)
+                    return null;
+                if (page.RegisteredPageType != RegisteredPageType)
+                    throw new InvalidOperationException($"The record does not belong to this page");
+                return page.GetRecord(reference);
             }
         }
 
@@ -105,7 +137,11 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
         {
             using (var page = _physicalPageManager.RetrievePage(record.Reference.Page) as IPage<TRecord>)
             {
-                 page?.StoreRecord(record);
+                if (page == null)
+                    return;
+                if (page.RegisteredPageType != RegisteredPageType)
+                    throw new InvalidOperationException($"The record does not belong to this page");
+                page?.StoreRecord(record);   
             }
         }
 

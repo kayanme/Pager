@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>Physical_RecordAddBenchmark</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.10.9, OS=Windows 8.1 (6.3.9600)
+Processor=Intel Core i7-4510U CPU 2.00GHz (Haswell), ProcessorCount=4
+Frequency=2533191 Hz, Resolution=394.7590 ns, Timer=TSC
+  [Host]     : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
+  Job-NQIHYO : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
+</code></pre>
+<pre><code>AnalyzeLaunchVariance=True  Runtime=Clr  InvocationCount=192  
+LaunchCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>      Method</th><th>PageSize</th><th>WriteMethod</th><th> Mean</th><th>Error</th><th>StdDev</th><th>Median</th>
+</tr>
+</thead><tbody><tr><td>   AddRecord</td><td>Kb4</td><td>FixedSize</td><td>373.01 ns</td><td>19.41 ns</td><td>97.28 ns</td><td>401.85 ns</td>
+</tr><tr><td>AddRecordWithFlush</td><td>Kb4</td><td>FixedSize</td><td>6,314.94 ns</td><td>274.72 ns</td><td>1,198.59 ns</td><td>5,789.32 ns</td>
+</tr><tr><td>   AddRecord</td><td>Kb4</td><td> Naive</td><td>87.30 ns</td><td>10.38 ns</td><td>52.72 ns</td><td>67.71 ns</td>
+</tr><tr><td>AddRecordWithFlush</td><td>Kb4</td><td> Naive</td><td>6,212.81 ns</td><td>257.15 ns</td><td>1,321.87 ns</td><td>5,654.63 ns</td>
+</tr><tr><td>   AddRecord</td><td>Kb4</td><td>VariableSize</td><td>325.06 ns</td><td>17.97 ns</td><td>93.32 ns</td><td>276.85 ns</td>
+</tr><tr><td>AddRecordWithFlush</td><td>Kb4</td><td>VariableSize</td><td>6,454.64 ns</td><td>231.14 ns</td><td>1,200.52 ns</td><td>6,169.45 ns</td>
+</tr><tr><td>   AddRecord</td><td>Kb8</td><td>FixedSize</td><td>337.25 ns</td><td>17.75 ns</td><td>88.65 ns</td><td>339.66 ns</td>
+</tr><tr><td>AddRecordWithFlush</td><td>Kb8</td><td>FixedSize</td><td>6,291.58 ns</td><td>233.97 ns</td><td>1,208.96 ns</td><td>6,038.69 ns</td>
+</tr><tr><td>   AddRecord</td><td>Kb8</td><td> Naive</td><td>82.03 ns</td><td>10.35 ns</td><td>52.53 ns</td><td>64.25 ns</td>
+</tr><tr><td>AddRecordWithFlush</td><td>Kb8</td><td> Naive</td><td>6,386.38 ns</td><td>267.99 ns</td><td>1,360.61 ns</td><td>5,768.93 ns</td>
+</tr><tr><td>   AddRecord</td><td>Kb8</td><td>VariableSize</td><td>313.50 ns</td><td>16.81 ns</td><td>85.80 ns</td><td>260.64 ns</td>
+</tr><tr><td>AddRecordWithFlush</td><td>Kb8</td><td>VariableSize</td><td>6,807.07 ns</td><td>233.77 ns</td><td>1,216.28 ns</td><td>6,962.77 ns</td>
+</tr></tbody></table>
+</body>
+</html>

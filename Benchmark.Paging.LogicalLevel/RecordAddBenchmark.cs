@@ -30,6 +30,10 @@ namespace Benchmark.Paging.LogicalLevel
                 DefinePageType(2)
                     .AsPageWithRecordType<TestRecord>()
                     .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 4);
+
+                DefinePageType(3).AsPageWithRecordType<TestRecord>()
+                    .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 4)
+                    .AsVirtualHeapPage(4);
             }
         }
 
@@ -44,18 +48,23 @@ namespace Benchmark.Paging.LogicalLevel
             var config = new Config( PageSize );
            
             _manager = new LogicalPageManagerFactory().CreateManager("testFile", config,true);
-            _pages = new IPage<TestRecord>[4];
+            _pages = new IPage<TestRecord>[5];
             _pages[0] = _manager.CreatePage(1) as IPage<TestRecord>;
             _pages[1] = _manager.CreatePage(2) as IPage<TestRecord>;
             _pages[2] = _manager.CreatePage(1) as IPage<TestRecord>;
             _pages[3] = _manager.CreatePage(2) as IPage<TestRecord>;
+            _pages[4] = _manager.CreatePage(3) as IPage<TestRecord>;
             while (_pages[2].AddRecord(new TestRecord { Order = _rnd.Next(1000) })) ;
             while (_pages[3].AddRecord(new TestRecord { Order = _rnd.Next(1000) })) ;
+            for (int i = 0; i < 1000; i++)
+            {
+                _pages[4].AddRecord(new TestRecord {Order = _rnd.Next(1000)});
+            } 
             _other = System.IO.File.Open("testfile2" , FileMode.OpenOrCreate);
 
         }
 
-        //[Benchmark]
+        [Benchmark]
         public void AddRecordWithOrder()
         {
             var t = _rnd.Next(1000);
@@ -63,8 +72,16 @@ namespace Benchmark.Paging.LogicalLevel
             _pages[0].AddRecord(t2);
             
         }
+        [Benchmark]
+        public void AddRecordInVirtualPage()
+        {
+            var t = _rnd.Next(1000);
+            var t2 = new TestRecord { Order = t };
+            _pages[4].AddRecord(t2);
 
-       //[Benchmark(Baseline = true)]
+        }
+
+        [Benchmark]
         public void AddRecordWithoutOrder()
         {
             var t = _rnd.Next(1000);
@@ -84,7 +101,17 @@ namespace Benchmark.Paging.LogicalLevel
             
         }
 
-        [Benchmark(Baseline = true)]
+        [Benchmark]
+        public void ChangeRecordInVirtualPage()
+        {
+            var t = _rnd.Next(1000);
+            var t2 = _pages[4].IterateRecords().First();
+            t2.Order = t;
+            _pages[4].StoreRecord(t2);
+
+        }
+
+        [Benchmark]
         public void ChangeRecordWithoutOrder()
         {
             var t = _rnd.Next(1000);
