@@ -87,7 +87,7 @@ namespace Benchmark.Paging.PhysicalLevel
             if (WriteMethod == WriteMethod.FixedSize)
             {
                 var t = page as FixedRecordTypedPage<TestRecord>;
-                var record = t.GetRecord(new PageRecordReference {LogicalRecordNum = shift / 8, Page = page.Reference});
+                var record = t.GetRecord(new PageRecordReference(page.Reference,shift / 8));
                 record.Values[shift % 7] = change.Item2;
                 t.StoreRecord(record);
                 _count += _count & Changes.Count;
@@ -96,7 +96,7 @@ namespace Benchmark.Paging.PhysicalLevel
             {
 
                 var t = page as ComplexRecordTypePage<TestRecord>;
-                var record = t.GetRecord(new PageRecordReference {LogicalRecordNum = shift / 8, Page = page.Reference});
+                var record = t.GetRecord(new PageRecordReference(page.Reference, shift / 8));
                 if (record != null)
                 {
                     record.Values[shift % 7] = change.Item2;

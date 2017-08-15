@@ -37,7 +37,7 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
                         return _uncommitedHeader;
                     if (_locks != null)
                     {
-                        PageLockToken pageLock;
+                        PageLockToken pageLock = default(PageLockToken);
                         try
                         {
                             var t = _locks.WaitPageLock(_readlock);
@@ -47,7 +47,8 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
                         }
                        finally
                         {
-                            _locks.ReleasePageLock(pageLock);
+                            if (pageLock.Equals(default(PageLockToken)))
+                               _locks.ReleasePageLock(pageLock);
                         }
                                            
                     }

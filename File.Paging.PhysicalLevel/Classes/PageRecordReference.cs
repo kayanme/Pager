@@ -4,7 +4,16 @@
     {
         public PageReference Page { get; internal set; }
         internal int LogicalRecordNum { get; set; }
-        
+
+        internal PageRecordReference(int pageNum,int recordNum):this(new PageReference(pageNum),recordNum)
+        {           
+        }
+
+        internal PageRecordReference(PageReference pageNum, int recordNum)
+        {
+            Page = pageNum;
+            LogicalRecordNum = recordNum;
+        }
 
         public static bool operator == (PageRecordReference r1,PageRecordReference r2)=>r1?.Page == r2?.Page && r1?.LogicalRecordNum == r2?.LogicalRecordNum;
 
@@ -30,7 +39,7 @@
 
         public PageRecordReference Copy()
         {
-            return new PageRecordReference { LogicalRecordNum = LogicalRecordNum, Page = Page.Copy() };
+            return new PageRecordReference(Page.Copy(), LogicalRecordNum);
         }
     }
 }

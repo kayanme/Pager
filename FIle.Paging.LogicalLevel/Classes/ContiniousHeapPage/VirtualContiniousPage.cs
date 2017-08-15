@@ -35,7 +35,9 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
         {
             
             var theBestCandidate = _headersPage
-                .IterateRecords()               
+                .IterateRecords()
+                .Select(_headersPage.GetRecord)
+                .Where(k=>k!=null)
                 .FirstOrDefault(k => k.Fullness < .95);
 
             if (theBestCandidate == null)
@@ -115,6 +117,7 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
                 page.FreeRecord(record);
                 var curHeader = _headersPage
                     .IterateRecords()
+                    .Select(_headersPage.GetRecord)
                     .First(k => k.LogicalPageNum == page.Reference.PageNum);
                 curHeader.Fullness = page.PageFullness;
                 _headersPage.StoreRecord(curHeader);             
@@ -145,9 +148,9 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
             }
         }
 
-        public IEnumerable<TRecord> IterateRecords()
+        public IEnumerable<PageRecordReference> IterateRecords()
         {
-            foreach (var header in _headersPage.IterateRecords())
+            foreach (var header in _headersPage.IterateRecords().Select(_headersPage.GetRecord))
             {
                 using (var page = _physicalPageManager.RetrievePage(new PageReference((int) header.LogicalPageNum)) as IPage<TRecord>)
                 {

@@ -80,7 +80,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
            _content.StoreRecord(record);
         }
 
-        public IEnumerable<TRecord> IterateRecords()
+        public IEnumerable<PageRecordReference> IterateRecords()
         {
             return _content.IterateRecords();
         }

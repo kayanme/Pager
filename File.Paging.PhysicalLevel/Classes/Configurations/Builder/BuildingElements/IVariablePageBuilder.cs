@@ -10,7 +10,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             Action<byte[], TRecordType> fillFromBytes, Func<TRecordType, int> size);
 
         IVariablePageBuilder<TRecordType> ApplyLogicalSortIndex();
-        IVariablePageBuilder<TRecordType> WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities);
+        IVariablePageBuilder<TRecordType> ApplyLockScheme(LockRuleset locksRuleset);
 
         IHeaderedVariablePageBuilder<TRecordType, THeader> WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition) where THeader : new();
     }

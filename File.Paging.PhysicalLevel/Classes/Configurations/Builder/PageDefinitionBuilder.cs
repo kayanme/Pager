@@ -17,19 +17,19 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return ApplyLogicalSort() as PageDefinitionBuilder<TRecordType, THeader>;
         }
 
-        IHeaderedVariablePageBuilder<TRecordType, THeader> IHeaderedVariablePageBuilder<TRecordType, THeader>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
-        {
-            return WithConsistencyAbilities(consitencyAbilities) as PageDefinitionBuilder<TRecordType, THeader>;
+        IHeaderedVariablePageBuilder<TRecordType, THeader> IHeaderedVariablePageBuilder<TRecordType, THeader>.ApplyLockScheme(LockRuleset locksRuleset)
+        { 
+            return ApplyLockScheme(locksRuleset) as PageDefinitionBuilder<TRecordType, THeader>;
         }
 
-        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader> IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader> IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader>.ApplyLockScheme(LockRuleset locksRuleset)
         {
-            return WithConsistencyAbilities(consitencyAbilities) as PageDefinitionBuilder<TRecordType, THeader>;
+            return ApplyLockScheme(locksRuleset) as PageDefinitionBuilder<TRecordType, THeader>;
         }
 
-        IHeaderedFixedPageBuilder<TRecordType, THeader> IHeaderedFixedPageBuilder<TRecordType, THeader>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        IHeaderedFixedPageBuilder<TRecordType, THeader> IHeaderedFixedPageBuilder<TRecordType, THeader>.ApplyLockScheme(LockRuleset locksRuleset)
         {
-            return WithConsistencyAbilities(consitencyAbilities) as PageDefinitionBuilder<TRecordType, THeader>;
+            return ApplyLockScheme(locksRuleset) as PageDefinitionBuilder<TRecordType, THeader>;
         }
 
         public PageDefinitionBuilder(PageManagerConfiguration config, byte pageNum) : base(config, pageNum)
@@ -144,10 +144,13 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return this;
         }
 
-        protected PageDefinitionBuilder<TRecordType> WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        protected PageDefinitionBuilder<TRecordType> ApplyLockScheme(LockRuleset lockRules)
         {
             var c = _config.PageMap[_pageNum];
-            c.ConsistencyConfiguration = new ConsistencyConfiguration(){ConsistencyAbilities = consitencyAbilities};
+            c.ConsistencyConfiguration = new ConsistencyConfiguration()
+            {
+                ConsistencyAbilities = ConsistencyAbilities.PhysicalLocks,LockRules = lockRules
+            };
             return this;
         }
 
@@ -169,19 +172,19 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return new PageDefinitionBuilder<TRecordType>(_config, _pageNum);
         }
 
-        IFixedPageBuilder<TRecordType> IFixedPageBuilder<TRecordType>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        IFixedPageBuilder<TRecordType> IFixedPageBuilder<TRecordType>.ApplyLockScheme(LockRuleset consitencyAbilities)
         {
-            return WithConsistencyAbilities(consitencyAbilities);
+            return ApplyLockScheme(consitencyAbilities);
         }       
 
-        IVariablePageBuilder<TRecordType> IVariablePageBuilder<TRecordType>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        IVariablePageBuilder<TRecordType> IVariablePageBuilder<TRecordType>.ApplyLockScheme(LockRuleset consitencyAbilities)
         {
-            return WithConsistencyAbilities(consitencyAbilities);
+            return ApplyLockScheme(consitencyAbilities);
         }
 
-        IVariablePageWithOneRecordTypeBuilder<TRecordType> IVariablePageWithOneRecordTypeBuilder<TRecordType>.WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities)
+        IVariablePageWithOneRecordTypeBuilder<TRecordType> IVariablePageWithOneRecordTypeBuilder<TRecordType>.ApplyLockScheme(LockRuleset consitencyAbilities)
         {
-            return WithConsistencyAbilities(consitencyAbilities);
+            return ApplyLockScheme(consitencyAbilities);
         }
 
         IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader> IVariablePageWithOneRecordTypeBuilder<TRecordType>.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition) 

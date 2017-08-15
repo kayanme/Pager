@@ -4,6 +4,6 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
     {
        
         IHeaderedVariablePageBuilder<TRecord, THeader> ApplyLogicalSortIndex();
-        IHeaderedVariablePageBuilder<TRecord, THeader> WithConsistencyAbilities(ConsistencyAbilities consitencyAbilities);
+        IHeaderedVariablePageBuilder<TRecord, THeader> ApplyLockScheme(LockRuleset locksRuleset);
     }
 }

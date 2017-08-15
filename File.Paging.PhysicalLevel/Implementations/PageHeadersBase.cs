@@ -56,11 +56,11 @@ namespace File.Paging.PhysicalLevel.Implementations
         private const uint SizeMask = 0x0003FFF0;
         private const uint TypeMask = 0x0000000F;
 
-        [MethodImpl(methodImplOptions: MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual ushort RecordShift(ushort record) => (ushort)((RecordInfo[record] & ShiftMask) >> 18);//14 бит = 16384
-        [MethodImpl(methodImplOptions: MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte RecordType(ushort record) => (byte)(RecordInfo[record] & TypeMask);//4 бит = 16
-        [MethodImpl(methodImplOptions: MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ushort RecordSize(ushort record) => (ushort)((RecordInfo[record] & SizeMask) >> 4);//14 бит = 16384
 
 
@@ -71,8 +71,7 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         public ushort TotalUsedRecords
         {
-            get { return (ushort) _totalUsedRecords; }
-            protected set { _totalUsedRecords = value; }
+            get => (ushort)_totalUsedRecords; protected set => _totalUsedRecords = value;
         }
 
         protected virtual void SetNewLogicalRecordNum(ushort logicalRecordNum,ushort shift)

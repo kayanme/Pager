@@ -19,9 +19,13 @@ namespace Test.Paging.LogicalLevel
         {
             var rep = new MockRepository();
             var physPage = rep.StrictMultiMock<IPage<TestRecord>>(typeof(IPhysicalLevelManipulation));
+
             
-            
-            physPage.Expect(k => k.IterateRecords()).Return(initialState.AsEnumerable());
+            physPage.Expect(k => k.IterateRecords()).Return(initialState.Select(k=>k.Reference).ToArray());
+            physPage.Expect(k => k.GetRecord(null))
+                .IgnoreArguments()
+                .Do(new Func<PageRecordReference, TestRecord>
+                    (r => initialState.FirstOrDefault(k2 => k2.Reference == r))).Repeat.Any();
             physPage.Replay();
             var page = new OrderedPage<TestRecord, int>(physPage, k => k.Order);
             physPage.BackToRecord();
@@ -43,7 +47,7 @@ namespace Test.Paging.LogicalLevel
 
             PhysPage.Expect(k => k.AddRecord(newRec))
                     .Do(new Func<TestRecord, bool>(k =>
-                       { k.Reference = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 0 }; return true; }));
+                       { k.Reference = new PageRecordReference(0,0 ); return true; }));
             ManPage.Expect(k => k.Flush());
             PhysPage.Replay();
             page.AddRecord(new TestRecord { Order = 0 });
@@ -55,7 +59,7 @@ namespace Test.Paging.LogicalLevel
         public void UpdateOneRecord()
         {
 
-            var newRec = new TestRecord { Order = 0, Reference = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 0 } };
+            var newRec = new TestRecord { Order = 0, Reference = new PageRecordReference(0, 0 ) };
 
             var page = Create(newRec);
             PhysPage.Expect(k => k.GetRecord(null)).IgnoreArguments().Return(newRec);
@@ -75,9 +79,9 @@ namespace Test.Paging.LogicalLevel
         public void UpdateWithOrderChange()
         {
 
-            var exRec1 = new TestRecord { Order = 1, Reference = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 0 } };
-            var exRec2 = new TestRecord { Order = 2, Reference = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 1 } };
-            var exRec3 = new TestRecord { Order = 3, Reference = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 2 } };
+            var exRec1 = new TestRecord { Order = 1, Reference = new PageRecordReference(0,0) };
+            var exRec2 = new TestRecord { Order = 2, Reference = new PageRecordReference(0, 1) };
+            var exRec3 = new TestRecord { Order = 3, Reference = new PageRecordReference(0, 2) };
 
             var page = Create(exRec1,exRec2,exRec3);
             PhysPage.Expect(k => k.GetRecord(null)).IgnoreArguments()
@@ -103,7 +107,7 @@ namespace Test.Paging.LogicalLevel
         [TestMethod]
         public void DeleteOneRecord()
         {
-            var newRec = new TestRecord { Order = 0, Reference = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 0 } };
+            var newRec = new TestRecord { Order = 0, Reference = new PageRecordReference(0, 0) };
 
             var page = Create(newRec);
             PhysPage.Expect(k => k.GetRecord(null)).IgnoreArguments().Return(newRec);
@@ -122,8 +126,8 @@ namespace Test.Paging.LogicalLevel
         [TestMethod]
         public void DeleteFromMultipleRecords()
         {
-            var r1 = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 0 };
-            var r2 = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 1 };
+            var r1 = new PageRecordReference(0, 0);
+            var r2 = new PageRecordReference(0, 1);
             var exRec1 = new TestRecord { Order = 0, Reference = r1 };
             var exRec2 = new TestRecord { Order = 1, Reference = r2 };
             
@@ -149,12 +153,12 @@ namespace Test.Paging.LogicalLevel
         [TestMethod]
         public void InsertInNotEmpty()
         {
-            var r1 = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 0 };
+            var r1 = new PageRecordReference(0, 0);
             var exRec = new TestRecord { Order = 1, Reference = r1 };
 
             var page = Create(exRec);
             var newRec = new TestRecord { Order = 0 };
-            var r2 = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = 0 };
+            var r2 = new PageRecordReference(0, 0);
             PhysPage.Expect(k => k.AddRecord(newRec))
                     .Do(new Func<TestRecord, bool>(k =>
                     { k.Reference = r2; return true; }));
@@ -178,7 +182,7 @@ namespace Test.Paging.LogicalLevel
             foreach(var t in Enumerable.Range(0,10).OrderBy(k=>rnd.Next(10)))
             {
                 var newRec = new TestRecord { Order = t };
-                var r = new PageRecordReference { Page = new PageReference(0), LogicalRecordNum = i++ };
+                var r = new PageRecordReference(0, i++);
                 PhysPage.Expect(k => k.AddRecord(newRec))
                         .Do(new Func<TestRecord, bool>(k =>
                         { k.Reference = r; return true; }));

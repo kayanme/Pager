@@ -57,7 +57,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                 }
                 for (int i = 0; i < ushort.MaxValue; i++)
                 {
-                    var r = new PageRecordReference { Page = Reference, LogicalRecordNum = i };
+                    var r = new PageRecordReference(Reference,  i );
                   
                     if (!_records.ContainsKey(r))
                     {
@@ -198,10 +198,10 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             }
         }
 
-        public IEnumerable<TRecord> IterateRecords()
+        public IEnumerable<PageRecordReference> IterateRecords()
         {
             lock (_records)
-                return _records.Keys.Select(Retrieve).ToArray();
+                return _records.Keys.ToArray();
         }
 
 

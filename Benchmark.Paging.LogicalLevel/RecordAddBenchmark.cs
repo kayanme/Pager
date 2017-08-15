@@ -95,7 +95,7 @@ namespace Benchmark.Paging.LogicalLevel
         public void ChangeRecordWithOrder()
         {
             var t = _rnd.Next(1000);
-            var t2 = _pages[2].IterateRecords().First();
+            var t2 = _pages[2].GetRecord(_pages[2].IterateRecords().First());
             t2.Order = t;
             _pages[2].StoreRecord(t2);
             
@@ -105,7 +105,7 @@ namespace Benchmark.Paging.LogicalLevel
         public void ChangeRecordInVirtualPage()
         {
             var t = _rnd.Next(1000);
-            var t2 = _pages[4].IterateRecords().First();
+            var t2 = _pages[4].GetRecord(_pages[4].IterateRecords().First());
             t2.Order = t;
             _pages[4].StoreRecord(t2);
 
@@ -115,7 +115,7 @@ namespace Benchmark.Paging.LogicalLevel
         public void ChangeRecordWithoutOrder()
         {
             var t = _rnd.Next(1000);
-            var t2 = _pages[3].IterateRecords().First();
+            var t2 = _pages[3].GetRecord(_pages[3].IterateRecords().First());
             t2.Order = t;
             _pages[3].StoreRecord(t2);
 

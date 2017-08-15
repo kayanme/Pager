@@ -55,7 +55,7 @@ namespace Test.Pager.Configurations
 
             tc.Verify();
 
-            VerifyFixedRecordCommon(tc,ConsistencyAbilities.None);
+            VerifyFixedRecordCommon(tc);
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace Test.Pager.Configurations
 
             tc.Verify();
 
-            VerifyVariableCommon(tc,ConsistencyAbilities.None,false);
+            VerifyVariableCommon(tc);
         }
 
         [TestMethod]
@@ -82,7 +82,7 @@ namespace Test.Pager.Configurations
 
             tc.Verify();
 
-            VerifyVariableCommon(tc, ConsistencyAbilities.None, false);
+            VerifyVariableCommon(tc);
         }
 
         [TestMethod]
@@ -90,14 +90,14 @@ namespace Test.Pager.Configurations
         {
 
             var ti = VariableRecordDefinitionCommon();
-
+            var locks = MockRepository.GenerateStub<LockRuleset>();
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
                 dp => dp(1).AsPageWithRecordType<TestRecord>().UsingRecordDefinition(ti)
-                .WithConsistencyAbilities(ConsistencyAbilities.PageChecksumProtection));
+                .ApplyLockScheme(locks));
 
             tc.Verify();
 
-            VerifyVariableCommon(tc, ConsistencyAbilities.PageChecksumProtection, false);
+            VerifyVariableCommon(tc, locks, false);
         }
 
         [TestMethod]
@@ -112,7 +112,7 @@ namespace Test.Pager.Configurations
 
             tc.Verify();
 
-            VerifyVariableCommon(tc, ConsistencyAbilities.None, false);
+            VerifyVariableCommon(tc);
             VerifyHeaderCommon(tc);
         }
 
@@ -122,14 +122,15 @@ namespace Test.Pager.Configurations
 
             var ti = VariableRecordDefinitionCommon();
             var header = CommonHeaderDefinition();
+            var locks = MockRepository.GenerateStub<LockRuleset>();
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
                 dp => dp(1).AsPageWithRecordType<TestRecord>().UsingRecordDefinition(ti)
                     .WithHeader(header)
-                    .WithConsistencyAbilities(ConsistencyAbilities.PageChecksumProtection));
+                    .ApplyLockScheme(locks));
 
             tc.Verify();
 
-            VerifyVariableCommon(tc, ConsistencyAbilities.PageChecksumProtection, false);
+            VerifyVariableCommon(tc, locks, false);
             VerifyHeaderCommon(tc);
         }
 
@@ -139,15 +140,16 @@ namespace Test.Pager.Configurations
 
             var ti = VariableRecordDefinitionCommon();
             var header = CommonHeaderDefinition();
+            var locks = MockRepository.GenerateStub<LockRuleset>();
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
                 dp => dp(1).AsPageWithRecordType<TestRecord>().UsingRecordDefinition(ti)
                     .WithHeader(header)
-                    .WithConsistencyAbilities(ConsistencyAbilities.PageChecksumProtection)
+                    .ApplyLockScheme(locks)
                     .ApplyLogicalSortIndex());
 
             tc.Verify();
 
-            VerifyVariableCommon(tc, ConsistencyAbilities.PageChecksumProtection, true);
+            VerifyVariableCommon(tc, locks, true);
             VerifyHeaderCommon(tc);
         }
 
@@ -174,13 +176,21 @@ namespace Test.Pager.Configurations
             return ti;
         }
 
-        private static void VerifyVariableCommon(TestingConfig tc,ConsistencyAbilities ca,bool slotInfo)
+        private static void VerifyVariableCommon(TestingConfig tc,LockRuleset locks = null,bool slotInfo = false)
         {
             Assert.AreEqual(1, tc.PageMap.Count);
             Assert.IsTrue(tc.PageMap.ContainsKey(1));
             var c = tc.PageMap[1];
             Assert.AreEqual(typeof(TestRecord), c.RecordType);
-            Assert.AreEqual(ca, c.ConsistencyConfiguration.ConsistencyAbilities);
+            if (locks == null)
+            {
+                Assert.AreEqual(ConsistencyAbilities.None, c.ConsistencyConfiguration.ConsistencyAbilities);
+            }
+            else
+            {
+                Assert.AreEqual(ConsistencyAbilities.PhysicalLocks, c.ConsistencyConfiguration.ConsistencyAbilities);
+                Assert.AreEqual(locks,c.ConsistencyConfiguration.LockRules);
+            }
             Assert.IsInstanceOfType(c, typeof(VariableRecordTypePageConfiguration<TestRecord>));
             var c2 = c as VariableRecordTypePageConfiguration<TestRecord>;
             Assert.IsNotNull(c2.RecordMap);
@@ -197,13 +207,19 @@ namespace Test.Pager.Configurations
             Assert.AreEqual(2, t[0]);
         }
 
-        private static void VerifyFixedRecordCommon(TestingConfig tc,ConsistencyAbilities ca)
+        private static void VerifyFixedRecordCommon(TestingConfig tc,LockRuleset lockRules = null)
         {
             Assert.AreEqual(1, tc.PageMap.Count);
             Assert.IsTrue(tc.PageMap.ContainsKey(1));
             var c = tc.PageMap[1];          
             Assert.AreEqual(typeof(TestRecord), c.RecordType);
-            Assert.AreEqual(ca, c.ConsistencyConfiguration.ConsistencyAbilities);
+            if (lockRules ==null)
+            Assert.AreEqual(ConsistencyAbilities.None, c.ConsistencyConfiguration.ConsistencyAbilities);
+            else
+            {
+                Assert.AreEqual(ConsistencyAbilities.PhysicalLocks, c.ConsistencyConfiguration.ConsistencyAbilities);
+                Assert.AreEqual(lockRules, c.ConsistencyConfiguration.LockRules);
+            }
             Assert.IsInstanceOfType(c, typeof(FixedRecordTypePageConfiguration<TestRecord>));
             var c2 = c as FixedRecordTypePageConfiguration<TestRecord>;
             Assert.IsNotNull(c2.RecordMap);
@@ -229,7 +245,7 @@ namespace Test.Pager.Configurations
 
             tc.Verify();
 
-            VerifyFixedRecordCommon(tc, ConsistencyAbilities.None);
+            VerifyFixedRecordCommon(tc);
         }
 
 
@@ -242,14 +258,15 @@ namespace Test.Pager.Configurations
             definition.Expect(k => k.FillBytes(null, null)).IgnoreArguments().Do(filler);
             definition.Expect(k => k.FillFromBytes(null, null)).IgnoreArguments().Do(getter);
             definition.Expect(k => k.Size).Return(10);
+            var locks = MockRepository.GenerateStub<LockRuleset>();
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
                 dp => dp(1).AsPageWithRecordType<TestRecord>()
                            .UsingRecordDefinition(definition)
-                           .WithConsistencyAbilities(ConsistencyAbilities.PhysicalLocks));
+                           .ApplyLockScheme(locks));
 
             tc.Verify();
 
-            VerifyFixedRecordCommon(tc, ConsistencyAbilities.PhysicalLocks);                     
+            VerifyFixedRecordCommon(tc, locks);                     
         }
 
         [TestMethod]
@@ -266,7 +283,7 @@ namespace Test.Pager.Configurations
 
             tc.Verify();
 
-            VerifyFixedRecordCommon(tc, ConsistencyAbilities.None);
+            VerifyFixedRecordCommon(tc);
 
             VerifyHeaderCommon(tc);
         }
@@ -277,16 +294,16 @@ namespace Test.Pager.Configurations
             var t = CommonHeaderDefinition();
 
             var definition = CommonFixedRecordDefinition();
-
+            var locks = MockRepository.GenerateStub<LockRuleset>();
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
                 dp => dp(1).AsPageWithRecordType<TestRecord>()
                     .UsingRecordDefinition(definition)
-                    .WithConsistencyAbilities(ConsistencyAbilities.PhysicalLocks)
+                    .ApplyLockScheme(locks)
                     .WithHeader(t));
 
             tc.Verify();
 
-            VerifyFixedRecordCommon(tc, ConsistencyAbilities.PhysicalLocks);
+            VerifyFixedRecordCommon(tc, locks);
 
             VerifyHeaderCommon(tc);
         }
@@ -297,16 +314,16 @@ namespace Test.Pager.Configurations
             var t = CommonHeaderDefinition();
 
             var definition = CommonFixedRecordDefinition();
-
+            var locks = MockRepository.GenerateStub<LockRuleset>();
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
                 dp => dp(1).AsPageWithRecordType<TestRecord>()
                     .UsingRecordDefinition(definition)                   
                     .WithHeader(t)
-                    .WithConsistencyAbilities(ConsistencyAbilities.PhysicalLocks));
+                    .ApplyLockScheme(locks));
 
             tc.Verify();
 
-            VerifyFixedRecordCommon(tc, ConsistencyAbilities.PhysicalLocks);
+            VerifyFixedRecordCommon(tc, locks);
 
             VerifyHeaderCommon(tc);
         }

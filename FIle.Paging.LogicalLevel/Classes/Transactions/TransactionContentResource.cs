@@ -45,7 +45,7 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
             throw new NotImplementedException();
         }
 
-        public IEnumerable<TRecord> IterateRecords()
+        public IEnumerable<PageRecordReference> IterateRecords()
         {
             throw new NotImplementedException();
         }

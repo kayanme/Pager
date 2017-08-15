@@ -6,33 +6,22 @@ using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase,IPage<TRecordType> where TRecordType : TypedRecord, new()
+    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase<TRecordType> where TRecordType : TypedRecord, new()
     {
-        private readonly int _pageSize;
+      
         private readonly FixedRecordTypePageConfiguration<TRecordType> _config;
         internal FixedRecordTypedPage(IPageHeaders headers, IPageAccessor accessor, PageReference reference,
             int pageSize, FixedRecordTypePageConfiguration<TRecordType> config,
-            byte pageType):base(headers,accessor,reference,pageType)
+            byte pageType):base(headers,accessor,reference,pageType,pageSize)
         {
-            _pageSize = pageSize;
+        
             _config = config;
         }
        
-        public override double PageFullness =>(double)Headers.TotalUsedSize/_pageSize;
+       
+       
 
-        public IEnumerable<TRecordType> IterateRecords()
-        {
-            foreach (var i in Headers.NonFreeRecords())
-            {
-               
-                    var t = GetRecord(new PageRecordReference {LogicalRecordNum = i, Page = Reference});
-                    if (t != null)
-                        yield return t;
-            }
-
-        }
-
-        public TRecordType GetRecord(PageRecordReference reference)
+        public override TRecordType GetRecord(PageRecordReference reference)
         {
             CheckReferenceToPageAffinity(reference);
             if (reference.LogicalRecordNum == -1)
@@ -60,7 +49,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             }
         }
 
-        public bool AddRecord(TRecordType type)
+        public override bool AddRecord(TRecordType type)
         {
             try
             {
@@ -70,8 +59,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
                     return false;
                 SetRecord(record, type);
                 if (type.Reference == null)
-                    type.Reference = new PageRecordReference {Page = Reference};
-                type.Reference.LogicalRecordNum = record;
+                    type.Reference = new PageRecordReference ( Reference, record);
                 return true;
             }
             finally
@@ -89,7 +77,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             Accessor.SetByteArray(bytes, recordStart, recordSize);
         }
 
-        public  void StoreRecord(TRecordType record)
+        public override void StoreRecord(TRecordType record)
         {
             if (record.Reference.Page != Reference)
                 throw new ArgumentException();
@@ -104,30 +92,14 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             }
         }
 
-        public void FreeRecord(TRecordType record)
-        {
-            if (record == null)
-                throw new ArgumentNullException(nameof(record));
-            if (record.Reference.LogicalRecordNum == -1)
-                throw new ArgumentException("Trying to delete deleted record");
-            try
-            {
-                CompactionLock.EnterReadLock();
-                Headers.FreeRecord((ushort) record.Reference.LogicalRecordNum);
-                record.Reference.LogicalRecordNum = -1;
-            }
-            finally
-            {
-                CompactionLock.ExitReadLock();
-            }
-        }
-
-
-
-        
        
 
-        
+
+
+
+
+
+
 
 
         ~FixedRecordTypedPage()

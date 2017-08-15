@@ -19,6 +19,6 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         TRecordType GetRecord(PageRecordReference reference);
         void StoreRecord(TRecordType record);
       
-        IEnumerable<TRecordType> IterateRecords();
+        IEnumerable<PageRecordReference> IterateRecords();
     }
 }

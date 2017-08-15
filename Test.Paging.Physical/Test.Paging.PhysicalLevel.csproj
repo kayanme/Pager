@@ -62,6 +62,8 @@
     <Compile Include="Headers\VariableRecordPageHeadersTest.cs" />
     <Compile Include="Headers\FixedRecordPageHeadersTest.cs" />
     <Compile Include="GamManagerTest.cs" />
+    <Compile Include="Locks\LockTest.cs" />
+    <Compile Include="Locks\MatrixBuild.cs" />
     <Compile Include="PageAccessorTest.cs" />
     <Compile Include="Headers\PageHeadersBaseTest.cs" />
     <Compile Include="PageManagerTest.cs" />

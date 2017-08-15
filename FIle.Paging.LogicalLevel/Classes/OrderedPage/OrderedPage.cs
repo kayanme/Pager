@@ -13,7 +13,12 @@ namespace FIle.Paging.LogicalLevel.Classes
     {
         internal class OrderedKey : PageRecordReference
         {
+            internal OrderedKey(Guid key, PageReference page, int recordNum) : base(page, recordNum)
+            {
+                OrderKey = key;
+            }
             internal Guid OrderKey;
+
         }
 
 
@@ -33,9 +38,10 @@ namespace FIle.Paging.LogicalLevel.Classes
 
         private void Initialize()
         {
-            foreach(var t in _physicalPage.IterateRecords())
+            foreach(var reference in _physicalPage.IterateRecords())
             {
-                _keys.Add(_keySelector(t));
+                var record =_physicalPage.GetRecord(reference);
+                _keys.Add(_keySelector(record));
                 _references.Add(Guid.NewGuid());
                 _backwardReferences.Add(_references.Last(), _references.Count() - 1);
             }
@@ -101,7 +107,7 @@ namespace FIle.Paging.LogicalLevel.Classes
             foreach(var toInsert in inserts.OrderBy(k=>k.Reference.LogicalRecordNum))
             {
                 temp.Add(new KeyWrap { Key = _keySelector(toInsert) });
-                var newKey = new OrderedKey { Page = Reference, LogicalRecordNum = toInsert.Reference.LogicalRecordNum, OrderKey = Guid.NewGuid() };
+                var newKey = new OrderedKey(Guid.NewGuid(),Reference, toInsert.Reference.LogicalRecordNum);
                 temp2.Add(newKey.OrderKey);
                 toInsert.Reference = newKey;
                 
@@ -118,8 +124,8 @@ namespace FIle.Paging.LogicalLevel.Classes
                 {
                     if (permutation[i] < i)
                     {
-                        var r1 = new PageRecordReference { Page = Reference, LogicalRecordNum = i };
-                        var r2 = new PageRecordReference { Page = Reference, LogicalRecordNum = permutation[i] };
+                        var r1 = new PageRecordReference(Reference,  i );
+                        var r2 = new PageRecordReference ( Reference,  permutation[i] );
                         (_physicalPage as IPhysicalLevelManipulation).SwapRecords(r1,r2 );
                         temp[permutation[i]].Original.Reference = r1;
                     }                    
@@ -131,7 +137,9 @@ namespace FIle.Paging.LogicalLevel.Classes
                     _references.Add(temp2[permutation[i]]);
                     _backwardReferences.Add(temp2[permutation[i]], _references.Count - 1);
                     if (permutation[i] < i)
-                        (_physicalPage as IPhysicalLevelManipulation).SwapRecords(new PageRecordReference { Page = Reference, LogicalRecordNum = i }, new PageRecordReference { Page = Reference, LogicalRecordNum = permutation[i] });
+                        (_physicalPage as IPhysicalLevelManipulation)
+                            .SwapRecords(new PageRecordReference (Reference, i ),
+                                         new PageRecordReference(Reference,  permutation[i] ));
                 }
                 
             }
@@ -192,7 +200,7 @@ namespace FIle.Paging.LogicalLevel.Classes
 
             var rKey = FindLogicalRecordByOrderNum(r.OrderKey);
             if (rKey == -1) return null;
-            var rf = new OrderedKey { Page = extRef.Page, LogicalRecordNum = rKey , OrderKey = r.OrderKey};
+            var rf = new OrderedKey(r.OrderKey, extRef.Page, rKey);
             return rf;
         }
 
@@ -214,7 +222,9 @@ namespace FIle.Paging.LogicalLevel.Classes
             try
             {
                 _lock.EnterReadLock();
-                var rf =new OrderedKey { Page = reference.Page,LogicalRecordNum = reference.LogicalRecordNum , OrderKey = _references.ToArray()[reference.LogicalRecordNum]};
+                var rf = new OrderedKey(_references.ToArray()[reference.LogicalRecordNum], reference.Page,
+                    reference.LogicalRecordNum);
+               
                 var record = _physicalPage.GetRecord(rf);
                 record.Reference = rf;
                 return record;
@@ -247,7 +257,7 @@ namespace FIle.Paging.LogicalLevel.Classes
             try
             {
                 _lock.EnterReadLock();
-                var key = new OrderedKey { Page = Reference, LogicalRecordNum = 0, OrderKey = _references.First() };
+                var key = new OrderedKey(_references.First(), Reference,0);
                 var rec = _physicalPage.GetRecord(key);
                 rec.Reference = key;
                 return rec;
@@ -263,7 +273,7 @@ namespace FIle.Paging.LogicalLevel.Classes
             try
             {
                 _lock.EnterReadLock();
-                var key = new OrderedKey { Page = Reference, LogicalRecordNum = _references.Count-1, OrderKey = _references.Last() };
+                var key = new OrderedKey(_references.Last(),Reference,  _references.Count-1);
                 var rec = _physicalPage.GetRecord(key);
                 rec.Reference = key;
                 return rec;
@@ -279,15 +289,15 @@ namespace FIle.Paging.LogicalLevel.Classes
             throw new InvalidOperationException();
         }
 
-        public IEnumerable<TRecord> IterateRecords()
+        public IEnumerable<PageRecordReference> IterateRecords()
         {
             try
             {
                 _lock.EnterReadLock();
-                foreach(var r in _physicalPage.IterateRecords())
+                foreach (var reference in _physicalPage.IterateRecords())
                 {
-                    r.Reference = new OrderedKey { OrderKey = _references[r.Reference.LogicalRecordNum], Page = r.Reference.Page, LogicalRecordNum = r.Reference.LogicalRecordNum };
-                    yield return r;
+
+                    yield return new OrderedKey(_references[reference.LogicalRecordNum], reference.Page, reference.LogicalRecordNum);                   
                 }
             }
             finally

@@ -17,7 +17,6 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         
         protected readonly ReaderWriterLockSlim CompactionLock = new ReaderWriterLockSlim();
 
-
         protected TypedPageBase(IPageHeaders headers, IPageAccessor accessor, PageReference reference, byte pageType)
         {
             Headers = headers;

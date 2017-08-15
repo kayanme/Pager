@@ -61,7 +61,7 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
                 return _inner.GetRecord(reference);
         }
 
-        public IEnumerable<TRecord> IterateRecords()
+        public IEnumerable<PageRecordReference> IterateRecords()
         {
             var store = GetStore();
             if (store != null)

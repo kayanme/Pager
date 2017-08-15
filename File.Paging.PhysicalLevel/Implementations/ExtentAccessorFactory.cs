@@ -26,6 +26,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             var map = _file.GetMappedFile(pageOffset + pageLength+Extent.Size);
          
             var accessor = map.CreateViewAccessor(extentBorder, Extent.Size);
+         
             _accessorsLent.TryAdd(accessor, map);
             return new PageAccessor((int)(pageOffset - extentBorder),pageLength,(uint)extentNumber,accessor, this);
         }

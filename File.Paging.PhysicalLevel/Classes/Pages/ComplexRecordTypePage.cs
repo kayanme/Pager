@@ -7,28 +7,19 @@ using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal sealed class ComplexRecordTypePage<TRecordType> : TypedPageBase,  IPage<TRecordType> where TRecordType : TypedRecord, new()
+    internal sealed class ComplexRecordTypePage<TRecordType> : TypedPageBase<TRecordType> where TRecordType : TypedRecord, new()
     {
-        private readonly int _pageSize;
+       
         private readonly VariableRecordTypePageConfiguration<TRecordType> _config;
         internal ComplexRecordTypePage(IPageHeaders headers, IPageAccessor accessor, 
             PageReference reference, int pageSize,byte pageType, VariableRecordTypePageConfiguration<TRecordType> config):
-            base(headers,accessor,reference,pageType)
+            base(headers,accessor,reference,pageType,pageSize)
         {
-            _pageSize = pageSize;
+         
             _config = config;
         }
 
-        public IEnumerable<TRecordType> IterateRecords()
-        {
-            foreach (var i in Headers.NonFreeRecords())
-            {
-                var t = GetRecord(new PageRecordReference { LogicalRecordNum = i, Page = Reference });
-                if (t != null)
-                    yield return t;
-
-            }
-        }
+       
 
         private void SetRecord<TType>(ushort offset, TType record,RecordDeclaration<TType> config) where TType : TRecordType
         {
@@ -45,7 +36,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         }
             
 
-        public bool AddRecord(TRecordType type)
+        public override bool AddRecord(TRecordType type)
         {
            
             var mapKey = _config.GetRecordType(type);
@@ -55,12 +46,12 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
                 return false;
             SetRecord((ushort)record, type,config);
             if (type.Reference == null)
-                type.Reference = new PageRecordReference { Page = Reference };
-            type.Reference.LogicalRecordNum = record;
+                type.Reference = new PageRecordReference (Reference, record);
+         
             return true;
         }
 
-        public TRecordType GetRecord(PageRecordReference reference) 
+        public override TRecordType GetRecord(PageRecordReference reference) 
         {
             if (Reference != reference.Page)
                 throw new ArgumentException("The record is on another page");
@@ -82,7 +73,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             return null;
         }
 
-        public void StoreRecord(TRecordType record)
+        public override void StoreRecord(TRecordType record)
         {
             if (record.Reference.Page != Reference)
                 throw new ArgumentException();
@@ -94,18 +85,9 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
                 throw new ArgumentException("Record size is more, than slot space available");
             SetRecord((ushort)record.Reference.LogicalRecordNum, record, config);
         }
+  
 
-        public void FreeRecord(TRecordType record)
-        {
-            if (record == null)
-                throw new ArgumentNullException(nameof(record));
-            if (record.Reference.LogicalRecordNum == -1)
-                throw new ArgumentException("Trying to delete deleted record");
-            Headers.FreeRecord((ushort)record.Reference.LogicalRecordNum);
-            record.Reference.LogicalRecordNum = -1;
-        }      
-
-        public override double PageFullness => (double)Headers.TotalUsedSize / _pageSize;                           
+                             
         
         ~ComplexRecordTypePage()
         {
