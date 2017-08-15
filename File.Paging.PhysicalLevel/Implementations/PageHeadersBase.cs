@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Exceptions;
 
@@ -32,24 +33,25 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         protected abstract ushort SetUsed(ushort record, ushort size, byte type);
 
-        protected abstract void UpdateUsed(ushort record,ushort shift, ushort size, byte type);
+        protected abstract Task UpdateUsed(ushort record,ushort shift, ushort size, byte type);
 
-        public void FreeRecord(ushort record)
+        public async Task FreeRecord(ushort record)
         {
-
-            Thread.BeginCriticalRegion();
-            var r = RecordInfo[record];
-            var newInf = FormRecordInf(0, RecordSize(record), RecordShift(record));
-            if (Interlocked.CompareExchange(ref RecordInfo[record], newInf, r) == r)
+            await Task.Factory.StartNew(() =>
             {
-                SetFree(record);
-                Interlocked.Add(ref _totalRecordSize, -RecordSize(record)- HeaderOverheadSize);
-                Interlocked.Add(ref _totalUsedRecords, -1);
-            }
-            else
-                throw new RecordWriteConflictException();
-            Thread.EndCriticalRegion();
-
+                Thread.BeginCriticalRegion();
+                var r = RecordInfo[record];
+                var newInf = FormRecordInf(0, RecordSize(record), RecordShift(record));
+                if (Interlocked.CompareExchange(ref RecordInfo[record], newInf, r) == r)
+                {
+                    SetFree(record);
+                    Interlocked.Add(ref _totalRecordSize, -RecordSize(record) - HeaderOverheadSize);
+                    Interlocked.Add(ref _totalUsedRecords, -1);
+                }
+                else
+                    throw new RecordWriteConflictException();
+                Thread.EndCriticalRegion();
+            });
         }
 
         private const uint ShiftMask = 0xFFFC0000;
@@ -64,9 +66,9 @@ namespace File.Paging.PhysicalLevel.Implementations
         public ushort RecordSize(ushort record) => (ushort)((RecordInfo[record] & SizeMask) >> 4);//14 бит = 16384
 
 
-        public bool IsRecordFree(ushort record)
+        public async Task<bool> IsRecordFree(ushort record)
         {
-            return RecordType(record) == 0; 
+            return await Task.Factory.StartNew(()=>RecordType(record)  == 0); 
         }
 
         public ushort TotalUsedRecords
@@ -80,47 +82,48 @@ namespace File.Paging.PhysicalLevel.Implementations
         }
         protected int FormRecordInf(byte rType, ushort rSize, ushort rShift) => (rShift << 18) | (rSize << 4) | (rType);
         protected abstract int HeaderOverheadSize {get;}
-        public short TakeNewRecord(byte rType,ushort rSize)
+        public async Task<short> TakeNewRecord(byte rType,ushort rSize)
         {
-         
-            Thread.BeginCriticalRegion();                     
-            short index = -1;
-            foreach (var i in PossibleRecordsToInsert())
+            return await Task.Factory.StartNew(() =>
             {
-                var it = FormRecordInf(rType, rSize, ushort.MaxValue);
-                if (Interlocked.CompareExchange(ref RecordInfo[i], it, 0) == 0)
-                {                    
-                    var shift = SetUsed((ushort)i, rSize, rType);
-                    if (shift == ushort.MaxValue)//если запись данного размера не влезает в свободое место
+                Thread.BeginCriticalRegion();
+                short index = -1;
+                foreach (var i in PossibleRecordsToInsert())
+                {
+                    var it = FormRecordInf(rType, rSize, ushort.MaxValue);
+                    if (Interlocked.CompareExchange(ref RecordInfo[i], it, 0) == 0)
                     {
-                        RecordInfo[i] = 0;
-                        break;                    
-                    }                  
-                    else
-                    {
-                        RecordInfo[i] = FormRecordInf(rType, rSize, shift);
-                        index = (short)i;
-                        break;
+                        var shift = SetUsed((ushort) i, rSize, rType);
+                        if (shift == ushort.MaxValue) //если запись данного размера не влезает в свободое место
+                        {
+                            RecordInfo[i] = 0;
+                            break;
+                        }
+                        else
+                        {
+                            RecordInfo[i] = FormRecordInf(rType, rSize, shift);
+                            index = (short) i;
+                            break;
+                        }
                     }
                 }
-            }
-            Thread.EndCriticalRegion();
-            if (index!=-1)
-            {
-                Interlocked.Add(ref _totalRecordSize,rSize+ HeaderOverheadSize);
-                Interlocked.Add(ref _totalUsedRecords, 1);
-                return index;
-            }
-            else
-            {
-                return -1;
-            }
-
+                Thread.EndCriticalRegion();
+                if (index != -1)
+                {
+                    Interlocked.Add(ref _totalRecordSize, rSize + HeaderOverheadSize);
+                    Interlocked.Add(ref _totalUsedRecords, 1);
+                    return (short)index;
+                }
+                else
+                {
+                    return (short)-1;
+                }
+            });
         }
 
         public IEnumerable<ushort> NonFreeRecords()=>  RecordInfo.Where((k,i) => RecordType((ushort)i) != 0).Select((k, i) => (ushort)i);
 
-        public void SetNewRecordInfo(ushort recordNum,ushort rSize, byte rType)
+        public async Task SetNewRecordInfo(ushort recordNum,ushort rSize, byte rType)
         {
             var oldInf = RecordInfo[recordNum];
             var shift = RecordShift(recordNum);
@@ -129,11 +132,11 @@ namespace File.Paging.PhysicalLevel.Implementations
             if (Interlocked.CompareExchange(ref RecordInfo[recordNum], t, oldInf) != oldInf)
                 throw new RecordWriteConflictException();
             Interlocked.Add(ref _totalRecordSize, rSize- oldSize);
-            UpdateUsed(recordNum, shift, rSize, rType);
+            await UpdateUsed(recordNum, shift, rSize, rType);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public void SwapRecords(ushort recordOne, ushort recordTwo)
+       // [MethodImpl(MethodImplOptions.Synchronized)]
+        public async Task SwapRecords(ushort recordOne, ushort recordTwo)
         {
             if (RecordType(recordOne) == 0 || RecordType(recordTwo) == 0)
                 throw new InvalidOperationException();
@@ -150,6 +153,6 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         }
 
-        public abstract void Compact();
+        public abstract Task Compact();
     }
 }

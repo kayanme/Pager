@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
+using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
@@ -26,33 +27,42 @@ namespace File.Paging.PhysicalLevel.Implementations
         public uint ExtentNumber { get; }
 
 
-        public void Flush()
+        public async Task Flush()
         {
             if (!_disposedValue)
-               _map.Flush();
+               await Task.Factory.StartNew(()=> _map.Flush());
         }
 
-        public byte[] GetByteArray(int position, int length)
+        public async Task<byte[]> GetByteArray(int position, int length)
         {
            if (_disposedValue)
                 throw new ObjectDisposedException("IPageAccessor");
             Debug.Assert(position + length <= PageSize, "position + length <= _pageSize");
-            var b = new byte[length];
-            _map.ReadArray(position + _startOffset, b, 0, length);
-            return b; 
+            return await Task.Factory.StartNew(() =>
+            {
+                var b = new byte[length];
+                _map.ReadArray(position + _startOffset, b, 0, length);
+                return b;
+            });
         }
 
-        public void SetByteArray(byte[] record, int position, int length)
+        public async Task SetByteArray(byte[] record, int position, int length)
         {
             if (_disposedValue)
                 throw new ObjectDisposedException("IPageAccessor");
             Debug.Assert(position + length <= PageSize, "position + length <= _pageSize");
-            _map.WriteArray(position + _startOffset, record, 0, length);
+            await Task.Factory.StartNew(() =>
+            {
+                _map.WriteArray(position + _startOffset, record, 0, length);
+            });
         }
 
-        public void ClearPage()
+        public async Task ClearPage()
         {
-            _map.WriteArray(_startOffset, new byte[PageSize], 0, PageSize);
+            await Task.Factory.StartNew(() =>
+            {
+                _map.WriteArray(_startOffset, new byte[PageSize], 0, PageSize);
+            });
         }
 
         public IPageAccessor GetChildAccessorWithStartShift(ushort startShirt)
@@ -71,7 +81,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             {
                 if (disposing)
                 {
-                    Flush();
+                    Flush().Wait();
                     _disposer?.ReturnAccessor(_map);
                 }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using System.IO.MemoryMappedFiles;
+using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
@@ -15,7 +16,7 @@ namespace File.Paging.PhysicalLevel.Implementations
         internal GamAccessor(IUnderlyingFileOperator fileOperator)
         {
             _fileOperator = fileOperator;
-            _mapToReturn = _fileOperator.GetMappedFile(Extent.Size);
+            _mapToReturn =  _fileOperator.GetMappedFile(Extent.Size).Result;
             _accessor = _mapToReturn.CreateViewAccessor(0, Extent.Size);
         }
 
@@ -24,39 +25,42 @@ namespace File.Paging.PhysicalLevel.Implementations
             
         }
 
-        public void MarkPageFree(int pageNum)
+        public async Task MarkPageFree(int pageNum)
         {
             lock (_accessor)
             {
-                _accessor.Write(pageNum, 0);
-                _accessor.Flush();
+                _accessor.Write(pageNum, 0);              
             }
+            await Task.Factory.StartNew(()=> _accessor.Flush());
         }
-        public byte GetPageType(int pageNum)
+        public async Task<byte> GetPageType(int pageNum)
         {
-            return _accessor.ReadByte(pageNum);
-        }
-
-        public void SetPageType(int pageNum, byte pageType)
-        {
-             _accessor.Write(pageNum,pageType);
+            return await Task.Factory.StartNew(()=> _accessor.ReadByte(pageNum));
         }
 
-        public int MarkPageUsed(byte pageType)
+        public async Task SetPageType(int pageNum, byte pageType)
         {
-            lock (_accessor)
+           await Task.Factory.StartNew(()=> _accessor.Write(pageNum,pageType));
+        }
+
+        public async Task<int> MarkPageUsed(byte pageType)
+        {
+            return await Task.Factory.StartNew(() =>
             {
-                for (int i = 0; i < Extent.Size; i++)
+                lock (_accessor)
                 {
-                   var pageMark = _accessor.ReadByte(i);
-                    if (pageMark == 0)
+                    for (int i = 0; i < Extent.Size; i++)
                     {
-                        _accessor.Write(i, pageType);
-                        return i;
+                        var pageMark = _accessor.ReadByte(i);
+                        if (pageMark == 0)
+                        {
+                            _accessor.Write(i, pageType);
+                            return i;
+                        }
                     }
+                    throw new InvalidOperationException("File reaches it's maximum size");
                 }
-                throw new InvalidOperationException("File reaches it's maximum size");
-            }
+            });
         }
 
         private bool _disposedValue = false;

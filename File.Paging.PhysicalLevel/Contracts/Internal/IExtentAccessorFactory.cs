@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO.MemoryMappedFiles;
+using System.Threading.Tasks;
 
 namespace File.Paging.PhysicalLevel.Contracts
 {
     internal interface IExtentAccessorFactory:IDisposable
     {
-        IPageAccessor GetAccessor(long offset,int length);
-        void ReturnAccessor(MemoryMappedViewAccessor map);
+        Task<IPageAccessor> GetAccessor(long offset,int length);
+        Task ReturnAccessor(MemoryMappedViewAccessor map);
     }
 }

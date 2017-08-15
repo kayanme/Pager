@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace File.Paging.PhysicalLevel.Contracts
 {
     internal interface IPageAccessor : IDisposable
     {
      
-        byte[] GetByteArray(int position, int length);
-        void SetByteArray(byte[] record, int position, int length);
+        Task<byte[]> GetByteArray(int position, int length);
+        Task SetByteArray(byte[] record, int position, int length);
         int PageSize { get; }
-        void Flush();
+        Task Flush();
         uint ExtentNumber { get; }
-        void ClearPage();
+        Task ClearPage();
         IPageAccessor GetChildAccessorWithStartShift(ushort startShirt);
     }
 }

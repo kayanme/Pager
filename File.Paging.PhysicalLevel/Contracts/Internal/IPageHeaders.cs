@@ -1,20 +1,21 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace File.Paging.PhysicalLevel.Contracts
 {
     internal interface IPageHeaders
     {
         IEnumerable<ushort> NonFreeRecords();
-        short TakeNewRecord(byte rType, ushort rSize);
-        bool IsRecordFree(ushort record);
-        void FreeRecord(ushort record);
+        Task<short> TakeNewRecord(byte rType, ushort rSize);
+        Task<bool> IsRecordFree(ushort record);
+        Task FreeRecord(ushort record);
         ushort RecordCount { get; }    
         ushort RecordShift(ushort record);
         byte RecordType(ushort record);
         ushort RecordSize(ushort record);
-        void SetNewRecordInfo(ushort record,ushort rSize, byte rType);
-        void SwapRecords(ushort recordOne, ushort recordTwo);
-        void Compact();
+        Task SetNewRecordInfo(ushort record,ushort rSize, byte rType);
+        Task SwapRecords(ushort recordOne, ushort recordTwo);
+        Task Compact();
         int TotalUsedSize { get; }
     }
 }

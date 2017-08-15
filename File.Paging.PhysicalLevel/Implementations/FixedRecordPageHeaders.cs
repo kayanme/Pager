@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Contracts;
 
@@ -94,7 +95,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             }
         }
 
-        protected override void UpdateUsed(ushort record, ushort shift, ushort size, byte type)
+        protected override Task UpdateUsed(ushort record, ushort shift, ushort size, byte type)
         {
             throw new NotImplementedException();//оно и не должно использоваться, т.к. у записи фиксированного размера ничего не меняется
         }

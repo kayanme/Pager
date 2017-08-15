@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Pages;
@@ -41,15 +42,15 @@ namespace File.Paging.PhysicalLevel.Implementations
       
 
 
-        public void DeletePage(PageReference page, bool ensureEmptyness)
+        public async Task DeletePage(PageReference page, bool ensureEmptyness)
         {
             if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
-            _accessor.MarkPageFree(page.PageNum);
+            await _accessor.MarkPageFree(page.PageNum);
             Interlocked.Decrement(ref _pages);
         }
 
-        public void RecreatePage(PageReference pageNum, byte pageType)
+        public async Task RecreatePage(PageReference pageNum, byte pageType)
         {
             BufferedPage block;
             do
@@ -58,12 +59,14 @@ namespace File.Paging.PhysicalLevel.Implementations
             } while (Interlocked.CompareExchange(ref block.UserCount, -1, 0) != 0);
             Thread.BeginCriticalRegion();
             
-            block.Accessor.ClearPage();
-            _accessor.SetPageType(pageNum.PageNum, pageType);
+            var t1 = block.Accessor.ClearPage();
+            var t2 = _accessor.SetPageType(pageNum.PageNum, pageType);
             if (_firstPages.TryGetValue(block.PageType, out var _))
             {
                 _firstPages.TryRemove(block.PageType, out var _);
             }
+            await t1;
+            await t2;
 
             Thread.EndCriticalRegion();
             RemovePageFromBuffer(pageNum);          
@@ -75,7 +78,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             var firstPage = _firstPages.GetOrAdd(pageType, pt =>
             {
                 int pr = 0;
-                while (pr < Extent.Size&&_accessor.GetPageType(pr) != pt)
+                while (pr < Extent.Size&&_accessor.GetPageType(pr).Result != pt)
                 {
                     pr++;
                 }
@@ -93,7 +96,7 @@ namespace File.Paging.PhysicalLevel.Implementations
 
                 foreach (var i in Enumerable.Range(pr,Extent.Size))
                 {
-                    if (_accessor.GetPageType(pr) == pageType)
+                    if (_accessor.GetPageType(pr).Result == pageType)
                     {
                         p = RetrievePage(new PageReference(i));
                         if (p.RegisteredPageType == pageType)
@@ -131,11 +134,11 @@ namespace File.Paging.PhysicalLevel.Implementations
             }
         }
 
-        public IPage RetrievePage(PageReference pageNum) 
+        public async Task<IPage> RetrievePage(PageReference pageNum) 
         {
             if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
-            var page = GetPageFromBuffer(pageNum);
+            var page = await GetPageFromBuffer(pageNum);
 
             try
             {
@@ -165,7 +168,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             }
         }
 
-        private BufferedPage GetPageFromBuffer(PageReference pageNum)
+        private async Task<BufferedPage> GetPageFromBuffer(PageReference pageNum)
         {
             BufferedPage page;
             int userCount;
@@ -173,7 +176,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             {
                 page = _bufferedPages.GetOrAdd(pageNum.PageNum, i =>
                 {
-                    var block = _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
+                    var block =   _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
                     var pageType = _accessor.GetPageType(pageNum.PageNum);
                     var headerType = _config.HeaderConfig.ContainsKey(pageType) ? _config.HeaderConfig[pageType] : null;
                     if (headerType == null)

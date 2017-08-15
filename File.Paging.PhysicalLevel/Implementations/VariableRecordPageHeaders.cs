@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
@@ -142,7 +143,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             }
         }
 
-        protected override void UpdateUsed(ushort record, ushort shift, ushort size, byte type)
+        protected override Task UpdateUsed(ushort record, ushort shift, ushort size, byte type)
         {
              SetNewRecordInfo(size, type, shift, record);
         }

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
+using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
@@ -29,32 +30,33 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public MemoryMappedFile GetMappedFile(long desiredFileLength)
+        public async Task<MemoryMappedFile> GetMappedFile(long desiredFileLength)
         {
 
             if (_file.Length < desiredFileLength)
             {
-                AddExtent(1);
+                await AddExtent(1);
             }
-            
-            try
+            return await Task.Factory.StartNew(() =>
             {
-                _lock.EnterReadLock();
-                int i;
-                do
+                try
                 {
-                    i = _oldMaps[_map];
-                }
-                while (!_oldMaps.TryUpdate(_map, i + 1, i));
-                return _map;
-            }
-            finally
-            {
-                if (_lock.IsReadLockHeld)
-                    _lock.ExitReadLock();
-            }
 
-            
+                    _lock.EnterReadLock();
+                    int i;
+                    do
+                    {
+                        i = _oldMaps[_map];
+                    } while (!_oldMaps.TryUpdate(_map, i + 1, i));
+                    return _map;
+                }
+                finally
+                {
+                    if (_lock.IsReadLockHeld)
+                        _lock.ExitReadLock();
+                }
+            });
+
         }
 
         private void CheckMapForCleaning(MemoryMappedFile oldMap)
@@ -67,15 +69,17 @@ namespace File.Paging.PhysicalLevel.Implementations
             }
         }
 
-        public void ReturnMappedFile(MemoryMappedFile file)
+        public Task ReturnMappedFile(MemoryMappedFile file)
         {
-            int i;
-            do
+            return Task.Factory.StartNew(() =>
             {
-                i = _oldMaps[file];
-            }
-            while (!_oldMaps.TryUpdate(file, i - 1, i));
-            CheckMapForCleaning(file);
+                int i;
+                do
+                {
+                    i = _oldMaps[file];
+                } while (!_oldMaps.TryUpdate(file, i - 1, i));
+                CheckMapForCleaning(file);
+            });
         }
 
         #region IDisposable Support
@@ -109,23 +113,28 @@ namespace File.Paging.PhysicalLevel.Implementations
             GC.SuppressFinalize(this);
         }
 
-        public void AddExtent(int extentCount)
+        public Task AddExtent(int extentCount)
         {
-            MemoryMappedFile oldMap;
-            try
+            return Task.Factory.StartNew(() =>
             {
+                MemoryMappedFile oldMap;
+                try
+                {
 
-                _lock.EnterWriteLock();
-                var map = MemoryMappedFile.CreateFromFile(_file, "PageMap" + _file.Length + Extent.Size * extentCount, _file.Length + Extent.Size * extentCount, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
-                _oldMaps.TryAdd(map, 0);
-                oldMap = _map;
-                _map = map;
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
-            CheckMapForCleaning(oldMap);
+                    _lock.EnterWriteLock();
+                    var map = MemoryMappedFile.CreateFromFile(_file,
+                        "PageMap" + _file.Length + Extent.Size * extentCount, _file.Length + Extent.Size * extentCount,
+                        MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
+                    _oldMaps.TryAdd(map, 0);
+                    oldMap = _map;
+                    _map = map;
+                }
+                finally
+                {
+                    _lock.ExitWriteLock();
+                }
+                CheckMapForCleaning(oldMap);
+            });
         }
         #endregion
     }

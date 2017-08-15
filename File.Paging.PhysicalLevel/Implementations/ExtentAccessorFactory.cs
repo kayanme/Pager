@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
 using System.IO.MemoryMappedFiles;
+using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
@@ -19,11 +20,11 @@ namespace File.Paging.PhysicalLevel.Implementations
             _file = file;
         }
 
-        public IPageAccessor GetAccessor(long pageOffset, int pageLength)
+        public async Task<IPageAccessor> GetAccessor(long pageOffset, int pageLength)
         {
             var extentNumber = pageOffset / Extent.Size;
             var extentBorder = extentNumber * Extent.Size;
-            var map = _file.GetMappedFile(pageOffset + pageLength+Extent.Size);
+            var map = await _file.GetMappedFile(pageOffset + pageLength+Extent.Size);
          
             var accessor = map.CreateViewAccessor(extentBorder, Extent.Size);
          
@@ -31,14 +32,16 @@ namespace File.Paging.PhysicalLevel.Implementations
             return new PageAccessor((int)(pageOffset - extentBorder),pageLength,(uint)extentNumber,accessor, this);
         }
 
-        public void ReturnAccessor(MemoryMappedViewAccessor map)
+        public async Task ReturnAccessor(MemoryMappedViewAccessor map)
         {
-            map.Dispose();            
+
+            map.Dispose();
             _accessorsLent.TryRemove(map, out MemoryMappedFile f);
-            _file.ReturnMappedFile(f);
+            await _file.ReturnMappedFile(f);
+
         }
 
-        
+
         private bool _disposedValue = false; 
         void Dispose(bool disposing)
         {
