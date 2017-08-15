@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using Benchmark.Paging.PhysicalLevel;
 using BenchmarkDotNet.Running;
+
 
 namespace Benchmark.Paging.PhysicalLevel
 {
@@ -18,6 +20,7 @@ namespace Benchmark.Paging.PhysicalLevel
         //    BenchmarkRunner.Run<Physical_RecordAddBenchmark>(new C());
         //    BenchmarkRunner.Run<Physical_RecordChangeBenchmark>(new C());
             BenchmarkRunner.Run<Physical_LockBenchmark>(new C());
+          //  BenchmarkRunner.Run<SearchBench>();
             //var t = new Physical_LockBenchmark();
             //foreach (var _ in Enumerable.Repeat(0, 100000000))
             //{

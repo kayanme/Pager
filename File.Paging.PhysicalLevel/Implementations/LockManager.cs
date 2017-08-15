@@ -17,7 +17,7 @@ namespace File.Paging.PhysicalLevel.Implementations
     {
         private class LockHolder
         {
-            public int LockInfo;
+            public volatile int LockInfo;
             public  readonly int[] SelfSharedLocks;
             public long LastUsage;
             public LockHolder(byte selfSharedLocks)
@@ -31,12 +31,13 @@ namespace File.Paging.PhysicalLevel.Implementations
         {
             var h = _locks.GetOrAdd(lockingObject, _ => new LockHolder(rules.SelfSharedLocks));
             h.LastUsage = Stopwatch.GetTimestamp();
-            foreach (var entrancePair in rules.EntrancePairs(lockType))
-         //   var entrancePair = rules.SinglePair(lockType);
+       
+            var entrancePair = rules.EntrancePair(lockType,h.LockInfo);
+            if (entrancePair.HasValue)            
             {
                 unchecked
                 {
-                    if (Interlocked.CompareExchange(ref h.LockInfo, (int)entrancePair.BlockExit, (int)entrancePair.BlockEntrance) == (int)entrancePair.BlockEntrance)
+                    if (Interlocked.CompareExchange(ref h.LockInfo, (int)entrancePair.Value.BlockExit, (int)entrancePair.Value.BlockEntrance) == (int)entrancePair.Value.BlockEntrance)
                     {
                         if ((h.LockInfo & LockMatrix.SharenessCheckLock) == LockMatrix.SharenessCheckLock)
                         {
@@ -61,14 +62,15 @@ namespace File.Paging.PhysicalLevel.Implementations
             {
                 while (true)
                 {
-                    foreach (var entrancePair in rules.EntrancePairs(lockType))
+                    var entrancePair = rules.EntrancePair(lockType, h.LockInfo);
+                    if (entrancePair.HasValue)
                     {
                         unchecked
                         {
-                            if (Interlocked.CompareExchange(ref h.LockInfo, (int) entrancePair.BlockExit,
-                                    (int) entrancePair.BlockEntrance) == (int) entrancePair.BlockEntrance)
+                            if (Interlocked.CompareExchange(ref h.LockInfo, (int) entrancePair.Value.BlockExit,
+                                    (int) entrancePair.Value.BlockEntrance) == (int) entrancePair.Value.BlockEntrance)
                             {
-                                if ((entrancePair.BlockEntrance & LockMatrix.SharenessCheckLock) ==
+                                if ((entrancePair.Value.BlockEntrance & LockMatrix.SharenessCheckLock) ==
                                     LockMatrix.SharenessCheckLock)
                                 {
                                     h.SelfSharedLocks[rules.SelfSharedLockShift(lockType)]++;
@@ -105,7 +107,7 @@ namespace File.Paging.PhysicalLevel.Implementations
                     } while (Interlocked.CompareExchange(ref h.LockInfo,i | (int)LockMatrix.SharenessCheckLock,i)!=i);
                     if (--h.SelfSharedLocks[rules.SelfSharedLockShift(lockType)] == -1)
                     {
-                        h.LockInfo = (int)rules.EntrancePairs(lockType).First(k => (( k.BlockExit) ^ (LockMatrix.SharenessCheckLockDrop&(uint)h.LockInfo)) == 0).BlockEntrance;
+                        h.LockInfo = (int)rules.ExitPair(lockType,(int)(LockMatrix.SharenessCheckLockDrop & (uint)h.LockInfo)).Value.BlockEntrance;
                     }
                     else
                     {
@@ -115,16 +117,19 @@ namespace File.Paging.PhysicalLevel.Implementations
                 }
                 else
                 {
-                       foreach (var entrancePair in rules.EntrancePairs(lockType))
-               //     var entrancePair = rules.SinglePair(lockType);
+                     //  foreach (var entrancePair in rules.EntrancePairs(lockType))
+                    while (true)
                     {
-                        if (Interlocked.CompareExchange(ref h.LockInfo, (int) entrancePair.BlockEntrance,
-                                (int) entrancePair.BlockExit) == (int) entrancePair.BlockExit)
+                        var entrancePair = rules.ExitPair(lockType, h.LockInfo);
+                        if (entrancePair.HasValue)
                         {
-                            return;
+                            if (Interlocked.CompareExchange(ref h.LockInfo, (int) entrancePair.Value.BlockEntrance,
+                                    (int) entrancePair.Value.BlockExit) == (int) entrancePair.Value.BlockExit)
+                            {
+                                break;
+                            }
                         }
                     }
-
 
                 }
             }
@@ -132,14 +137,51 @@ namespace File.Paging.PhysicalLevel.Implementations
         }
         
 
-        public bool ChangeLockLevel(LockToken<T> token, LockMatrix rules, byte newLevel)
+        public bool ChangeLockLevel(ref LockToken<T> token, LockMatrix rules, byte newLevel)
         {
-            throw new NotImplementedException();
+            if (!_locks.TryGetValue(token.LockedObject, out var h))
+            {
+                throw new InvalidOperationException("Object not locked");
+            }
+            var excalationPair = rules.EscalationPairs(token.LockLevel, newLevel)
+                .Select(k=>(LockMatrix.MatrPair?)k)
+                .FirstOrDefault(k => k.Value.BlockEntrance == h.LockInfo);
+            if (excalationPair.HasValue)
+            {
+                if (Interlocked.CompareExchange(ref h.LockInfo, (int) excalationPair.Value.BlockExit,
+                        (int) excalationPair.Value.BlockEntrance) == excalationPair.Value.BlockEntrance)
+                {
+                    token = new LockToken<T>(newLevel, token.LockedObject, this, rules);
+                    return true;
+                }
+            }
+            return false;
         }
 
-        public Task WaitForLockLevelChange(LockToken<T> token, LockMatrix rules, byte newLevel)
+        public Task<LockToken<T>> WaitForLockLevelChange(LockToken<T> token, LockMatrix rules, byte newLevel)
         {
-            throw new NotImplementedException();
+            if (!_locks.TryGetValue(token.LockedObject, out var h))
+            {
+                throw new InvalidOperationException("Object not locked");
+            }
+            return Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    var excalationPair = rules.EscalationPairs(token.LockLevel, newLevel)
+                        .Select(k => (LockMatrix.MatrPair?) k)
+                        .FirstOrDefault(k => k.Value.BlockEntrance == h.LockInfo);
+                    if (excalationPair.HasValue)
+                    {
+                        if (Interlocked.CompareExchange(ref h.LockInfo, (int) excalationPair.Value.BlockExit,
+                                (int) excalationPair.Value.BlockEntrance) == excalationPair.Value.BlockEntrance)
+                        {
+                          
+                            return new LockToken<T>(newLevel,token.LockedObject,this,rules);
+                        }
+                    }
+                }
+            });
         }
     }
 }

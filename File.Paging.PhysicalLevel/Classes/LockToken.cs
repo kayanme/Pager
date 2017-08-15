@@ -5,7 +5,7 @@ namespace File.Paging.PhysicalLevel.Classes
 {
     public struct LockToken<T>
     {
-        public readonly byte LockLevel;
+        public readonly  byte LockLevel;
         internal readonly T LockedObject;
         private readonly IPhysicalLockManager<T> _holder;
         private readonly LockMatrix _matrix;

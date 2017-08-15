@@ -31,7 +31,7 @@ namespace Test.Paging.LogicalLevel.Transactions
         private IHeaderedPage<TestRecord> pp => ScenarioContext.Current["pp"] as IHeaderedPage<TestRecord>;
         private IPhysicalLocks locks => ScenarioContext.Current["pp"] as IPhysicalLocks;
         private MockRepository mocks => (MockRepository)ScenarioContext.Current["mr"];
-        private PageLockToken heldpagelock => (PageLockToken)ScenarioContext.Current["heldpagelock"];
+        private LockToken<PageReference> heldpagelock => (LockToken<PageReference>)ScenarioContext.Current["heldpagelock"];
         private TransactionHeaderResource<TestRecord> hp => (TransactionHeaderResource < TestRecord > )ScenarioContext.Current["hp"];
 
         [Given(@"we have a headered page")]
@@ -63,8 +63,8 @@ namespace Test.Paging.LogicalLevel.Transactions
         [Then(@"we expect acquiring read lock on page")]
         public void ThenWeExpectAcquiringReadLockOnPage()
         {
-            var holdinglock = new PageLockToken();
-            locks.Expect(k => k.WaitPageLock(readlock)).Return(new Task<PageLockToken>(() => holdinglock));
+            var holdinglock = new LockToken<PageReference>();
+            locks.Expect(k => k.WaitPageLock(readlock)).Return(new Task<LockToken<PageReference>>(() => holdinglock));
             ScenarioContext.Current.Add("heldpagelock", holdinglock);
         }
         
@@ -93,8 +93,8 @@ namespace Test.Paging.LogicalLevel.Transactions
         [Then(@"we expect acquiring write lock on page")]
         public void ThenWeExpectAcquiringWriteLockOnPage()
         {
-            var holdinglock = new PageLockToken();
-            locks.Expect(k => k.WaitPageLock(writelock)).Return(new Task<PageLockToken>(() => holdinglock));
+            var holdinglock = new LockToken<PageReference>();
+            locks.Expect(k => k.WaitPageLock(writelock)).Return(new Task<LockToken<PageReference>>(() => holdinglock));
             ScenarioContext.Current.Add("heldpagelock", holdinglock);
         }
 

@@ -12,7 +12,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages.Contracts
         bool AcqureLock(T lockingObject, byte lockType, LockMatrix rules, out LockToken<T> token);
         Task<LockToken<T>> WaitLock(T lockingObject, byte lockType, LockMatrix rules);
         void ReleaseLock(LockToken<T> token, LockMatrix rules);     
-        bool ChangeLockLevel(LockToken<T> token, LockMatrix rules, byte newLevel);
-        Task WaitForLockLevelChange(LockToken<T> token, LockMatrix rules, byte newLevel);
+        bool ChangeLockLevel(ref LockToken<T> token, LockMatrix rules, byte newLevel);
+        Task<LockToken<T>> WaitForLockLevelChange(LockToken<T> token, LockMatrix rules, byte newLevel);
     }
 }
