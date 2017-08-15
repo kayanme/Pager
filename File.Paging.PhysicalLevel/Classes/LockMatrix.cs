@@ -149,7 +149,7 @@ namespace File.Paging.PhysicalLevel.Classes
                 }
             }
 
-            var possibleLockPath = allPossibleStates
+            var possibleLockPath = allPossibleStates 
                 .Join(allPossibleStates, _ => true, _ => true, (o, i) =>new{entrance =(uint)( i),exit = (uint)(o), difference = o ^ i})
                 .Where(k=> k.exit > k.entrance && powersOf2.Contains(k.difference))             
                 .ToArray();
