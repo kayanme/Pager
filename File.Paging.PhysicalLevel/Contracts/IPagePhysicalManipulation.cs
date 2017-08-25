@@ -9,7 +9,7 @@ using File.Paging.PhysicalLevel.Events;
 
 namespace File.Paging.PhysicalLevel.Contracts
 {
-    public interface IPagePhysicalManipulation
+    public interface IPhysicalPageManipulation
     {
         void GroupFlush(params IPage[] pages);
         void MarkPageToRemoveFromBuffer(PageReference page);

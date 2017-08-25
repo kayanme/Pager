@@ -2,6 +2,7 @@
 using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
+using File.Paging.PhysicalLevel.Implementations.Headers;
 
 namespace File.Paging.PhysicalLevel.Classes.Configurations
 {
@@ -9,7 +10,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
     {
         internal override Type RecordType => typeof(TRecordType);
         internal FixedSizeRecordDeclaration<TRecordType> RecordMap { get; set; }
-
+     
         public FixedRecordTypePageConfiguration()
         {
             ConsistencyConfiguration = new ConsistencyConfiguration{ConsistencyAbilities = ConsistencyAbilities.None};
@@ -17,7 +18,26 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
 
         internal override IPageHeaders CreateHeaders(IPageAccessor accessor,ushort shift)
         {
-            return new FixedRecordPageHeaders(accessor.GetChildAccessorWithStartShift(shift), (ushort)RecordMap.GetSize);
+            var headerAccessor = accessor.GetChildAccessorWithStartShift(shift);
+            if (!WithLogicalSort)
+            {
+                var pageCalculator =
+                    new FixedPageParametersCalculator((ushort) headerAccessor.PageSize, (ushort) RecordMap.GetSize);
+                pageCalculator.CalculatePageParameters();
+                var rawPam = headerAccessor.GetByteArray(0, pageCalculator.PamSize);
+                pageCalculator.ProcessPam(rawPam);
+                return new FixedRecordPhysicalOnlyHeader(headerAccessor, pageCalculator);
+            }
+            else
+            {
+                var pageCalculator =
+                    new FixedPageParametersCalculator((ushort)headerAccessor.PageSize, (ushort)RecordMap.GetSize,16);
+                pageCalculator.CalculatePageParameters();
+                var rawPam = headerAccessor.GetByteArray(0, pageCalculator.PamSize);
+                pageCalculator.ProcessPam(rawPam);
+                return new FixedRecordWithLogicalOrderHeader(headerAccessor, pageCalculator);
+            }
+          
         }
 
         public override void Verify()

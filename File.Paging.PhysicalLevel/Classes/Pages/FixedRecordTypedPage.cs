@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase<TRecordType> where TRecordType : TypedRecord, new()
+    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase<TRecordType>, ILogicalRecordOrderManipulation where TRecordType : TypedRecord, new()
     {
       
         private readonly FixedRecordTypePageConfiguration<TRecordType> _config;
@@ -16,23 +18,22 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         {
         
             _config = config;
-        }
-       
-       
+        }              
        
 
         public override TRecordType GetRecord(PageRecordReference reference)
         {
             CheckReferenceToPageAffinity(reference);
-            if (reference.LogicalRecordNum == -1)
+            if (reference is NullPageRecordReference)
                 return null;
             try
             {
                 CompactionLock.EnterReadLock();
-                if (!Headers.IsRecordFree((ushort) reference.LogicalRecordNum))
-                {
-                    var offset = Headers.RecordShift((ushort) reference.LogicalRecordNum);
-                    var size = Headers.RecordSize((ushort) reference.LogicalRecordNum);
+                Debug.Assert(reference is PhysicalPositionPersistentPageRecordReference, "reference is PhysicalPositionPersistentPageRecordReference");
+                if (!Headers.IsRecordFree(reference.PersistentRecordNum))
+                {                    
+                    var offset = reference.PersistentRecordNum;
+                    var size = Headers.RecordSize(reference.PersistentRecordNum);
                     var bytes = Accessor.GetByteArray(offset, size);
                     var r = new TRecordType()
                     {
@@ -54,12 +55,12 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             try
             {
                 CompactionLock.EnterReadLock();
-                var record = Headers.TakeNewRecord(1, (ushort) _config.RecordMap.GetSize);
-                if (record == -1)
+                var physicalRecordNum = Headers.TakeNewRecord(0, (ushort) _config.RecordMap.GetSize);
+                if (physicalRecordNum == -1)
                     return false;
-                SetRecord(record, type);
+                SetRecord(physicalRecordNum, type);
                 if (type.Reference == null)
-                    type.Reference = new PageRecordReference ( Reference, record);
+                    type.Reference = new PhysicalPositionPersistentPageRecordReference(Reference, (ushort)physicalRecordNum);
                 return true;
             }
             finally
@@ -68,13 +69,22 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             }
         }
 
-        private void SetRecord(int offset, TRecordType record)
+        private void SetRecord(int logicalRecordNum, TRecordType record)
         {
-            var recordStart = Headers.RecordShift((ushort)offset);
-            var recordSize = Headers.RecordSize((ushort)offset);
+            var recordStart = Headers.RecordShift((ushort)logicalRecordNum);
+            var recordSize = Headers.RecordSize((ushort)logicalRecordNum);
             var bytes = Accessor.GetByteArray(recordStart, recordSize);
             _config.RecordMap.FillBytes(record, bytes);
             Accessor.SetByteArray(bytes, recordStart, recordSize);
+        }
+
+        private void SetRecord(ushort physicalRecordNum, TRecordType record)
+        {
+
+            var recordSize = _config.RecordMap.GetSize;
+            var bytes = Accessor.GetByteArray(physicalRecordNum, recordSize);
+            _config.RecordMap.FillBytes(record, bytes);
+            Accessor.SetByteArray(bytes, physicalRecordNum, recordSize);
         }
 
         public override void StoreRecord(TRecordType record)
@@ -84,7 +94,8 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             try
             {
                 CompactionLock.EnterReadLock();
-                SetRecord(record.Reference.LogicalRecordNum, record);
+                Debug.Assert(record.Reference is PhysicalPositionPersistentPageRecordReference, "record.Reference is PhysicalPositionPersistentPageRecordReference");
+                SetRecord(record.Reference.PersistentRecordNum, record);
             }
             finally
             {
@@ -92,20 +103,28 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             }
         }
 
-       
-
-
-
-
-
-
-
-
+        public override IEnumerable<PageRecordReference> IterateRecords()
+        {
+            foreach (var nonFreeRecord in Headers.NonFreeRecords())
+            {
+                yield return new PhysicalPositionPersistentPageRecordReference(Reference,nonFreeRecord);
+            }
+        }
 
         ~FixedRecordTypedPage()
         {
             Dispose(true);
         
+        }
+
+        public void ApplyOrder(PageRecordReference[] records)
+        {
+            Headers.ApplyOrder(records.Select(k=>k.PersistentRecordNum).ToArray());
+        }
+
+        public void DropOrder(PageRecordReference record)
+        {
+           Headers.DropOrder(record.PersistentRecordNum);
         }
     }
 }

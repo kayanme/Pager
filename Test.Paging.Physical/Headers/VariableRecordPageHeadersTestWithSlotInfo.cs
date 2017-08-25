@@ -16,7 +16,7 @@ namespace Test.Pager.Headers
             m.Expect(k => k.GetByteArray(0, page.Length)).Return(page);
             m.Expect(k => k.PageSize).Repeat.Any().Return(page.Length);
             m.Replay();
-            var p = new VariableRecordPageHeaders(m,true);
+            var p = new VariableRecordWithLogicalOrderHeaders(m);
             TestContext.Properties.Add("page", m);
             return p;
         }
@@ -138,7 +138,7 @@ namespace Test.Pager.Headers
             Page.Expect(k => k.SetByteArray(new byte[] { 0,0x01 }, 8, 2));
             Page.Replay();
 
-            headers.SwapRecords(0, 1);
+            headers.ApplyOrder(new ushort[]{1, 0});
             Page.VerifyAllExpectations();
 
             Assert.AreEqual(10, headers.RecordShift(1));

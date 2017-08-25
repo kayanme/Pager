@@ -11,12 +11,12 @@ namespace Test.Paging.LogicalLevel
             var t = obj as TestRecord;
             if (t == null)
                 return false;
-            return Order == t.Order && Reference?.LogicalRecordNum == t.Reference?.LogicalRecordNum;
+            return Order == t.Order && Reference?.PersistentRecordNum == t.Reference?.PersistentRecordNum;
         }
 
         public override int GetHashCode()
         {
-            return Order.GetHashCode() ^ Reference.LogicalRecordNum.GetHashCode();
+            return Order.GetHashCode() ^ Reference.PersistentRecordNum.GetHashCode();
         }
     }
 }

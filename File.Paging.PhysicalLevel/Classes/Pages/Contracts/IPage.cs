@@ -8,7 +8,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         byte RegisteredPageType { get; }
         PageReference Reference { get; }
         double PageFullness { get; }
-        
+        int UsedRecords { get; }
     }
 
     public interface IPage<TRecordType> : IPage where TRecordType : TypedRecord, new()

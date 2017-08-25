@@ -4,16 +4,18 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
 {
     public interface IPhysicalLocks
     {     
-        bool AcqurePageLock(int lockType,out LockToken<PageReference> token);
-        Task<LockToken<PageReference>> WaitPageLock(int lockType);
+        bool AcqurePageLock(byte lockType, out LockToken<PageReference> token);
+        Task<LockToken<PageReference>> WaitPageLock(byte lockType);
         void ReleasePageLock(LockToken<PageReference> token);
 
-        bool AcqureLock(PageRecordReference record, int lockType, out LockToken<PageRecordReference> token);
-        Task<LockToken<PageRecordReference>> WaitLock(PageRecordReference record, int lockType);
+        bool AcqureLock(PageRecordReference record, byte lockType, out LockToken<PageRecordReference> token);
+        Task<LockToken<PageRecordReference>> WaitLock(PageRecordReference record, byte lockType);
         void ReleaseLock(LockToken<PageRecordReference> token);
 
-        bool ChangeLockLevel<T>(LockToken<T> token, int newLevel);
-        Task WaitForLockLevelChange<T>(LockToken<T> token, int newLevel);
+        bool ChangeLockLevel(ref LockToken<PageReference> token, byte newLevel);
+        bool ChangeLockLevel(ref LockToken<PageRecordReference> token, byte newLevel);
+        Task WaitForLockLevelChange(LockToken<PageReference> token, byte newLevel);
+        Task WaitForLockLevelChange(LockToken<PageRecordReference> token, byte newLevel);
     }
    
 }

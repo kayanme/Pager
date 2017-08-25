@@ -14,7 +14,7 @@ namespace Test.Paging.LogicalLevel.Transactions
     public class ReadCommitedTransactionFlowSteps
     {
         [Given(@"configured transactable page with read lock naming '(.*)' and write lock naming '(.*)'")]
-        public void GivenConfiguredTransactablePageWithReadLockNamingAndWriteLockNaming(int p0, int p1)
+        public void GivenConfiguredTransactablePageWithReadLockNamingAndWriteLockNaming(byte p0, byte p1)
         {
              ScenarioContext.Current.Add("readlock",p0);
              ScenarioContext.Current.Add("writelock", p1);
@@ -26,8 +26,8 @@ namespace Test.Paging.LogicalLevel.Transactions
             ScenarioContext.Current.Add("isolationlevel", Enum.Parse(typeof(IsolationLevel), p0));
         }
         private TestRecord th => (TestRecord)ScenarioContext.Current["testheader"];
-        private int readlock => (int)ScenarioContext.Current["readlock"];
-        private int writelock => (int)ScenarioContext.Current["writelock"];
+        private byte readlock => (byte)ScenarioContext.Current["readlock"];
+        private byte writelock => (byte)ScenarioContext.Current["writelock"];
         private IHeaderedPage<TestRecord> pp => ScenarioContext.Current["pp"] as IHeaderedPage<TestRecord>;
         private IPhysicalLocks locks => ScenarioContext.Current["pp"] as IPhysicalLocks;
         private MockRepository mocks => (MockRepository)ScenarioContext.Current["mr"];

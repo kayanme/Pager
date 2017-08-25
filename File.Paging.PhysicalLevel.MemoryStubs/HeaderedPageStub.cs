@@ -12,6 +12,10 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         public PageReference Reference { get; }
 
         public double PageFullness => Content.PageFullness;
+        public int UsedRecords
+        {
+            get { return Content.UsedRecords; }
+        }
 
         public byte RegisteredPageType => Content.RegisteredPageType;
 

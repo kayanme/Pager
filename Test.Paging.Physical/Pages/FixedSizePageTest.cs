@@ -34,7 +34,7 @@ namespace Test.Pager.Pages
         {
             var page = Create();
             Headers.Expect(k => k.TakeNewRecord(1, 4)).Return(0);
-            Headers.Expect(k => k.RecordShift(0)).Return(2);
+            Headers.Expect(k => k.RecordShift(0)).Return(2).Repeat.Any();
             Headers.Expect(k => k.RecordSize(0)).Return(4);
             Access.Expect(k => k.GetByteArray(2, 4)).Return(new byte[4]);
             Access.Expect(k => k.SetByteArray(new byte[] { 0,0,0,4}, 2, 4));

@@ -213,10 +213,10 @@ namespace Test.Pager
             bool pageRemoved = false;
             using (var manager = GetManager())
             {
-                (manager as IPagePhysicalManipulation).PageRemovedFromBuffer += (_, ea) => {Assert.AreEqual(1,ea.Page.PageNum); pageRemoved = true; };
+                (manager as IPhysicalPageManipulation).PageRemovedFromBuffer += (_, ea) => {Assert.AreEqual(1,ea.Page.PageNum); pageRemoved = true; };
                 using (var page = manager.RetrievePage(new PageReference(1)))
                 {
-                    (manager as IPagePhysicalManipulation).MarkPageToRemoveFromBuffer(page.Reference);
+                    (manager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(page.Reference);
                     Assert.IsFalse(pageRemoved);
                 }
                 Assert.IsTrue(pageRemoved);
@@ -241,10 +241,10 @@ namespace Test.Pager
             using (var manager = GetManager())
             {
                 IPage page2;
-                (manager as IPagePhysicalManipulation).PageRemovedFromBuffer += (_, ea) => { Assert.AreEqual(1, ea.Page.PageNum); pageRemoved = true; };
+                (manager as IPhysicalPageManipulation).PageRemovedFromBuffer += (_, ea) => { Assert.AreEqual(1, ea.Page.PageNum); pageRemoved = true; };
                 using (var page = manager.RetrievePage(new PageReference(1)))
                 {
-                    (manager as IPagePhysicalManipulation).MarkPageToRemoveFromBuffer(page.Reference);
+                    (manager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(page.Reference);
                     Assert.IsFalse(pageRemoved);
                     page2 = manager.RetrievePage(new PageReference(1));
                 }

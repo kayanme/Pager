@@ -194,7 +194,7 @@ namespace Test.Pager.Configurations
             Assert.IsInstanceOfType(c, typeof(VariableRecordTypePageConfiguration<TestRecord>));
             var c2 = c as VariableRecordTypePageConfiguration<TestRecord>;
             Assert.IsNotNull(c2.RecordMap);
-            Assert.AreEqual(slotInfo, c2.UseLogicalSlotInfo);
+            Assert.AreEqual(slotInfo, c2.WithLogicalSort);
             Assert.AreEqual(1, c2.RecordMap.Count);
             Assert.IsTrue(c2.RecordMap.ContainsKey(1));
             var c3 = c2.RecordMap[1];

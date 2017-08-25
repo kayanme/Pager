@@ -13,7 +13,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         internal abstract IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType);
 
         internal abstract IPageHeaders CreateHeaders(IPageAccessor accessor,ushort initShift);
-
+        internal bool WithLogicalSort;
         public abstract void Verify();
     }
 }

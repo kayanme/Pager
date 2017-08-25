@@ -15,10 +15,15 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
      
         
         public override double PageFullness => _content.PageFullness;
+        public int UsedRecords
+        {
+            get { return _pageImplementation.UsedRecords; }
+        }
 
-       
 
         private readonly PageHeadersConfiguration<TRecord, THeader> _config;
+        private IPage<TRecord> _pageImplementation;
+
         internal HeaderedPage(IPageHeaders childHeaders, IPageAccessor accessor, IPage<TRecord> childPage, PageReference reference,PageHeadersConfiguration<TRecord,THeader> config)
             :base(childHeaders, accessor,reference,childPage.RegisteredPageType)
         {

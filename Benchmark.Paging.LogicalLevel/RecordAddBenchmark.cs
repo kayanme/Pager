@@ -25,7 +25,8 @@ namespace Benchmark.Paging.LogicalLevel
                 DefinePageType(1)
                     .AsPageWithRecordType<TestRecord>()
                     .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 4)
-                    .ApplyRecordOrdering((a) => a.Order);
+                    .ApplyLogicalSortIndex()
+                    .ApplyRecordOrdering((a) => a?.Order??0);
 
                 DefinePageType(2)
                     .AsPageWithRecordType<TestRecord>()

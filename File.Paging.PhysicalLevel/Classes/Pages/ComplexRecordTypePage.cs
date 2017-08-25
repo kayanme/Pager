@@ -46,7 +46,9 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
                 return false;
             SetRecord((ushort)record, type,config);
             if (type.Reference == null)
-                type.Reference = new PageRecordReference (Reference, record);
+                type.Reference = _config.WithLogicalSort?
+                    (PageRecordReference)new RowKeyPersistentPageRecordReference(Reference,0)
+                                       : new LogicalPositionPersistentPageRecordReference (Reference, (ushort)record);
          
             return true;
         }
@@ -55,12 +57,13 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         {
             if (Reference != reference.Page)
                 throw new ArgumentException("The record is on another page");
-
-            if (!Headers.IsRecordFree((ushort)reference.LogicalRecordNum))
+            if (reference is NullPageRecordReference)
+                return null;
+            if (!Headers.IsRecordFree((ushort)reference.PersistentRecordNum))
             {
-                var offset = Headers.RecordShift((ushort)reference.LogicalRecordNum);
-                var size = Headers.RecordSize((ushort)reference.LogicalRecordNum);
-                var type = Headers.RecordType((ushort)reference.LogicalRecordNum);
+                var offset = Headers.RecordShift((ushort)reference.PersistentRecordNum);
+                var size = Headers.RecordSize((ushort)reference.PersistentRecordNum);
+                var type = Headers.RecordType((ushort)reference.PersistentRecordNum);
                 var bytes = Accessor.GetByteArray(offset, size);
                 var r = new TRecordType()
                 {
@@ -77,18 +80,21 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         {
             if (record.Reference.Page != Reference)
                 throw new ArgumentException();
-            if (record.Reference.LogicalRecordNum == -1)
+            if (record.Reference is NullPageRecordReference)
                 throw new ArgumentException();
             var mapKey = _config.GetRecordType(record);
             var config = _config.RecordMap[mapKey];
-            if (Headers.RecordSize((ushort)record.Reference.LogicalRecordNum) < config.GetSize(record))
+            if (Headers.RecordSize((ushort)record.Reference.PersistentRecordNum) < config.GetSize(record))
                 throw new ArgumentException("Record size is more, than slot space available");
-            SetRecord((ushort)record.Reference.LogicalRecordNum, record, config);
+            SetRecord((ushort)record.Reference.PersistentRecordNum, record, config);
         }
-  
 
-                             
-        
+        public override IEnumerable<PageRecordReference> IterateRecords()
+        {
+            throw new NotImplementedException();
+        }
+
+
         ~ComplexRecordTypePage()
         {
             Dispose(true);

@@ -5,7 +5,7 @@ using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal abstract class TypedPageBase : IPhysicalLevelManipulation 
+    internal abstract class TypedPageBase : IPhysicalRecordManipulation
     {
         protected readonly IPageAccessor Accessor;
         protected readonly IPageHeaders Headers;
@@ -34,16 +34,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             if (reference.Page != Reference)
                 throw new ArgumentException("The record is on another page");
         }
-        public void SwapRecords(PageRecordReference record1, PageRecordReference record2)
-        {
-            CheckReferenceToPageAffinity(record1);
-            CheckReferenceToPageAffinity(record2);
-            if (record1.LogicalRecordNum == -1)
-                throw new ArgumentException("record1 was deleted");
-            if (record2.LogicalRecordNum == -1)
-                throw new ArgumentException("record2 was deleted");
-            Headers.SwapRecords((ushort)record1.LogicalRecordNum, (ushort)record2.LogicalRecordNum);
-        }
+     
         public void Compact()
         {
             try
@@ -74,6 +65,8 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         {
             Dispose(true);
         }
+
+       
 
         public void Dispose()
         {

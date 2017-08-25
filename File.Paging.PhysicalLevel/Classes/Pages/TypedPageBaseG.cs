@@ -18,19 +18,21 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             _pageSize = pageSize;
         }
 
+        public int UsedRecords => Headers.RecordCount;
+
         public abstract bool AddRecord(TRecordType type);
 
         public void FreeRecord(TRecordType record)
         {
             if (record == null)
                 throw new ArgumentNullException(nameof(record));
-            if (record.Reference.LogicalRecordNum == -1)
+            if (record.Reference is NullPageRecordReference)
                 throw new ArgumentException("Trying to delete deleted record");
             try
             {
                 CompactionLock.EnterReadLock();
-                Headers.FreeRecord((ushort)record.Reference.LogicalRecordNum);
-                record.Reference.LogicalRecordNum = -1;
+                Headers.FreeRecord((ushort)record.Reference.PersistentRecordNum);
+                record.Reference = new NullPageRecordReference(Reference);
             }
             finally
             {
@@ -42,12 +44,6 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
 
         public abstract void StoreRecord(TRecordType record);
 
-        public IEnumerable<PageRecordReference> IterateRecords()
-        {
-            foreach (var i in Headers.NonFreeRecords())
-            {               
-                yield return new PageRecordReference(Reference,i);
-            }
-        }
+        public abstract IEnumerable<PageRecordReference> IterateRecords();
     }
 }

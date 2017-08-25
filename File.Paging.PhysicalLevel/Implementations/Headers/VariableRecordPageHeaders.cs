@@ -11,15 +11,14 @@ namespace File.Paging.PhysicalLevel.Implementations
         readonly int _pageSize;
         
         
-        private readonly bool _slotArrayApplied;
+        
         protected override int[] RecordInfo { get; }
-        public VariableRecordPageHeaders(IPageAccessor accessor,bool slotInfoApplied)
+        public VariableRecordPageHeaders(IPageAccessor accessor)
         {
             _pageSize = accessor.PageSize;
             var page = accessor.GetByteArray(0, accessor.PageSize);
         
-             _accessor = accessor;
-            _slotArrayApplied = slotInfoApplied;
+             _accessor = accessor;            
             RecordInfo = ScanForHeaders(page);
 
 
@@ -31,7 +30,7 @@ namespace File.Paging.PhysicalLevel.Implementations
         {
             if (RecordSize(record) == 0)
                 return;
-            var recordPosition =RecordShift(record)-(_slotArrayApplied?4: 2);
+            var recordPosition =RecordShift(record)-HeaderOverheadSize;
 
             var val =  RecordSize(record);
             var toWrite = new byte[] { (byte)(val >> 8)};
@@ -57,14 +56,9 @@ namespace File.Paging.PhysicalLevel.Implementations
                     break;
                 }
                 ushort logicalPosition = 0;
-                if (_slotArrayApplied)
-                {
-                     logicalPosition = (ushort)(page[i + 2] << 8 | page[i + 3]);                    
-                }
-                else
-                {
-                    logicalPosition = physicalRecordNum;
-                }
+              
+                logicalPosition = physicalRecordNum;
+                
                 byte type =(byte)(header >> 12);
                 var size =(ushort)( header & 0x0FFF);
                 var shift = i+ HeaderOverheadSize;
@@ -124,41 +118,24 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         }
 
-        private ushort SetNewRecordInfo(ushort size, byte type, int shift,ushort record)
+        private ushort SetNewRecordInfo(ushort size, byte type, int shift, ushort record)
         {
             var val = type << 12 | size;
-            if (!_slotArrayApplied)
-            {
-                var toWrite = new byte[] { (byte)(val >> 8), (byte)(val & 0xFF) };
-                _accessor.SetByteArray(toWrite, shift, 2);
-                
-                return (ushort)(shift + 2);
-            }
-            else
-            {
-                var toWrite = new byte[] { (byte)(val >> 8), (byte)(val & 0xFF), (byte)(record >> 8), (byte)(record & 0xFF) };
-                _accessor.SetByteArray(toWrite, shift, 4);                
-                return (ushort)(shift + 4);
-            }
+
+            var toWrite = new byte[] {(byte) (val >> 8), (byte) (val & 0xFF)};
+            _accessor.SetByteArray(toWrite, shift, 2);
+
+            return (ushort) (shift + 2);
+
         }
 
         protected override void UpdateUsed(ushort record, ushort shift, ushort size, byte type)
         {
              SetNewRecordInfo(size, type, shift, record);
         }
+        
 
-        protected override void SetNewLogicalRecordNum(ushort logicalRecordNum, ushort shift)
-        {
-            if (!_slotArrayApplied)
-              base.SetNewLogicalRecordNum(logicalRecordNum, shift);
-            else
-            {
-                var toWrite = new byte[] { (byte)(logicalRecordNum >> 8), (byte)(logicalRecordNum & 0xFF) };
-                _accessor.SetByteArray(toWrite, shift-2, 2);
-            }
-        }
-
-        protected override int HeaderOverheadSize => _slotArrayApplied ? 4 : 2;
+        protected override int HeaderOverheadSize => 2;
 
         public override void Compact()
         {

@@ -1,9 +1,17 @@
-﻿namespace File.Paging.PhysicalLevel.Classes.Pages
+﻿using System.Threading.Tasks;
+
+namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    public interface IPhysicalLevelManipulation
+    public interface IPhysicalRecordManipulation 
     {
-        void Flush();
-        void SwapRecords(PageRecordReference record1, PageRecordReference record2);
-        void Compact();
+        void Flush();      
+        void Compact();                
+    }
+
+
+    public interface ILogicalRecordOrderManipulation
+    {        
+        void ApplyOrder(PageRecordReference[] records);
+        void DropOrder(PageRecordReference record);
     }
 }

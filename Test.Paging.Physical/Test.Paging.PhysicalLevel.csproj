@@ -58,9 +58,11 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Configurations\ConfigurationBuilderTests.cs" />
+    <Compile Include="Headers\FixedRecordHeadersCalculatorTest.cs" />
+    <Compile Include="Headers\FixedRecordPageHeadersLogicalOrderTest.cs" />
+    <Compile Include="Headers\FixedRecordPageHeadersNoOrderTest.cs" />
     <Compile Include="Headers\VariableRecordPageHeadersTestWithSlotInfo.cs" />
     <Compile Include="Headers\VariableRecordPageHeadersTest.cs" />
-    <Compile Include="Headers\FixedRecordPageHeadersTest.cs" />
     <Compile Include="GamManagerTest.cs" />
     <Compile Include="Locks\LockTest.cs" />
     <Compile Include="Locks\MatrixBuild.cs" />

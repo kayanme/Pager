@@ -19,7 +19,7 @@ namespace Test.Pager.Headers
             m.Expect(k => k.GetByteArray(0, page.Length)).Return(page);
             m.Expect(k => k.PageSize).Repeat.Any().Return(page.Length);
             m.Replay();
-            var p = new VariableRecordPageHeaders(m, false);
+            var p = new VariableRecordPageHeaders(m);
             TestContext.Properties.Add("page", m);
             
             return p;

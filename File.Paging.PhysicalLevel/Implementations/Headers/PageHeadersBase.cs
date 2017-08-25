@@ -14,14 +14,12 @@ namespace File.Paging.PhysicalLevel.Implementations
         private int _totalUsedRecords;
 
 
-        private const byte RecordUseMask = 0xFF;
-
         protected abstract  int[] RecordInfo { get; }
 
         public int TotalUsedSize
         {
-            get { return _totalRecordSize; }
-            protected set { _totalRecordSize = value; }
+            get => _totalRecordSize;
+            protected set => _totalRecordSize = value;
         }
 
         public ushort RecordCount => (ushort)_totalUsedRecords;            
@@ -52,9 +50,9 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         }
 
-        private const uint ShiftMask = 0xFFFC0000;
-        private const uint SizeMask = 0x0003FFF0;
-        private const uint TypeMask = 0x0000000F;
+        private const uint ShiftMask = 0b11111111111111000000000000000000;
+        private const uint SizeMask =  0b00000000000000111111111111110000;
+        private const uint TypeMask =  0b00000000000000000000000000001111;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual ushort RecordShift(ushort record) => (ushort)((RecordInfo[record] & ShiftMask) >> 18);//14 бит = 16384
@@ -64,9 +62,14 @@ namespace File.Paging.PhysicalLevel.Implementations
         public ushort RecordSize(ushort record) => (ushort)((RecordInfo[record] & SizeMask) >> 4);//14 бит = 16384
 
 
-        public bool IsRecordFree(ushort record)
+        public bool IsRecordFree(int logicalRecordNum)
         {
-            return RecordType(record) == 0; 
+            return RecordType((ushort)logicalRecordNum) == 0;
+        }
+
+        public bool IsRecordFree(ushort physicalRecordNum)
+        {
+            return RecordInfo.Where(k => k != 0).Any(k2=>((k2 & ShiftMask >> 18) == physicalRecordNum) && ((k2 & SizeMask >> 4) != 0));
         }
 
         public ushort TotalUsedRecords
@@ -78,6 +81,7 @@ namespace File.Paging.PhysicalLevel.Implementations
         {
             throw new InvalidOperationException("Not supported");
         }
+
         protected int FormRecordInf(byte rType, ushort rSize, ushort rShift) => (rShift << 18) | (rSize << 4) | (rType);
         protected abstract int HeaderOverheadSize {get;}
         public short TakeNewRecord(byte rType,ushort rSize)
@@ -120,33 +124,32 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         public IEnumerable<ushort> NonFreeRecords()=>  RecordInfo.Where((k,i) => RecordType((ushort)i) != 0).Select((k, i) => (ushort)i);
 
-        public void SetNewRecordInfo(ushort recordNum,ushort rSize, byte rType)
+        public void SetNewRecordInfo(ushort logicalRecordNum,ushort rSize, byte rType)
         {
-            var oldInf = RecordInfo[recordNum];
-            var shift = RecordShift(recordNum);
-            var oldSize = RecordSize(recordNum);
+            var oldInf = RecordInfo[logicalRecordNum];
+            var shift = RecordShift(logicalRecordNum);
+            var oldSize = RecordSize(logicalRecordNum);
             var t = FormRecordInf(rType, rSize, shift);
-            if (Interlocked.CompareExchange(ref RecordInfo[recordNum], t, oldInf) != oldInf)
+            if (Interlocked.CompareExchange(ref RecordInfo[logicalRecordNum], t, oldInf) != oldInf)
                 throw new RecordWriteConflictException();
             Interlocked.Add(ref _totalRecordSize, rSize- oldSize);
-            UpdateUsed(recordNum, shift, rSize, rType);
+            UpdateUsed(logicalRecordNum, shift, rSize, rType);
+        }
+
+        public void ApplyOrder(ushort[] recordsInOrder)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DropOrder(ushort persistentRecordNum)
+        {
+            throw new NotImplementedException();
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public void SwapRecords(ushort recordOne, ushort recordTwo)
+        public virtual void SwapRecords(ushort recordOne, ushort recordTwo)
         {
-            if (RecordType(recordOne) == 0 || RecordType(recordTwo) == 0)
-                throw new InvalidOperationException();
-
-            var oldTwo = RecordInfo[recordTwo];
-            var oldOne = Interlocked.Exchange(ref RecordInfo[recordOne], RecordInfo[recordTwo]);
-            if (Interlocked.CompareExchange(ref RecordInfo[recordTwo], oldOne, oldTwo) != oldTwo)
-            {
-                Interlocked.CompareExchange(ref RecordInfo[recordOne], oldOne, oldTwo);
-                throw new RecordWriteConflictException();
-            }
-            SetNewLogicalRecordNum(recordOne, RecordShift(recordOne));
-            SetNewLogicalRecordNum(recordTwo, RecordShift(recordTwo));
+            throw new InvalidOperationException("Not supported");
 
         }
 

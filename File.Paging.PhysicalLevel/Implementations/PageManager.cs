@@ -13,7 +13,7 @@ using File.Paging.PhysicalLevel.Events;
 namespace File.Paging.PhysicalLevel.Implementations
 {
     [Export(typeof(IPageManager))]
-    internal sealed class PageManager : IPageManager, IPagePhysicalManipulation
+    internal sealed class PageManager : IPageManager, IPhysicalPageManipulation
     {
        
         private readonly IExtentAccessorFactory _blockFactory;

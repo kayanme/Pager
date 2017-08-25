@@ -14,10 +14,10 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
         private readonly IHeaderedPage<THeader> _inner;
         private readonly Action _removeCallback;
         private readonly IsolationLevel _isolation;
-        private readonly int _readlock;
-        private readonly int _writelock;
+        private readonly byte _readlock;
+        private readonly byte _writelock;
         private IPhysicalLocks _locks;
-        public TransactionHeaderResource(Action removeCallback,IHeaderedPage<THeader> inner,IsolationLevel isolation,int readlock,int writelock )
+        public TransactionHeaderResource(Action removeCallback,IHeaderedPage<THeader> inner,IsolationLevel isolation, byte readlock, byte writelock )
         {
             _inner = inner;
             _removeCallback = removeCallback;

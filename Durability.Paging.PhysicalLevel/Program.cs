@@ -23,7 +23,7 @@ namespace Durability.Paging.PhysicalLevel
           
             var f = new PageManagerFactory();
             _pageManager = f.CreateManager("teststress", config, true);
-            _lastunempty = _pageManager.CreatePage(1) as IPage<TestRecord>;
+            _lastunempty = _pageManager.CreatePage(2) as IPage<TestRecord>;
             _store = new SharedDataStore();
             var d = new CompositeDisposable(CreateWorker(),
             CreateWorker(), CreateWorker());
@@ -65,7 +65,7 @@ namespace Durability.Paging.PhysicalLevel
             TestRecord rec = new TestRecord { Data = Guid.NewGuid() };
             _log($"Adding {rec.Data}");
             while (!_lastunempty.AddRecord(rec))
-                _lastunempty = _pageManager.CreatePage(1) as IPage<TestRecord>;
+                _lastunempty = _pageManager.CreatePage(2) as IPage<TestRecord>;
             _log($"Added {rec.Data}");
             _store.Add(rec.Reference, rec);
         }

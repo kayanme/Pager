@@ -14,7 +14,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         private readonly Func<TRecord, byte> _getRecordType;
         public byte GetRecordType(TRecord record) => _getRecordType(record);
         public Dictionary<byte, VariableSizeRecordDeclaration<TRecord>> RecordMap = new Dictionary<byte, VariableSizeRecordDeclaration<TRecord>>();
-        public bool UseLogicalSlotInfo { get; set; }
+      
 
         public VariableRecordTypePageConfiguration(Func<TRecord, byte> typeGet = null)
         {
@@ -36,7 +36,9 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         internal override IPageHeaders CreateHeaders(IPageAccessor accessor,ushort shift)
         {
 
-            return new VariableRecordPageHeaders(accessor.GetChildAccessorWithStartShift(shift),UseLogicalSlotInfo);
+            return WithLogicalSort?
+                  (IPageHeaders)new VariableRecordWithLogicalOrderHeaders(accessor.GetChildAccessorWithStartShift(shift))
+                              : new VariableRecordPageHeaders(accessor.GetChildAccessorWithStartShift(shift));
         }
 
         public override void Verify()

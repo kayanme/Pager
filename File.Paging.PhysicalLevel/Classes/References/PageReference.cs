@@ -4,6 +4,7 @@ namespace File.Paging.PhysicalLevel.Classes
     {
         internal int PageNum { get; }
 
+
         internal PageReference(int pageNum)
         {
             PageNum = pageNum;

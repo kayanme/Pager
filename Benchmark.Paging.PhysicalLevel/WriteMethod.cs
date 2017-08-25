@@ -2,6 +2,6 @@
 {
    public enum WriteMethod
     {
-        Naive,FixedSize,VariableSize
+        Naive,FixedSize,FixedSizeWithOrder,VariableSize
     }
 }

@@ -87,7 +87,7 @@ namespace Benchmark.Paging.PhysicalLevel
             if (WriteMethod == WriteMethod.FixedSize)
             {
                 var t = page as FixedRecordTypedPage<TestRecord>;
-                var record = t.GetRecord(new PageRecordReference(page.Reference,shift / 8));
+                var record = t.GetRecord(new PhysicalPositionPersistentPageRecordReference(page.Reference,(ushort)shift));
                 record.Values[shift % 7] = change.Item2;
                 t.StoreRecord(record);
                 _count += _count & Changes.Count;
@@ -96,7 +96,7 @@ namespace Benchmark.Paging.PhysicalLevel
             {
 
                 var t = page as ComplexRecordTypePage<TestRecord>;
-                var record = t.GetRecord(new PageRecordReference(page.Reference, shift / 8));
+                var record = t.GetRecord(new PhysicalPositionPersistentPageRecordReference(page.Reference, (ushort)shift));
                 if (record != null)
                 {
                     record.Values[shift % 7] = change.Item2;
@@ -106,7 +106,7 @@ namespace Benchmark.Paging.PhysicalLevel
 
             }
             if (flush)
-                (page as IPhysicalLevelManipulation).Flush();
+                (page as IPhysicalRecordManipulation).Flush();
             return page;
 
         }
@@ -139,8 +139,8 @@ namespace Benchmark.Paging.PhysicalLevel
         {
             switch (WriteMethod)
             {
-                case WriteMethod.FixedSize: (_manager as IPagePhysicalManipulation).GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
-                case WriteMethod.VariableSize: (_manager as IPagePhysicalManipulation).GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
+                case WriteMethod.FixedSize: (_manager as IPhysicalPageManipulation).GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
+                case WriteMethod.VariableSize: (_manager as IPhysicalPageManipulation).GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
                 case WriteMethod.Naive:
                     for (int i = 0; i <= 50; i++)
                     {

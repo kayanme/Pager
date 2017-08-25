@@ -1,5 +1,6 @@
 ﻿using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
+using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -187,8 +188,7 @@ namespace Test.Pager.Locks
         [TestMethod]
         public void TakeSharedRecordLock_AndWaitForNonShared()
         {
-            var manager = CreateLock(true);
-            var rr = new PageRecordReference(1, 1);
+            var manager = CreateLock(true);            
             manager.AcqureLock(1,  0, matrix,out var token);
             var acquired = false;
             var t = manager.WaitLock(1,1, matrix);

@@ -53,7 +53,7 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
                     _physicalPageManager.DeletePage(newPage.Reference,false);
                     throw new InvalidOperationException("No more records allowed");
                 }
-                (_headersPage as IPhysicalLevelManipulation).Flush();
+                (_headersPage as IPhysicalRecordManipulation).Flush();
             }
             _theBestCandidate = theBestCandidate;
         }
@@ -66,6 +66,7 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
         public byte RegisteredPageType { get; }
         public PageReference Reference { get; }
         public double PageFullness { get; }
+        public int UsedRecords { get; }
 
         public bool AddRecord(TRecord type)
         {

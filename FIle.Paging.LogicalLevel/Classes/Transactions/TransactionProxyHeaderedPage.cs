@@ -10,13 +10,13 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
         where THeader:new()
         where TRecord : TypedRecord, new()
     {
-        private readonly int _readlock;
-        private readonly int _writellock;
+        private readonly byte _readlock;
+        private readonly byte _writellock;
         private readonly ConcurrentDictionary<Transaction, TransactionHeaderResource<THeader>> _transactionBlocks = new ConcurrentDictionary<Transaction, TransactionHeaderResource<THeader>>();
 
         private readonly IHeaderedPage<THeader> _inner;
 
-        public TransactionProxyHeaderedPage(IHeaderedPage<THeader> inner, IPage innerContent,int readlock,int writellock):this(inner,innerContent)
+        public TransactionProxyHeaderedPage(IHeaderedPage<THeader> inner, IPage innerContent,byte readlock,byte writellock):this(inner,innerContent)
         {
             _readlock = readlock;
             _writellock = writellock;
@@ -31,6 +31,10 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
         public IPage Content { get; private set; }
 
         public double PageFullness => Content.PageFullness;
+        public int UsedRecords
+        {
+            get { return _inner.UsedRecords; }
+        }
 
         public PageReference Reference => _inner.Reference;
 

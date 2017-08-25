@@ -137,10 +137,17 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return ApplyLogicalSort();
         }
 
+
+
+         IFixedPageBuilder<TRecordType> IFixedPageBuilder<TRecordType>.ApplyLogicalSortIndex()
+        {
+            return ApplyLogicalSort();
+        }
+
         protected PageDefinitionBuilder<TRecordType> ApplyLogicalSort()
         {
-            var config = _config.PageMap[_pageNum] as VariableRecordTypePageConfiguration<TRecordType>;
-            config.UseLogicalSlotInfo = true;
+            var config = _config.PageMap[_pageNum];
+            config.WithLogicalSort = true;
             return this;
         }
 
@@ -200,11 +207,6 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
         IHeaderedFixedPageBuilder<TRecordType,THeader> IFixedPageBuilder<TRecordType>.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition)
         {
             return CreateHeaderedConfiguration(headerDefinition);
-        }
-
-        public IVariablePageWithOneRecordTypeBuilder<TRecordType> ApplyLogicalSortIndex()
-        {
-            return ApplyLogicalSort();
         }
 
      

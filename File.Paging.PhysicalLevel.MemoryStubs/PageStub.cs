@@ -24,6 +24,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         }      
 
         public double PageFullness => throw new NotImplementedException();
+        public int UsedRecords => _records.Count;
 
         public PageReference Reference { get; }
 
@@ -55,9 +56,9 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                 {
                     return false;
                 }
-                for (int i = 0; i < ushort.MaxValue; i++)
+                for (ushort i = 0; i < ushort.MaxValue; i++)
                 {
-                    var r = new PageRecordReference(Reference,  i );
+                    var r = new LogicalPositionPersistentPageRecordReference(Reference,  i );
                   
                     if (!_records.ContainsKey(r))
                     {

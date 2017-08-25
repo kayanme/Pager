@@ -15,7 +15,7 @@ namespace Benchmark.Paging.PhysicalLevel
         [Params(PageManagerConfiguration.PageSize.Kb4,PageManagerConfiguration.PageSize.Kb8)]        
         public PageManagerConfiguration.PageSize PageSize;
 
-        [Params(WriteMethod.Naive, WriteMethod.FixedSize, WriteMethod.VariableSize)]
+        [Params(WriteMethod.Naive, WriteMethod.FixedSize, WriteMethod.FixedSizeWithOrder)]
         public WriteMethod WriteMethod;
 
         private class PageConfig : PageManagerConfiguration
@@ -26,24 +26,33 @@ namespace Benchmark.Paging.PhysicalLevel
                     .AsPageWithRecordType<TestRecord>()
                     .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7);
 
+             
 
                 DefinePageType(2)
                     .AsPageWithRecordType<TestRecord>()
                     .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, _ => 7);
+
+                DefinePageType(3)
+                    .AsPageWithRecordType<TestRecord>()                    
+                    .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
+                    .ApplyLogicalSortIndex();
             }
         }
 
         private FixedRecordTypedPage<TestRecord> _page;
         private ComplexRecordTypePage<TestRecord> _page2;
+        private FixedRecordTypedPage<TestRecord> _page3;
         private FileStream _other;
         [GlobalSetup]
         public void Init()
         {
+            System.IO.File.Delete("testFile");
             var config = new PageConfig( PageSize);
            
             _manager = new PageManagerFactory().CreateManager("testFile", config,true);
             _page = _manager.CreatePage(1) as FixedRecordTypedPage<TestRecord>;
             _page2 = _manager.CreatePage(2) as ComplexRecordTypePage<TestRecord>;
+            _page3 = _manager.CreatePage(3) as FixedRecordTypedPage<TestRecord>;
             _other = System.IO.File.Open("testfile2" , FileMode.OpenOrCreate);
         }
 
@@ -53,7 +62,8 @@ namespace Benchmark.Paging.PhysicalLevel
             switch (WriteMethod)
             {
                 case WriteMethod.FixedSize:  _page.AddRecord(new TestRecord { Values = new byte[] { 1, 2, 3, 4, 5, 6, 7 } });break;
-                case WriteMethod.VariableSize: _page.AddRecord(new TestRecord { Values = new byte[] { 1, 2, 3, 4, 5, 6, 7 } }); break;
+                case WriteMethod.FixedSizeWithOrder: _page3.AddRecord(new TestRecord { Values = new byte[] { 1, 2, 3, 4, 5, 6, 7 } }); break;
+                case WriteMethod.VariableSize: _page2.AddRecord(new TestRecord { Values = new byte[] { 1, 2, 3, 4, 5, 6, 7 } }); break;
                 case WriteMethod.Naive: _other.Write(new byte[] { 1, 1, 2, 3, 4, 5, 6, 7, }, 0, 8); break;
             }
         }
@@ -64,6 +74,7 @@ namespace Benchmark.Paging.PhysicalLevel
             switch (WriteMethod)
             {
                 case WriteMethod.FixedSize: _page.AddRecord(new TestRecord { Values = new byte[] { 1, 2, 3, 4, 5, 6, 7 } }); _page.Flush(); break;
+                case WriteMethod.FixedSizeWithOrder: _page3.AddRecord(new TestRecord { Values = new byte[] { 1, 2, 3, 4, 5, 6, 7 } }); _page.Flush(); break;
                 case WriteMethod.VariableSize: _page2.AddRecord(new TestRecord { Values = new byte[] { 1, 2, 3, 4, 5, 6, 7 } }); _page2.Flush(); break;
                 case WriteMethod.Naive: _other.Write(new byte[] { 1, 1, 2, 3, 4, 5, 6, 7, }, 0, 8); _other.Flush(); break;
             }
