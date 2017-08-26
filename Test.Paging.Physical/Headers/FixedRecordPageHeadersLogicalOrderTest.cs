@@ -93,7 +93,27 @@ namespace Test.Pager.Headers
             Page.VerifyAllExpectations();
         }
 
-      
+        [TestMethod]
+        public void AcquirePage_WhenAvailable2()
+        {
+            long pageContent;
+            unchecked
+            {
+                pageContent = (long)0xFF_FF_FF_FF_00_00_00_00;
+            }
+
+            var headers = Create(pageContent, 2);
+            Page.BackToRecord();
+            Page.Expect(k => k.SetByteArray(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }, 0, 6));
+            Page.Replay();
+            var pos = headers.TakeNewRecord(0, 8);
+            Assert.AreEqual(22, pos);
+            Assert.AreEqual(22, headers.RecordShift(22));
+            Assert.AreEqual(8, headers.RecordSize(22));
+            Assert.AreEqual(3, headers.RecordCount);
+            Assert.AreEqual(30, headers.TotalUsedSize);
+            Page.VerifyAllExpectations();
+        }
 
 
         [TestMethod]

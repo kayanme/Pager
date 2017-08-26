@@ -106,8 +106,11 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         public void RemovePageFromBuffer(PageReference page)
         {          
-            if (_bufferedPages.TryRemove(page.PageNum, out var _));
-               PageRemovedFromBuffer(this,new PageRemovedFromBufferEventArgs(page));
+            if (_bufferedPages.TryRemove(page.PageNum, out var pg));
+            {
+                pg.Accessor.Dispose();                
+                PageRemovedFromBuffer(this, new PageRemovedFromBufferEventArgs(page));
+            }
         }
 
         public void MarkPageToRemoveFromBuffer(PageReference pageNum)

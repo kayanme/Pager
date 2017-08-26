@@ -59,10 +59,12 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         private void CheckMapForCleaning(MemoryMappedFile oldMap)
         {
-            if (_oldMaps[oldMap] == 0)
-            {                
+            if (_oldMaps[oldMap] == 0 && oldMap != _map)
+            {
+
                 _oldMaps.TryRemove(oldMap, out int i);
                 Debug.Assert(i == 0, "i==0");
+
                 oldMap.Dispose();
             }
         }

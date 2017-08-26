@@ -90,12 +90,29 @@ namespace Test.Pager.Headers
             {
                 Assert.AreEqual((int)0xFFFF0000, t.LastMask);
             }
+            
+        }
 
-            t.ProcessPam(new byte[] { 0,   0x1,
-                                      0,  0x02,
-                                      0,   0});
-            Assert.AreEqual(14, t.UsedRecords);
-            CollectionAssert.AreEqual(new[] { 0x02_00_01_00, 0x00_00_00_00 }, t.PageAllocationMap);
+        [TestMethod]
+        public void Test8()
+        {
+            var t = new FixedPageParametersCalculator(390, 8);
+            t.CalculatePageParameters();
+            Assert.AreEqual(48, t.MaxRecordCount);
+            Assert.AreEqual(6, t.PamSize);
+            unchecked
+            {
+                Assert.AreEqual((int) 0xFFFF0000, t.LastMask);
+            }
+
+            t.ProcessPam(new byte[]
+            {
+                0, 0x1,
+                0, 0x02,
+                0, 0
+            });
+            Assert.AreEqual(2, t.UsedRecords);
+            CollectionAssert.AreEqual(new[] {0x02_00_01_00, 0x00_00_00_00}, t.PageAllocationMap);
         }
 
         [TestMethod]

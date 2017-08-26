@@ -94,7 +94,7 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
                     newMask = oldMask | 0xFFFF;
                     if (Interlocked.CompareExchange(ref _pageAllocationMap[i], newMask, oldMask) == oldMask)
                     {
-                        recordTaken = i;
+                        recordTaken = i*2;
                         break;
                     }
                 }
@@ -106,7 +106,7 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
                     }
                     if (Interlocked.CompareExchange(ref _pageAllocationMap[i], newMask, oldMask) == oldMask)
                     {
-                        recordTaken = i+1;
+                        recordTaken = i*2+1;
                         break;
                     }
                 }

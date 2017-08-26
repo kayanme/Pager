@@ -8,7 +8,8 @@ using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase<TRecordType>, ILogicalRecordOrderManipulation where TRecordType : TypedRecord, new()
+    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase<TRecordType>, 
+        ILogicalRecordOrderManipulation where TRecordType : TypedRecord, new()
     {
       
         private readonly FixedRecordTypePageConfiguration<TRecordType> _config;
@@ -26,9 +27,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             CheckReferenceToPageAffinity(reference);
             if (reference is NullPageRecordReference)
                 return null;
-            try
-            {
-                CompactionLock.EnterReadLock();
+            
                 Debug.Assert(reference is PhysicalPositionPersistentPageRecordReference, "reference is PhysicalPositionPersistentPageRecordReference");
                 if (!Headers.IsRecordFree(reference.PersistentRecordNum))
                 {                    
@@ -43,18 +42,12 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
                     return r;
                 }
                 return null;
-            }
-            finally
-            {
-                CompactionLock.ExitReadLock();
-            }
+          
         }
 
         public override bool AddRecord(TRecordType type)
         {
-            try
-            {
-                CompactionLock.EnterReadLock();
+          
                 var physicalRecordNum = Headers.TakeNewRecord(0, (ushort) _config.RecordMap.GetSize);
                 if (physicalRecordNum == -1)
                     return false;
@@ -62,11 +55,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
                 if (type.Reference == null)
                     type.Reference = new PhysicalPositionPersistentPageRecordReference(Reference, (ushort)physicalRecordNum);
                 return true;
-            }
-            finally
-            {
-                CompactionLock.ExitReadLock();
-            }
+          
         }
 
         private void SetRecord(int logicalRecordNum, TRecordType record)
@@ -91,16 +80,10 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         {
             if (record.Reference.Page != Reference)
                 throw new ArgumentException();
-            try
-            {
-                CompactionLock.EnterReadLock();
+          
                 Debug.Assert(record.Reference is PhysicalPositionPersistentPageRecordReference, "record.Reference is PhysicalPositionPersistentPageRecordReference");
                 SetRecord(record.Reference.PersistentRecordNum, record);
-            }
-            finally
-            {
-                CompactionLock.ExitReadLock();
-            }
+          
         }
 
         public override IEnumerable<PageRecordReference> IterateRecords()

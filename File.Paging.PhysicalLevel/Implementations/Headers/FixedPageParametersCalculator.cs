@@ -52,28 +52,44 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
             }
         }
 
-        public void ProcessPam(byte[] rawPam)
+        private static readonly byte[] _sizes;
+        static FixedPageParametersCalculator()
         {
-            Debug.Assert(rawPam.Length == PamSize,"rawPam.Length == PamSize");
-            Debug.Assert(BitConverter.IsLittleEndian,"BitConverter.IsLittleEndian");
-            Array.Resize(ref rawPam, PageAllocationMap.Length * 4);
-            for (var index = 0; index < PageAllocationMap.Length; index++)
+            _sizes = new byte[byte.MaxValue+1];
+            for (int i = 0; i < _sizes.Length; i++)
             {
-                var data = (rawPam[index * 4+3] << 24)
-                         | (rawPam[index * 4 + 2] << 16)
-                         | (rawPam[index * 4 + 1] << 8)
-                         | (rawPam[index * 4 ]);
-                var bv = new BitVector32(data);
+                var bv = new BitVector32(i);
                 var used = Enumerable.Range(0, 32).Select(k => bv[1 << k]).Count(k => k);
-                UsedRecords += used;
-                PageAllocationMap[index] = data;
+                _sizes[i] = (byte)used;
+            }
+        }
+
+        public unsafe void ProcessPam(byte[] rawPam)
+        {
+            Debug.Assert(rawPam.Length == PamSize, "rawPam.Length == PamSize");
+            Debug.Assert(BitConverter.IsLittleEndian, "BitConverter.IsLittleEndian");
+            //Array.Resize(ref rawPam, PageAllocationMap.Length * 4);
+            //for (var index = 0; index < PageAllocationMap.Length; index++)
+            //{
+            //    var data = (rawPam[index * 4+3] << 24)
+            //             | (rawPam[index * 4 + 2] << 16)
+            //             | (rawPam[index * 4 + 1] << 8)
+            //             | (rawPam[index * 4 ]);
+            //    var bv = new BitVector32(data);
+            //    var used = Enumerable.Range(0, 32).Select(k => bv[1 << k]).Count(k => k);
+            //    UsedRecords += used;
+            //    PageAllocationMap[index] = data;
+            //}
+            foreach (byte t in rawPam)
+            {
+                UsedRecords += _sizes[t];
             }
 
-            //fixed (void* src = rawPam)
-            //fixed (void* dst = PageAllocationMap)
-            //{
-            //    Buffer.MemoryCopy(src, dst, PamSize*4, PamSize);
-            //}
+            fixed (void* src = rawPam)
+            fixed (void* dst = PageAllocationMap)
+            {
+                Buffer.MemoryCopy(src, dst, PamSize, PamSize);
+            }
         }
     }
 }
