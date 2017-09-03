@@ -8,8 +8,7 @@ using File.Paging.PhysicalLevel.Classes.Pages;
 namespace FIle.Paging.LogicalLevel.Classes.Configurations
 {
     internal abstract class BindedToPhysicalPageConfiguration:LogicalPageConfiguration
-    {
-        public abstract IPage CreateLogicalPage(IPage physicalPage);
+    {       
 
     }
 }

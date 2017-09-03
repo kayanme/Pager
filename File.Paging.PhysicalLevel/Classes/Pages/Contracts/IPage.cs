@@ -9,9 +9,10 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         PageReference Reference { get; }
         double PageFullness { get; }
         int UsedRecords { get; }
+        int ExtentNumber { get; }
     }
 
-    public interface IPage<TRecordType> : IPage where TRecordType : TypedRecord, new()
+    public interface IPage<TRecordType> :IDisposable where TRecordType : TypedRecord, new()
     {
               
         bool AddRecord(TRecordType type);          
@@ -20,5 +21,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         void StoreRecord(TRecordType record);
       
         IEnumerable<PageRecordReference> IterateRecords();
+
+        void Flush();
     }
 }

@@ -3,6 +3,7 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.PageFactories;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
@@ -34,6 +35,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             children.Compose(b);                                 
             var a1 = children.GetExport<FileStream>();
             var a2 = children.GetExport<IUnderlyingFileOperator>();
+            var a3 = children.GetExportedValue<IPageFactory>();
             return children.GetExportedValue<IPageManager>();
         }
         

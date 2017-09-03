@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
 
 namespace Test.Integration.Physical
@@ -15,26 +16,16 @@ namespace Test.Integration.Physical
 
     public class TestHeaderGetter : IHeaderDefinition<TestHeader>
     {
-        public unsafe void FillBytes(TestHeader record, byte[] targetArray)
+        public  void FillBytes(TestHeader record, byte[] targetArray)
         {
             
-            fixed(char* src = record.HeaderInfo.ToCharArray())
-            fixed (void* dst = targetArray)
-            {
-                Buffer.MemoryCopy(src, dst, Size, Size);                
-            }
-
+           RecordUtils.StringToBytes(targetArray,0,record.HeaderInfo,32);
+           
         }
 
-        public unsafe void FillFromBytes(byte[] sourceArray, TestHeader record)
+        public  void FillFromBytes(byte[] sourceArray, TestHeader record)
         {
-            char* dst = stackalloc char[32];            
-            fixed (void* src = sourceArray)
-            {
-                Buffer.MemoryCopy(src, dst, Size, Size);
-                record.HeaderInfo = new string(dst);
-            }
-
+            record.HeaderInfo = RecordUtils.StringFromBytes(sourceArray, 0,  32);
         }
 
         public int Size => sizeof(char)*32;

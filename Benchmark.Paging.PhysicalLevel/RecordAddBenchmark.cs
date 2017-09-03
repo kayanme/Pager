@@ -39,9 +39,9 @@ namespace Benchmark.Paging.PhysicalLevel
             }
         }
 
-        private FixedRecordTypedPage<TestRecord> _page;
-        private ComplexRecordTypePage<TestRecord> _page2;
-        private FixedRecordTypedPage<TestRecord> _page3;
+        private IPage<TestRecord> _page;
+        private IPage<TestRecord> _page2;
+        private IPage<TestRecord> _page3;
         private FileStream _other;
         [GlobalSetup]
         public void Init()
@@ -50,9 +50,9 @@ namespace Benchmark.Paging.PhysicalLevel
             var config = new PageConfig( PageSize);
            
             _manager = new PageManagerFactory().CreateManager("testFile", config,true);
-            _page = _manager.CreatePage(1) as FixedRecordTypedPage<TestRecord>;
-            _page2 = _manager.CreatePage(2) as ComplexRecordTypePage<TestRecord>;
-            _page3 = _manager.CreatePage(3) as FixedRecordTypedPage<TestRecord>;
+            _page =_manager.GetRecordAccessor<TestRecord>( _manager.CreatePage(1));
+            _page2 = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(1));
+            _page3 = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(3));
             _other = System.IO.File.Open("testfile2" , FileMode.OpenOrCreate);
         }
 

@@ -53,6 +53,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
         {
             if (recordDefinition == null) throw new ArgumentNullException(nameof(recordDefinition));
             var conf = new FixedRecordTypePageConfiguration<TRecordType>();
+            conf.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
             conf.RecordMap = new FixedSizeRecordDeclaration<TRecordType>(recordDefinition.FillBytes,recordDefinition.FillFromBytes,recordDefinition.Size);
             _config.PageMap[_pageNum] = conf;
             return this;
@@ -64,6 +65,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
 
             var conf = new FixedRecordTypePageConfiguration<TRecordType>();
+            conf.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
             conf.RecordMap = new FixedSizeRecordDeclaration<TRecordType>(fillBytes, fillFromBytes, size);
             _config.PageMap[_pageNum] =  conf;
             return this;
@@ -72,6 +74,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
         public IVariablePageBuilder<TRecordType> WithMultipleTypeRecord(Func<TRecordType, byte> discriminatorFunction)
         {
             var conf = new VariableRecordTypePageConfiguration<TRecordType>(discriminatorFunction);
+            conf.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
             _config.PageMap[_pageNum] = conf;
             return this;
         }
@@ -82,6 +85,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
             if (size == null) throw new ArgumentNullException(nameof(size));
             var config = new VariableRecordTypePageConfiguration<TRecordType>();
+            config.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
             _config.PageMap[_pageNum] = config;
             config.RecordMap.Add(1, new VariableSizeRecordDeclaration<TRecordType>(fillBytes, fillFromBytes, size));
             return this;
@@ -91,6 +95,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
         {
             if (recordDefinition == null) throw new ArgumentNullException(nameof(recordDefinition));
             var config = new VariableRecordTypePageConfiguration<TRecordType>();
+            config.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
             _config.PageMap[_pageNum] = config;
             config.RecordMap.Add(1, new VariableSizeRecordDeclaration<TRecordType>(recordDefinition.FillBytes, recordDefinition.FillFromBytes, recordDefinition.Size));
             return this;
@@ -100,6 +105,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
         {
             if (recordDefinition == null) throw new ArgumentNullException(nameof(recordDefinition));
             var config = _config.PageMap[_pageNum] as VariableRecordTypePageConfiguration<TRecordType>;
+          
             config.RecordMap.Add(recordType,new VariableSizeRecordDeclaration<TRecordType>(recordDefinition.FillBytes,recordDefinition.FillFromBytes,recordDefinition.Size));
             return this;
         }
@@ -166,7 +172,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
         private PageDefinitionBuilder<TRecordType, THeader> CreateHeaderedConfiguration<THeader>(IHeaderDefinition<THeader> headerDefinition) where THeader:new()
         {
             var c = _config.PageMap[_pageNum];
-            var c2 = new PageHeadersConfiguration<TRecordType, THeader>();
+            var c2 = new PageHeadersConfiguration<THeader>();
             c2.Header = new FixedSizeRecordDeclaration<THeader>(headerDefinition.FillBytes, headerDefinition.FillFromBytes,
                 headerDefinition.Size);
             c2.InnerPageMap = c;

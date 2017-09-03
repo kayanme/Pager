@@ -1,29 +1,22 @@
 using System;
 using System.Runtime.InteropServices;
+using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
 
 namespace Test.Integration.Physical
 {
     public class TestRecordGetter : IFixedSizeRecordDefinition<TestRecord>
     {
-        public unsafe void FillBytes(TestRecord record, byte[] targetArray)
+        public  void FillBytes(TestRecord record, byte[] targetArray)
         {
-            fixed (void* src = &record.Value)
-            fixed (void* dst = targetArray)
-            {
-                Buffer.MemoryCopy(src, dst, Size, Size);
-            }
+           RecordUtils.ToBytes(ref record.Value, targetArray,0);
 
         }
 
-        public unsafe void FillFromBytes(byte[] sourceArray, TestRecord record)
+        public  void FillFromBytes(byte[] sourceArray, TestRecord record)
         {
 
-            fixed (void* src = sourceArray)
-            fixed (void* dst = &record.Value)
-            {
-                Buffer.MemoryCopy(src, dst, Size, Size);
-            }
+            RecordUtils.FromBytes(sourceArray, 0, ref record.Value);
 
         }
 

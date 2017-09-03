@@ -7,11 +7,11 @@ namespace FIle.Paging.LogicalLevel.Classes.Configurations
        
         public TransactionParticipancyConfiguration TransactionBehaviour;
        
-        public IPage CreateTransactionPage(IPage physicalPage)
-        {
-            var proxy = TransactionBehaviour?.CreateTransactionLayerPage(physicalPage) ?? physicalPage;
-            return proxy;
-        }
+        //public IPage CreateTransactionPage(IPage physicalPage)
+        //{
+        //    var proxy = TransactionBehaviour?.CreateTransactionLayerPage(physicalPage) ?? physicalPage;
+        //    return proxy;
+        //}
 
         public bool IstransactionParticipant;
 

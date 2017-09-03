@@ -8,7 +8,7 @@ using File.Paging.PhysicalLevel.Exceptions;
 
 namespace File.Paging.PhysicalLevel.MemoryStubs
 {
-    internal sealed class PageStub<TRecord> : IPage<TRecord> where TRecord:TypedRecord,new()
+    internal sealed class PageStub<TRecord> : IPage<TRecord>,IPage where TRecord:TypedRecord,new()
     {
         private readonly Dictionary<PageRecordReference, byte[]> _records = new Dictionary<PageRecordReference, byte[]>();
         private readonly Dictionary<PageRecordReference, int> _recordSize = new Dictionary<PageRecordReference, int>();
@@ -25,6 +25,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
 
         public double PageFullness => throw new NotImplementedException();
         public int UsedRecords => _records.Count;
+        public int ExtentNumber { get; }
 
         public PageReference Reference { get; }
 

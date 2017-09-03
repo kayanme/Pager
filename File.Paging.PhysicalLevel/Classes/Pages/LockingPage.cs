@@ -1,93 +1,78 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using System;
+using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
-using Rhino.Mocks.Constraints;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal sealed class LockingPage<TRecord>: LockingPageBase, 
-        IPhysicalRecordManipulation,ILogicalRecordOrderManipulation,
-        IPage<TRecord> where TRecord: TypedRecord,new()
+    internal  class LockingPage :TypedPageBase, IPhysicalLocks 
     {
-        private readonly IPage<TRecord> _pageImplementation;  
-        private IPhysicalRecordManipulation _physicalLevelManipulationImplementation;
-        private ILogicalRecordOrderManipulation _logicalLevelManipulationImplementation;
-        private IPage<TRecord> _pageImplementation1;
+        private readonly IPhysicalLockManager<PageReference> _pageLockManager;
+        private readonly IPhysicalLockManager<PageRecordReference> _pageRecordLockManager;
+        private readonly LockMatrix _lockMatrix;
 
-        public void Dispose()
-        {
-            _pageImplementation.Dispose();
-        }
-
-        public LockingPage(IPage<TRecord> underlyingPage,
-            IPhysicalLockManager<PageReference> pageLockManager,
+        public LockingPage(IPhysicalLockManager<PageReference> pageLockManager,
             IPhysicalLockManager<PageRecordReference> pageRecordLockManager,
-            LockMatrix lockMatrix):base(pageLockManager, pageRecordLockManager, lockMatrix)
+            LockMatrix lockMatrix,
+            PageReference reference,
+            Action action):base(reference,action)
         {
-            _pageImplementation = underlyingPage;           
-            _physicalLevelManipulationImplementation = _pageImplementation as IPhysicalRecordManipulation;
-            _logicalLevelManipulationImplementation = _pageImplementation as ILogicalRecordOrderManipulation;
-            ; Debug.Assert(_physicalLevelManipulationImplementation != null,"_physicalLevelManipulationImplementation != null");
+            _pageLockManager = pageLockManager;
+            _pageRecordLockManager = pageRecordLockManager;
+            _lockMatrix = lockMatrix;
         }
 
-        public byte RegisteredPageType => _pageImplementation.RegisteredPageType;
+       
 
-        public override PageReference Reference => _pageImplementation.Reference;
-
-        public double PageFullness => _pageImplementation.PageFullness;
-        public int UsedRecords
+        public bool AcqurePageLock(byte lockType, out LockToken<PageReference> token)
         {
-            get { return _pageImplementation1.UsedRecords; }
+            return _pageLockManager.AcqureLock(_reference, lockType, _lockMatrix, out token);
         }
 
-        public bool AddRecord(TRecord type)
+        private PageReference _reference { get;  }
+
+        public async Task<LockToken<PageReference>> WaitPageLock(byte lockType)
         {
-            return _pageImplementation.AddRecord(type);
+            return await _pageLockManager.WaitLock(_reference, lockType, _lockMatrix);
         }
 
-        public void FreeRecord(TRecord record)
+        public void ReleasePageLock(LockToken<PageReference> token)
         {
-            _pageImplementation.FreeRecord(record);
+            _pageLockManager.ReleaseLock(token, _lockMatrix);
         }
 
-        public TRecord GetRecord(PageRecordReference reference)
+        public bool AcqureLock(PageRecordReference record, byte lockType, out LockToken<PageRecordReference> token)
         {
-            return _pageImplementation.GetRecord(reference);
+            return _pageRecordLockManager.AcqureLock(record, lockType, _lockMatrix, out token);
         }
 
-        public void StoreRecord(TRecord record)
+        public async Task<LockToken<PageRecordReference>> WaitLock(PageRecordReference record, byte lockType)
         {
-            _pageImplementation.StoreRecord(record);
+            return await _pageRecordLockManager.WaitLock(record, lockType, _lockMatrix);
         }
 
-        public IEnumerable<PageRecordReference> IterateRecords()
+        public void ReleaseLock(LockToken<PageRecordReference> token)
         {
-            return _pageImplementation.IterateRecords();
+            _pageRecordLockManager.ReleaseLock(token, _lockMatrix);
         }
 
-        public void Flush()
+        public bool ChangeLockLevel(ref LockToken<PageReference> token, byte newLevel)
         {
-            _physicalLevelManipulationImplementation.Flush();
+            return _pageLockManager.ChangeLockLevel(ref token, _lockMatrix, newLevel);
         }
 
-      
-        public void Compact()
+        public bool ChangeLockLevel(ref LockToken<PageRecordReference> token, byte newLevel)
         {
-            _physicalLevelManipulationImplementation.Compact();
+            return _pageRecordLockManager.ChangeLockLevel(ref token, _lockMatrix, newLevel);
         }
 
-
-        public void ApplyOrder(PageRecordReference[] records)
+        public async Task WaitForLockLevelChange(LockToken<PageReference> token, byte newLevel)
         {
-            _logicalLevelManipulationImplementation.ApplyOrder(records);
+            await _pageLockManager.WaitForLockLevelChange(token, _lockMatrix, newLevel);
         }
 
-        public void DropOrder(PageRecordReference record)
+        public async Task WaitForLockLevelChange(LockToken<PageRecordReference> token, byte newLevel)
         {
-            _logicalLevelManipulationImplementation.DropOrder(record);
+            await _pageRecordLockManager.WaitForLockLevelChange(token, _lockMatrix, newLevel);
         }
     }
 }

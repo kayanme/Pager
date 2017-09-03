@@ -50,11 +50,11 @@ namespace Benchmark.Paging.LogicalLevel
            
             _manager = new LogicalPageManagerFactory().CreateManager("testFile", config,true);
             _pages = new IPage<TestRecord>[5];
-            _pages[0] = _manager.CreatePage(1) as IPage<TestRecord>;
-            _pages[1] = _manager.CreatePage(2) as IPage<TestRecord>;
-            _pages[2] = _manager.CreatePage(1) as IPage<TestRecord>;
-            _pages[3] = _manager.CreatePage(2) as IPage<TestRecord>;
-            _pages[4] = _manager.CreatePage(3) as IPage<TestRecord>;
+            _pages[0] = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(1));
+            _pages[1] = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(2));
+            _pages[2] = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(1));
+            _pages[3] = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(2));
+            _pages[4] = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(3));
             while (_pages[2].AddRecord(new TestRecord { Order = _rnd.Next(1000) })) ;
             while (_pages[3].AddRecord(new TestRecord { Order = _rnd.Next(1000) })) ;
             for (int i = 0; i < 1000; i++)

@@ -7,6 +7,7 @@ namespace File.Paging.PhysicalLevel.Classes
     {
         public byte PageType;
         public IPageAccessor Accessor;
+        public IPageAccessor ContentAccessor;
         public IPageHeaders Headers;
         public PageContentConfiguration Config;
         public PageHeadersConfiguration HeaderConfig;

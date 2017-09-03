@@ -2,10 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.PageFactories;
 using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Events;
@@ -21,12 +23,15 @@ namespace File.Paging.PhysicalLevel.Implementations
         private readonly int _pageSize;
         private readonly PageManagerConfiguration _config;
         private readonly IUnderlyingFileOperator _operatorForDisposal;
+        private readonly IPageFactory _pageFactory;
+        private readonly IHeaderFactory _headerFactory;
         private ConcurrentDictionary<int, BufferedPage> _bufferedPages = new ConcurrentDictionary<int, BufferedPage>();
         private int _pages;
 
         [ImportingConstructor]
         internal PageManager(PageManagerConfiguration config,IGamAccessor accessor,
-            IExtentAccessorFactory blockFactory,IUnderlyingFileOperator operatorForDisposal)
+            IExtentAccessorFactory blockFactory,IUnderlyingFileOperator operatorForDisposal,
+            IPageFactory pageFactory, IHeaderFactory headerFactory)
         {
           
             _accessor = accessor;
@@ -35,6 +40,9 @@ namespace File.Paging.PhysicalLevel.Implementations
             
             _pageSize = config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? 4096 : 8192;
             _operatorForDisposal = operatorForDisposal;
+            _pageFactory = pageFactory;
+            _headerFactory = headerFactory;
+
             _pages = (int)((operatorForDisposal.FileSize - Extent.Size) / _pageSize);            
         }
 
@@ -70,12 +78,13 @@ namespace File.Paging.PhysicalLevel.Implementations
         }
 
         private readonly ConcurrentDictionary<byte,PageReference> _firstPages = new ConcurrentDictionary<byte, PageReference>();
-        public IEnumerable<IPage> IteratePages(byte pageType)
+
+        public IEnumerable<PageReference> IteratePages(byte pageType)
         {
             var firstPage = _firstPages.GetOrAdd(pageType, pt =>
             {
                 int pr = 0;
-                while (pr < Extent.Size&&_accessor.GetPageType(pr) != pt)
+                while (pr < Extent.Size && _accessor.GetPageType(pr) != pt)
                 {
                     pr++;
                 }
@@ -86,21 +95,18 @@ namespace File.Paging.PhysicalLevel.Implementations
             });
             if (firstPage != null)
             {
-                var p = RetrievePage(firstPage);
-                if (p.RegisteredPageType == pageType)//page types can change while iterating, so we should make a check
-                    yield return p;
-                int pr = firstPage.PageNum+1;
+                yield return firstPage;
+                int pr = firstPage.PageNum + 1;
 
-                foreach (var i in Enumerable.Range(pr,Extent.Size))
+                foreach (var i in Enumerable.Range(pr, Extent.Size))
                 {
                     if (_accessor.GetPageType(pr) == pageType)
                     {
-                        p = RetrievePage(new PageReference(i));
-                        if (p.RegisteredPageType == pageType)
-                            yield return p;
+                        var p = new PageReference(i);
+                        yield return p;
                     }
                 }
-                
+
             }
         }
 
@@ -122,51 +128,41 @@ namespace File.Paging.PhysicalLevel.Implementations
         public event PageRemovedFromBufferEventHandler PageRemovedFromBuffer = (_,__) => { };
         public event NewPageCreatedEventHandler PageCreated = (_,__)=>{};
 
-        private void ReleasePageUseAndCleanIfNeeded(TypedPageBase page,BufferedPage bufferPage)
+        private void ReleasePageUseAndCleanIfNeeded(PageReference reference,BufferedPage bufferPage)
         {
             Interlocked.Decrement(ref bufferPage.UserCount);
             if (bufferPage.MarkedForRemoval)
             {
                 if (Interlocked.CompareExchange(ref bufferPage.UserCount, -1, 0) == 0)
                 {
-                    RemovePageFromBuffer(page.Reference);
+                    RemovePageFromBuffer(reference);
                 }
             }
         }
 
-        public IPage RetrievePage(PageReference pageNum) 
+        private T RetrievePage<T>(PageReference pageNum,Func<IPageFactory,Func<BufferedPage,PageReference,Action,T>> factoryMethod) 
         {
             if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
             var page = GetPageFromBuffer(pageNum);
-
+            T userPage;
             try
             {
-                if (page.HeaderConfig != null)
-                {
-                    var userPage = page.HeaderConfig.CreatePage(page.Headers, page.Accessor, pageNum, _pageSize,
-                        page.PageType);
-                    (userPage as TypedPageBase).ActionToClean =
-                        () => ReleasePageUseAndCleanIfNeeded(userPage as TypedPageBase, page);
-
-                    return userPage;
-                }
-                else
-                {
-                    var userPage = page.Config.CreatePage(page.Headers, page.Accessor, pageNum, _pageSize,
-                        page.PageType);
-                    (userPage as TypedPageBase).ActionToClean =
-                        () => ReleasePageUseAndCleanIfNeeded(userPage as TypedPageBase, page);
-
-                    return userPage;
-                }
+                userPage = factoryMethod(_pageFactory)(page,pageNum, ()=>ReleasePageUseAndCleanIfNeeded(pageNum, page));                             
             }
             catch
             {
                 Interlocked.Decrement(ref page.UserCount);
                 throw;
             }
+
+            if (userPage == null)            
+                ReleasePageUseAndCleanIfNeeded(pageNum, page);
+            return userPage;
         }
+
+     
+
 
         private BufferedPage GetPageFromBuffer(PageReference pageNum)
         {
@@ -179,22 +175,32 @@ namespace File.Paging.PhysicalLevel.Implementations
                     var block = _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
                     var pageType = _accessor.GetPageType(pageNum.PageNum);
                     var headerType = _config.HeaderConfig.ContainsKey(pageType) ? _config.HeaderConfig[pageType] : null;
+                  
                     if (headerType == null)
                     {
                         var type = _config.PageMap[pageType];
-                        var headers = type.CreateHeaders(block, 0);
-                        return new BufferedPage {Accessor = block, Headers = headers, Config = type, PageType = pageType };
+                        var headers = _headerFactory.CreateHeaders(type, block, headerType);
+                        return 
+                        new BufferedPage
+                        {
+                            Accessor = block,
+                            ContentAccessor = block,
+                            Headers = headers,
+                            Config = type,
+                            PageType = pageType
+                        };
                     }
                     else
                     {
                         var type = headerType.InnerPageMap;
                         if (type == null)
                             throw new InvalidOperationException();
-                        var headers = type.CreateHeaders(block, 0);
+                        var headers = _headerFactory.CreateHeaders(type,block,headerType);
 
                         return new BufferedPage
                         {
                             Accessor = block,
+                            ContentAccessor = block.GetChildAccessorWithStartShift(headerType.HeaderSize),
                             Headers = headers,
                             Config = type,
                             HeaderConfig = headerType,
@@ -202,24 +208,49 @@ namespace File.Paging.PhysicalLevel.Implementations
                         };
                     }
                 });
-                 userCount = page.UserCount;
+               userCount = page.UserCount;
                
             } while (userCount == -1 || Interlocked.CompareExchange(ref page.UserCount, userCount+1, userCount) != userCount);
             return page;
         }
 
-        public void GroupFlush(params IPage[] pages)
+        public void Flush(params PageReference[] pages)
         {
             if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
-            foreach (var t in  pages.Select(k=>_bufferedPages[k.Reference.PageNum]).GroupBy(k=>k.Accessor.ExtentNumber).Select(k=>k.First()))
+            foreach (var t in  pages.Select(k=>_bufferedPages[k.PageNum]).GroupBy(k=>k.Accessor.ExtentNumber).Select(k=>k.First()))
             {
                 t.Accessor.Flush();
             }
         }
 
 
-        public IPage CreatePage(byte type)
+        public IHeaderedPage<THeader> GetHeaderAccessor<THeader>(PageReference pageNum) where THeader : new()
+        {
+            return RetrievePage<IHeaderedPage<THeader>>(pageNum, k => k.GetHeaderAccessor<THeader>);
+        }
+
+        public IPage GetPageInfo(PageReference pageNum)
+        {
+            return RetrievePage<IPage>(pageNum, k => k.GetPageInfo);
+        }
+
+        public IPhysicalLocks GetPageLocks(PageReference pageNum)
+        {
+            return RetrievePage<IPhysicalLocks>(pageNum, k => k.GetPageLocks);
+        }
+
+        public IPage<TRecord> GetRecordAccessor<TRecord>(PageReference pageNum) where TRecord : TypedRecord, new()
+        {
+            return RetrievePage<IPage<TRecord>>(pageNum, k => k.GetRecordAccessor<TRecord>);
+        }
+
+        public ILogicalRecordOrderManipulation GetSorter(PageReference pageNum)
+        {
+            return RetrievePage<ILogicalRecordOrderManipulation>(pageNum, k => k.GetSorter);
+        }
+
+        public PageReference CreatePage(byte type)
         {
             if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
@@ -228,7 +259,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             var newPageNum = _accessor.MarkPageUsed(type);
             Interlocked.Increment(ref _pages);
             PageCreated(this,new NewPageCreatedEventArgs(new PageReference(newPageNum),type));
-            return RetrievePage(new PageReference(newPageNum));
+            return new PageReference(newPageNum);
         }      
 
 
@@ -238,6 +269,7 @@ namespace File.Paging.PhysicalLevel.Implementations
         {
             if (!_disposedValue)
             {
+
                 if (disposing)
                 {
                     foreach (var p in _bufferedPages)

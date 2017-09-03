@@ -14,14 +14,16 @@ namespace FIle.Paging.LogicalLevel.Classes
 
 
         private readonly IPage<TRecord> _physicalPage;
+        private readonly ILogicalRecordOrderManipulation _manipulation;
         private readonly Func<TRecord, TKey> _keySelector;
    
 
         private volatile bool _inUnsortedState;
-        internal OrderedPage(IPage<TRecord> physicalPage, Func<TRecord, TKey> keySelector)
+        internal OrderedPage(IPage<TRecord> physicalPage, ILogicalRecordOrderManipulation manipulation, Func<TRecord, TKey> keySelector)
         {
             _physicalPage = physicalPage;
-            Debug.Assert(physicalPage is IPhysicalRecordManipulation, "physicalPage is IPhysicalLevelManipulation");
+            _manipulation = manipulation;
+
             _keySelector = keySelector;
             Initialize();
         }
@@ -29,34 +31,11 @@ namespace FIle.Paging.LogicalLevel.Classes
         private void Initialize()
         {
 
-            var records =
-                _physicalPage.IterateRecords()
-                    .Select(k => new {k, key = _keySelector(GetRecord(k))})
-                    .OrderBy(k => k.key)
-                    .Select(k => k.k)
-                    .ToArray();
-            (_physicalPage as ILogicalRecordOrderManipulation).ApplyOrder(records);
+           
 
         }
-
-
-
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
-
-        public PageReference Reference => _physicalPage.Reference;
-
-        public double PageFullness => _physicalPage.PageFullness;
-        public int UsedRecords
-        {
-            get { return _physicalPage.UsedRecords; }
-        }
-
-        public byte RegisteredPageType => _physicalPage.RegisteredPageType;
-
-      
-     
-      
-
+                       
         public bool AddRecord(TRecord type)
         {            
 
@@ -123,52 +102,37 @@ namespace FIle.Paging.LogicalLevel.Classes
             {
                 _lock.EnterReadLock();
                 _physicalPage.StoreRecord(record);
-                (_physicalPage as ILogicalRecordOrderManipulation).DropOrder(record.Reference);
+                _manipulation.DropOrder(record.Reference);
                 _inUnsortedState = true;
             }
             finally { _lock.ExitReadLock(); }
         }
-      
+
         public void Dispose()
+
         {
+            try
+            {
+                _lock.EnterWriteLock();
+                if (_inUnsortedState)
+                {
+                    var records =
+                        _physicalPage.IterateRecords()
+                            .Select(k => new {k, key = _keySelector(GetRecord(k))})
+                            .OrderBy(k => k.key)
+                            .Select(k => k.k)
+                            .ToArray();
+                    _manipulation.ApplyOrder(records);
+                }
+            }
+            finally
+            {
+                _inUnsortedState = false;
+                _lock.ExitWriteLock();
+            }
+            _manipulation.Dispose();
             _physicalPage.Dispose();
         }
-
-      
-
-        public TRecord First()
-        {
-            try
-            {
-                _lock.EnterReadLock();
-                var key = new LogicalPositionPersistentPageRecordReference(Reference,0);
-                var rec = _physicalPage.GetRecord(key);
-                rec.Reference = key;
-                return rec;
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
-        }
-
-        public TRecord Last()
-        {
-            try
-            {
-                _lock.EnterReadLock();
-                var key = new LogicalPositionPersistentPageRecordReference(Reference,  (ushort)(_physicalPage.UsedRecords-1));
-                var rec = _physicalPage.GetRecord(key);
-                rec.Reference = key;
-                return rec;
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
-        }
-
-     
 
         public IEnumerable<PageRecordReference> IterateRecords()
         {
@@ -183,7 +147,7 @@ namespace FIle.Paging.LogicalLevel.Classes
                         .OrderBy(k => k.key)
                         .Select(k => k.k)
                         .ToArray();
-                    (_physicalPage as ILogicalRecordOrderManipulation).ApplyOrder(records);
+                    _manipulation.ApplyOrder(records);
                     return records;
                 }
                 return _physicalPage.IterateRecords();
@@ -193,6 +157,11 @@ namespace FIle.Paging.LogicalLevel.Classes
                 _inUnsortedState = false;
                 _lock.ExitWriteLock();
             }
+        }
+
+        public void Flush()
+        {
+            
         }
     }
 }

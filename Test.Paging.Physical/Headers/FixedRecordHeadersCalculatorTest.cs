@@ -49,7 +49,7 @@ namespace Test.Pager.Headers
             Assert.AreEqual(15, t.PamSize);
             unchecked
             {
-                Assert.AreEqual((int) 0xFF_FE_00_00, t.LastMask);
+                Assert.AreEqual((int)0xFF_FE_00_00, t.LastMask);
             }
             t.ProcessPam(new byte[] { 0, 0, 0, 0,
                                       0, 0, 0, 0,
@@ -125,6 +125,19 @@ namespace Test.Pager.Headers
             unchecked
             {
                 Assert.AreEqual((int)0xFFFF0000, t.LastMask);
+            }
+        }
+
+        [TestMethod]
+        public void Test9()
+        {
+            var t = new FixedPageParametersCalculator(0x2000, 7);
+            t.CalculatePageParameters();
+            Assert.AreEqual(1149, t.MaxRecordCount);
+            Assert.AreEqual(144, t.PamSize);
+            unchecked
+            {
+                Assert.AreEqual((int)0xE0_00_00_00, t.LastMask);
             }
         }
 

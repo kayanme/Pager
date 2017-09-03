@@ -48,12 +48,15 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
             }
         }
 
+        private int _searchHint;
         public short TakeNewRecord(byte rType, ushort rSize)
         {
             Debug.Assert(rType == 0, "rType == 0");
             Debug.Assert(rSize == _fixedRecordSize, "rSize == _fixedRecordSize");
-            for (int i = 0; i < _pageAllocationMap.Length; i++)
+            var t = _searchHint;
+            for (int ind = 0; ind < _pageAllocationMap.Length; ind++)
             {
+                var i = (t + ind) % _pageAllocationMap.Length;
                 var mask = _pageAllocationMap[i] | (i == _pageAllocationMap.Length -1? _lastMask : 0);
                 while (mask != -1) //0xFFFFFFFF
                 {
@@ -64,6 +67,7 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
                             bits[1 << j] = true;
                             if (Interlocked.CompareExchange(ref _pageAllocationMap[i], bits.Data, mask) == mask)
                             {
+                                _searchHint = i;
                                 var shift = CalcShiftFromPosition(i * 32 + j);
                                 Interlocked.Increment(ref _usedRecords);
                                 SyncPam();

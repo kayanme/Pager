@@ -10,10 +10,12 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
 
         internal abstract Type RecordType { get; }
 
-        internal abstract IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType);
-
-        internal abstract IPageHeaders CreateHeaders(IPageAccessor accessor,ushort initShift);
+        internal ushort PageSize { get; set; }
+    
         internal bool WithLogicalSort;
+
+        internal abstract HeaderInfo ReturnHeaderInfo();
+
         public abstract void Verify();
     }
 }

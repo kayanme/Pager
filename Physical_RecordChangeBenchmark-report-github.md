@@ -2,7 +2,7 @@
 
 BenchmarkDotNet=v0.10.9, OS=Windows 8.1 (6.3.9600)
 Processor=Intel Core i7-4510U CPU 2.00GHz (Haswell), ProcessorCount=4
-Frequency=2533191 Hz, Resolution=394.7590 ns, Timer=TSC
+Frequency=2533195 Hz, Resolution=394.7584 ns, Timer=TSC
   [Host]     : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
   Job-NQIHYO : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
 
@@ -10,11 +10,11 @@ AnalyzeLaunchVariance=True  Runtime=Clr  InvocationCount=192
 LaunchCount=3  
 
 ```
- |                  Method |  WriteMethod |       Mean |     Error |     StdDev |     Median |
- |------------------------ |------------- |-----------:|----------:|-----------:|-----------:|
- |               **AddRecord** |        **Naive** |   **6.273 us** | **0.2301 us** |  **1.1868 us** |   **6.075 us** |
- |      AddRecordWithFlush |        Naive |   6.736 us | 0.2530 us |  1.3094 us |   6.981 us |
- | AddRecordGroupWithFlush |        Naive | 288.742 us | 8.4995 us | 41.7383 us | 272.638 us |
- |               **AddRecord** | **VariableSize** |   **1.929 us** | **0.1005 us** |  **0.5083 us** |   **1.633 us** |
- |      AddRecordWithFlush | VariableSize |  73.751 us | 1.0750 us |  5.3888 us |  73.119 us |
- | AddRecordGroupWithFlush | VariableSize | 193.849 us | 3.6239 us | 18.0999 us | 188.349 us |
+ |                  Method | WriteMethod |       Mean |      Error |     StdDev |     Median |
+ |------------------------ |------------ |-----------:|-----------:|-----------:|-----------:|
+ |               **AddRecord** |   **FixedSize** |   **1.417 us** |  **0.0147 us** |  **0.0372 us** |   **1.404 us** |
+ |      AddRecordWithFlush |   FixedSize |  68.898 us |  1.3898 us |  5.5087 us |  67.339 us |
+ | AddRecordGroupWithFlush |   FixedSize | 186.014 us |  5.7012 us | 29.3062 us | 172.375 us |
+ |               **AddRecord** |       **Naive** |   **6.782 us** |  **0.3111 us** |  **1.4025 us** |   **7.338 us** |
+ |      AddRecordWithFlush |       Naive |   6.588 us |  0.3926 us |  1.3452 us |   7.285 us |
+ | AddRecordGroupWithFlush |       Naive | 290.726 us | 10.9190 us | 56.6159 us | 276.543 us |

@@ -1,28 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase<TRecordType>, 
-        ILogicalRecordOrderManipulation where TRecordType : TypedRecord, new()
+    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase,IPage<TRecordType> where TRecordType : TypedRecord, new()
     {
+        public IPageHeaders Headers { get; }
+        public IPageAccessor Accessor { get; }
       
+     
+     
+  
+
         private readonly FixedRecordTypePageConfiguration<TRecordType> _config;
-        internal FixedRecordTypedPage(IPageHeaders headers, IPageAccessor accessor, PageReference reference,
-            int pageSize, FixedRecordTypePageConfiguration<TRecordType> config,
-            byte pageType):base(headers,accessor,reference,pageType,pageSize)
+        internal FixedRecordTypedPage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, FixedRecordTypePageConfiguration<TRecordType> config,Action actionToClean):base(reference, actionToClean)
         {
+            Headers = headers;
+            Accessor = accessor;
+            
         
+
             _config = config;
         }              
        
 
-        public override TRecordType GetRecord(PageRecordReference reference)
+        public  TRecordType GetRecord(PageRecordReference reference)
         {
             CheckReferenceToPageAffinity(reference);
             if (reference is NullPageRecordReference)
@@ -45,7 +51,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
           
         }
 
-        public override bool AddRecord(TRecordType type)
+        public  bool AddRecord(TRecordType type)
         {
           
                 var physicalRecordNum = Headers.TakeNewRecord(0, (ushort) _config.RecordMap.GetSize);
@@ -76,7 +82,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             Accessor.SetByteArray(bytes, physicalRecordNum, recordSize);
         }
 
-        public override void StoreRecord(TRecordType record)
+        public  void StoreRecord(TRecordType record)
         {
             if (record.Reference.Page != Reference)
                 throw new ArgumentException();
@@ -86,12 +92,30 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
           
         }
 
-        public override IEnumerable<PageRecordReference> IterateRecords()
+        public void FreeRecord(TRecordType record)
+        {
+            if (record == null)
+                throw new ArgumentNullException(nameof(record));
+            if (record.Reference is NullPageRecordReference)
+                throw new ArgumentException("Trying to delete deleted record");
+
+
+            Headers.FreeRecord((ushort) record.Reference.PersistentRecordNum);
+            record.Reference = new NullPageRecordReference(Reference);
+
+        }
+
+        public  IEnumerable<PageRecordReference> IterateRecords()
         {
             foreach (var nonFreeRecord in Headers.NonFreeRecords())
             {
                 yield return new PhysicalPositionPersistentPageRecordReference(Reference,nonFreeRecord);
             }
+        }
+
+        public void Flush()
+        {
+            Accessor.Flush();
         }
 
         ~FixedRecordTypedPage()
@@ -100,14 +124,6 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         
         }
 
-        public void ApplyOrder(PageRecordReference[] records)
-        {
-            Headers.ApplyOrder(records.Select(k=>k.PersistentRecordNum).ToArray());
-        }
-
-        public void DropOrder(PageRecordReference record)
-        {
-           Headers.DropOrder(record.PersistentRecordNum);
-        }
+       
     }
 }

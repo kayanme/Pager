@@ -36,14 +36,23 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
             {                
                 MaxRecordCount = (ushort)Math.Truncate((double)_pageSize * 8 / (_fixedRecordSize * 8 + _bitPerRecordInHeader));
                 PamSize = (int)Math.Ceiling((double) MaxRecordCount *_bitPerRecordInHeader/8);
-                if (PamSize % 4 == 0)
+                var hasIntOverhead = PamSize % 4 != 0;
+                var hasByteOverBitsOverhead = MaxRecordCount % (8.0 / _bitPerRecordInHeader) != 0;
+                int markUsedBecauseOfIntOverhead;
+                if (hasIntOverhead)
                 {
-                    PageAllocationMap = new int[PamSize / 4];
+                    PageAllocationMap = new int[PamSize / 4 + 1];
+                    markUsedBecauseOfIntOverhead = (4 - (PamSize % 4)) * 8;
                 }
                 else
                 {
-                    PageAllocationMap = new int[PamSize / 4 + 1];
-                    var countOfBitToMarkUsed = PamSize * 8 - MaxRecordCount * _bitPerRecordInHeader + (4-(PamSize % 4)) * 8;
+                    PageAllocationMap = new int[PamSize / 4];
+                    markUsedBecauseOfIntOverhead = 0;
+                }
+                if (hasByteOverBitsOverhead || hasIntOverhead)            
+                {                                     
+                    var markUsedBecauseOfBitOverhead = PamSize * 8 - MaxRecordCount * _bitPerRecordInHeader;
+                    var countOfBitToMarkUsed = markUsedBecauseOfBitOverhead + markUsedBecauseOfIntOverhead;
                     LastMask = int.MinValue >> (countOfBitToMarkUsed-1);                    
                 }
                

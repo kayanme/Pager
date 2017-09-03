@@ -11,7 +11,7 @@ namespace File.Paging.PhysicalLevel.Contracts
 {
     public interface IPhysicalPageManipulation
     {
-        void GroupFlush(params IPage[] pages);
+        void Flush(params PageReference[] pages);
         void MarkPageToRemoveFromBuffer(PageReference page);
 
         event PageRemovedFromBufferEventHandler PageRemovedFromBuffer;

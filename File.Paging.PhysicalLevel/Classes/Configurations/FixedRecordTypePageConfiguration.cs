@@ -16,28 +16,9 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
             ConsistencyConfiguration = new ConsistencyConfiguration{ConsistencyAbilities = ConsistencyAbilities.None};
         }
 
-        internal override IPageHeaders CreateHeaders(IPageAccessor accessor,ushort shift)
+        internal override HeaderInfo ReturnHeaderInfo()
         {
-            var headerAccessor = accessor.GetChildAccessorWithStartShift(shift);
-            if (!WithLogicalSort)
-            {
-                var pageCalculator =
-                    new FixedPageParametersCalculator((ushort) headerAccessor.PageSize, (ushort) RecordMap.GetSize);
-                pageCalculator.CalculatePageParameters();
-                var rawPam = headerAccessor.GetByteArray(0, pageCalculator.PamSize);
-                pageCalculator.ProcessPam(rawPam);
-                return new FixedRecordPhysicalOnlyHeader(headerAccessor, pageCalculator);
-            }
-            else
-            {
-                var pageCalculator =
-                    new FixedPageParametersCalculator((ushort)headerAccessor.PageSize, (ushort)RecordMap.GetSize,16);
-                pageCalculator.CalculatePageParameters();
-                var rawPam = headerAccessor.GetByteArray(0, pageCalculator.PamSize);
-                pageCalculator.ProcessPam(rawPam);
-                return new FixedRecordWithLogicalOrderHeader(headerAccessor, pageCalculator);
-            }
-          
+            return new HeaderInfo(true,WithLogicalSort,(ushort)RecordMap.GetSize);
         }
 
         public override void Verify()
@@ -45,9 +26,6 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
             
         }
 
-        internal override IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType)
-        {
-            return new FixedRecordTypedPage<TRecordType>(headers, accessor, reference, pageSize, this, pageType);
-        }
+      
     }
 }

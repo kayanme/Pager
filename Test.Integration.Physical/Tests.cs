@@ -33,12 +33,52 @@ namespace Test.Integration.Physical
         }
 
         [TestMethod]
-        public void WorkingWithPage()
+        public void WorkingWithHeaderedPage()
         {
             var sw = Stopwatch.StartNew();
-            var page = _pageManager.CreatePage(1) as IPage<TestRecord>;
+            var pageRef = _pageManager.CreatePage(2);
+            var headerPage = _pageManager.GetHeaderAccessor<TestHeader>(pageRef);
+            var page = _pageManager.GetRecordAccessor<TestRecord>(pageRef);
+            var pageInfo = _pageManager.GetPageInfo(pageRef);
             var list = new List<TestRecord>();
-            for (long i = 0; page.PageFullness < .9; i++)
+            var header = new TestHeader {HeaderInfo = "ABCDEFG_123456789_abcdefyui_!!?:"};
+            headerPage.ModifyHeader(header);
+
+            for (long i = 0; pageInfo.PageFullness < .9; i++)
+            {
+                var r = new TestRecord(i);
+                page.AddRecord(r);
+                list.Add(r);
+            }
+            var h = headerPage.GetHeader();
+            Assert.AreEqual(header.HeaderInfo,h.HeaderInfo);
+            foreach (var testRecord in list)
+            {
+                var y = page.GetRecord(testRecord.Reference);
+                Assert.AreEqual(testRecord.Value, y.Value);
+            }
+            foreach (var record in page.IterateRecords())
+            {
+                var y = page.GetRecord(record);
+                var e = list.First(k => k.Value == y.Value);
+                Assert.AreEqual(e.Reference, y.Reference);
+                y.Value = -y.Value;
+                e.Value = -e.Value;
+                page.StoreRecord(e);
+            }
+            h = headerPage.GetHeader();
+            Assert.AreEqual(h.HeaderInfo, header.HeaderInfo);
+        }
+
+        [TestMethod]
+        public void WorkingWithPage()
+        {
+            var sw = Stopwatch.StartNew();            
+            var pageRef = _pageManager.CreatePage(1);           
+            var page = _pageManager.GetRecordAccessor<TestRecord>(pageRef);
+            var pageInfo = _pageManager.GetPageInfo(pageRef);
+            var list = new List<TestRecord>();
+            for (long i = 0; pageInfo.PageFullness < .9; i++)
             {
                 var r = new TestRecord(i);
                 page.AddRecord(r);
@@ -75,7 +115,7 @@ namespace Test.Integration.Physical
                 Assert.AreEqual(e.Reference, y.Reference);             
             }
 
-            for (long i = 1000000; page.PageFullness < .9; i++)
+            for (long i = 1000000; pageInfo.PageFullness < .9; i++)
             {
                 var r = new TestRecord(i);
                 page.AddRecord(r);
@@ -88,16 +128,16 @@ namespace Test.Integration.Physical
                 var e = list.First(k => k.Value == y.Value);
                 Assert.AreEqual(e.Reference, y.Reference);
             }
-            (_pageManager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(page.Reference);
+            (_pageManager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(pageRef);
             page.Dispose();
-            page = _pageManager.RetrievePage(page.Reference) as IPage<TestRecord>;
+            page = _pageManager.GetRecordAccessor<TestRecord>(pageRef);
             foreach (var record in page.IterateRecords())
             {
                 var y = page.GetRecord(record);
                 var e = list.First(k => k.Value == y.Value);
                 Assert.AreEqual(e.Reference, y.Reference);
             }
-            _pageManager.DeletePage(page.Reference,false); 
+            _pageManager.DeletePage(pageRef, false); 
             page.Dispose();
             sw.Stop();
             Debug.Print(sw.Elapsed.ToString("g"));
@@ -108,9 +148,12 @@ namespace Test.Integration.Physical
         public void WorkingWithOrderedPage()
         {
             var sw = Stopwatch.StartNew();
-            var page = _pageManager.CreatePage(3) as IPage<TestRecord>;
+            
+            var pageRef = _pageManager.CreatePage(3);
+            var page = _pageManager.GetRecordAccessor<TestRecord>(pageRef);
+            var pageInfo = _pageManager.GetPageInfo(pageRef);
             var list = new List<TestRecord>();
-            for (long i = 0; page.PageFullness < .9; i++)
+            for (long i = 0; pageInfo.PageFullness < .9; i++)
             {
                 var r = new TestRecord(i);
                 page.AddRecord(r);
@@ -160,7 +203,7 @@ namespace Test.Integration.Physical
                 Assert.AreEqual(record.Reference, y.Reference);
             }
 
-            for (long i = 1000000; page.PageFullness < .9; i++)
+            for (long i = 1000000; pageInfo.PageFullness < .9; i++)
             {
                 var r = new TestRecord(i);
                 page.AddRecord(r);
@@ -173,7 +216,7 @@ namespace Test.Integration.Physical
                 var e = list.First(k => k.Value == y.Value);
                 Assert.AreEqual(e.Reference, y.Reference);
             }
-            _pageManager.DeletePage(page.Reference, false);
+            _pageManager.DeletePage(pageRef, false);
             sw.Stop();
             Debug.Print(sw.Elapsed.ToString("g"));
         }

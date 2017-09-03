@@ -6,7 +6,7 @@ using File.Paging.PhysicalLevel.Classes.Pages;
 
 namespace FIle.Paging.LogicalLevel.Classes.Transactions
 {
-    internal sealed class TransactionProxyHeaderedPage<TRecord,THeader> :IHeaderedPage<THeader>,IHeaderedPageInt<TRecord> 
+    internal sealed class TransactionProxyHeaderedPage<TRecord,THeader> :IHeaderedPage<THeader>
         where THeader:new()
         where TRecord : TypedRecord, new()
     {
@@ -25,30 +25,10 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
         public TransactionProxyHeaderedPage(IHeaderedPage<THeader> inner, IPage innerContent)
         {
             _inner = inner;
-            Content = innerContent;
+        
         }
 
-        public IPage Content { get; private set; }
-
-        public double PageFullness => Content.PageFullness;
-        public int UsedRecords
-        {
-            get { return _inner.UsedRecords; }
-        }
-
-        public PageReference Reference => _inner.Reference;
-
-        public byte RegisteredPageType => Content.RegisteredPageType;
-
-        public void Dispose()
-        {
-
-            _inner.Dispose();
-            Content.Dispose();
-        }
-
-     
-
+       
         public THeader GetHeader()
         {
             var store = GetStore();
@@ -83,9 +63,6 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
             else _inner.ModifyHeader(header);
         }
 
-        public void SwapContent(IPage<TRecord> page)
-        {
-            Content = page;
-        }
+       
     }
 }

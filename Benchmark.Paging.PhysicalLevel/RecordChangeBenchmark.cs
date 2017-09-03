@@ -46,7 +46,7 @@ namespace Benchmark.Paging.PhysicalLevel
                         _ => 7);
             }
         }
-        [Params(WriteMethod.VariableSize, WriteMethod.Naive)]
+        [Params(WriteMethod.FixedSize, WriteMethod.Naive)]
         public WriteMethod WriteMethod;
         [GlobalSetup]
         public void Init()
@@ -56,7 +56,7 @@ namespace Benchmark.Paging.PhysicalLevel
             _manager = new PageManagerFactory().CreateManager("testFile", config,true);
             if (WriteMethod == WriteMethod.FixedSize)
             {
-                var pages = Enumerable.Range(0, PageCount).Select(k => _manager.CreatePage(1) as FixedRecordTypedPage<TestRecord>).ToArray();
+                var pages = Enumerable.Range(0, PageCount).Select(k =>_manager.GetRecordAccessor<TestRecord>( _manager.CreatePage(1))).ToArray();
 
                 foreach (var page in pages)
                 {
@@ -66,7 +66,7 @@ namespace Benchmark.Paging.PhysicalLevel
             }
             else if (WriteMethod == WriteMethod.VariableSize)
             {
-                var pages2 = Enumerable.Range(0, PageCount).Select(k => _manager.CreatePage(2) as ComplexRecordTypePage<TestRecord>).ToArray();
+                var pages2 = Enumerable.Range(0, PageCount).Select(k => _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(2))).ToArray();
                 foreach (var page in pages2)
                 {
                     while (page.AddRecord(new TestRecord())) ;
@@ -79,35 +79,36 @@ namespace Benchmark.Paging.PhysicalLevel
 
         }
 
-        private IPage PageWrite(bool flush)
+        private PageReference PageWrite(bool flush)
         {
             var change = Changes[_count];
-            var page = _manager.RetrievePage(new PageReference(change.Item1 / SizeInKb / 1024));
+            var rf = new PageReference(change.Item1 / SizeInKb / 1024);
+            var page = _manager.GetRecordAccessor<TestRecord>(rf);
             var shift = change.Item1 % (SizeInKb * 1024);
             if (WriteMethod == WriteMethod.FixedSize)
             {
-                var t = page as FixedRecordTypedPage<TestRecord>;
-                var record = t.GetRecord(new PhysicalPositionPersistentPageRecordReference(page.Reference,(ushort)shift));
+               
+                var record = page.GetRecord(new PhysicalPositionPersistentPageRecordReference(rf,(ushort)shift));
                 record.Values[shift % 7] = change.Item2;
-                t.StoreRecord(record);
+                page.StoreRecord(record);
                 _count += _count & Changes.Count;
             }
             else
             {
 
-                var t = page as ComplexRecordTypePage<TestRecord>;
-                var record = t.GetRecord(new PhysicalPositionPersistentPageRecordReference(page.Reference, (ushort)shift));
+              
+                var record = page.GetRecord(new PhysicalPositionPersistentPageRecordReference(rf, (ushort)shift));
                 if (record != null)
                 {
                     record.Values[shift % 7] = change.Item2;
-                    t.StoreRecord(record);
+                    page.StoreRecord(record);
                     _count += _count & Changes.Count;
                 }
 
             }
             if (flush)
-                (page as IPhysicalRecordManipulation).Flush();
-            return page;
+                page.Flush();
+            return rf;
 
         }
 
@@ -139,8 +140,8 @@ namespace Benchmark.Paging.PhysicalLevel
         {
             switch (WriteMethod)
             {
-                case WriteMethod.FixedSize: (_manager as IPhysicalPageManipulation).GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
-                case WriteMethod.VariableSize: (_manager as IPhysicalPageManipulation).GroupFlush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
+                case WriteMethod.FixedSize: (_manager as IPhysicalPageManipulation).Flush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
+                case WriteMethod.VariableSize: (_manager as IPhysicalPageManipulation).Flush(Enumerable.Range(0, 50).Select(k => PageWrite(false)).ToArray()); break;
                 case WriteMethod.Naive:
                     for (int i = 0; i <= 50; i++)
                     {

@@ -6,5 +6,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
     {
         internal ConsistencyAbilities ConsistencyAbilities;
         internal LockRuleset LockRules;
+
+       
     }
 }

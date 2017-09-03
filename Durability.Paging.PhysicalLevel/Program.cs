@@ -80,7 +80,7 @@ namespace Durability.Paging.PhysicalLevel
             _log($"{old.Data} becoming {newData}");
             if (rec == null)
                 return;
-            var page = _pageManager.RetrievePage(rec.Reference.Page) as IPage<TestRecord>;
+            var page = _pageManager.GetRecordAccessor<TestRecord>(rec.Reference.Page);
             var record = page.GetRecord(rec.Reference);
             if (record == null)
                 _log($"{rec.Data} found deleted");
@@ -101,7 +101,7 @@ namespace Durability.Paging.PhysicalLevel
             _log($"deleting {rec.Data}");
             if (rec == null)
                 return;
-            var page = _pageManager.RetrievePage(rec.Reference.Page) as IPage<TestRecord>;
+            var page = _pageManager.GetRecordAccessor<TestRecord>(rec.Reference.Page);
             var old = rec.Reference.Copy();
             var t = page.GetRecord(old);
             page.FreeRecord(t);

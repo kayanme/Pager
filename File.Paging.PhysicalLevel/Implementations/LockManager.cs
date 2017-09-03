@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,9 @@ using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
 {
+    
+
+    [InheritedExport(typeof(IPhysicalLockManager<>))]
     internal sealed class LockManager<T>:IPhysicalLockManager<T>
     {
         private class LockHolder

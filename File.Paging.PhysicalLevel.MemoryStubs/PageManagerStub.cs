@@ -21,7 +21,59 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             _size = config.SizeOfPage == PageManagerConfiguration.PageSize.Kb8 ? 8192 : 4096;
         }
 
-        public IPage CreatePage(byte type)
+        public IHeaderedPage<THeader> GetHeaderAccessor<THeader>(PageReference pageNum) where THeader : new()
+        {
+            lock (_pages)
+            {
+                if (!_headeredPages.ContainsKey(pageNum))
+                {
+                    var page = (IHeaderedPage<THeader>)_headeredPages[pageNum];
+                    return page;
+                }
+                else return null;
+
+            }
+        }
+
+        public IPage GetPageInfo(PageReference pageNum)
+        {
+            lock (_pages)
+            {
+                if (!_headeredPages.ContainsKey(pageNum))
+                {
+                    var page = _pages[pageNum];
+                    return page;
+                }
+                else return null;
+
+            }
+        }
+
+        public IPhysicalLocks GetPageLocks(PageReference pageNum)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IPage<TRecord> GetRecordAccessor<TRecord>(PageReference pageNum) where TRecord : TypedRecord, new()
+        {
+            lock (_pages)
+            {
+                if (!_headeredPages.ContainsKey(pageNum))
+                {
+                    var page = _pages[pageNum] as IPage<TRecord>;
+                    return page;
+                }
+                else return null;
+
+            }
+        }
+
+        public ILogicalRecordOrderManipulation GetSorter(PageReference pageNum)
+        {
+            throw new NotImplementedException();
+        }
+
+        public PageReference CreatePage(byte type)
         {
             lock (_pages)
             {
@@ -40,13 +92,13 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                         {
                             _pages.Add(r, page);
                            
-                            return page;
+                            return r;
                         }
                         else
                         {
-                            var hp = Activator.CreateInstance(typeof(HeaderedPageStub<,>).MakeGenericType(headerConfig.GetType().GetGenericArguments()), page, r, pageConfig) as IHeaderedPage;
+                            var hp = Activator.CreateInstance(typeof(HeaderedPageStub<,>).MakeGenericType(headerConfig.GetType().GetGenericArguments()), page, r, pageConfig);
                             _headeredPages.Add(r, hp);
-                            return hp;
+                            return r;
                         }
                     }
                 }
@@ -92,18 +144,18 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                 }
                 else
                 {
-                    var hp = Activator.CreateInstance(typeof(HeaderedPageStub<,>).MakeGenericType(headerConfig.GetType().GetGenericArguments()), page, pageNum, pageConfig) as IHeaderedPage;
+                    var hp = Activator.CreateInstance(typeof(HeaderedPageStub<,>).MakeGenericType(headerConfig.GetType().GetGenericArguments()), page, pageNum, pageConfig);
                     _headeredPages[pageNum] = hp;                 
                 }
             }
         }
 
-        public IEnumerable<IPage> IteratePages(byte pageType)
+        public IEnumerable<PageReference> IteratePages(byte pageType)
         {
 
             foreach (var pageReference in _pageTypes.Where(k => k.Value == pageType).Select(k => k.Key))
             {
-                yield return RetrievePage(pageReference);
+                yield return pageReference;
             }
         }
 
@@ -112,24 +164,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
           
         }
 
-        public void GroupFlush(params IPage[] pages)
-        {
-            
-        }
       
 
-        public IPage RetrievePage(PageReference pageNum)
-        {
-            lock (_pages)
-            {
-                if (!_pages.ContainsKey(pageNum))
-                {
-                    var page =_pages[pageNum];                  
-                    return page;
-                }
-                else return null;
-
-            }
-        }
     }
 }

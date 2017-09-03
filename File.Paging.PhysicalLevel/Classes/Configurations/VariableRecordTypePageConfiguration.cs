@@ -27,18 +27,17 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         }
 
 
+        //internal override IPageHeaders CreateHeaders(IPageAccessor accessor,ushort shift)
+        //{
 
-        internal override IPage CreatePage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, int pageSize,byte pageType)
+        //    return WithLogicalSort?
+        //          (IPageHeaders)new VariableRecordWithLogicalOrderHeaders(accessor.GetChildAccessorWithStartShift(shift))
+        //                      : new VariableRecordPageHeaders(accessor.GetChildAccessorWithStartShift(shift));
+        //}
+
+        internal override HeaderInfo ReturnHeaderInfo()
         {
-            return new ComplexRecordTypePage<TRecord>(headers, accessor, reference, pageSize,pageType, this);
-        }
-
-        internal override IPageHeaders CreateHeaders(IPageAccessor accessor,ushort shift)
-        {
-
-            return WithLogicalSort?
-                  (IPageHeaders)new VariableRecordWithLogicalOrderHeaders(accessor.GetChildAccessorWithStartShift(shift))
-                              : new VariableRecordPageHeaders(accessor.GetChildAccessorWithStartShift(shift));
+            return new HeaderInfo(false,WithLogicalSort,0);
         }
 
         public override void Verify()

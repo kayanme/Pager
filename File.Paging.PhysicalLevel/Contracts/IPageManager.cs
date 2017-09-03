@@ -7,12 +7,16 @@ namespace File.Paging.PhysicalLevel.Contracts
 {
 
     public interface IPageManager:IDisposable
-    {      
+    {
+        IHeaderedPage<THeader> GetHeaderAccessor<THeader>(PageReference pageNum) where THeader : new();
+        IPage GetPageInfo(PageReference pageNum);
+        IPhysicalLocks GetPageLocks(PageReference pageNum);
+        IPage<TRecord> GetRecordAccessor<TRecord>( PageReference pageNum) where TRecord : TypedRecord, new();
+        ILogicalRecordOrderManipulation GetSorter(PageReference pageNum);
 
-        IPage RetrievePage(PageReference pageNum);      
-        IPage CreatePage(byte type);
+        PageReference CreatePage(byte type);
         void DeletePage(PageReference page, bool ensureEmptyness);
         void RecreatePage(PageReference pageNum,byte type);
-        IEnumerable<IPage> IteratePages(byte pageType);
+        IEnumerable<PageReference> IteratePages(byte pageType);
     }
 }

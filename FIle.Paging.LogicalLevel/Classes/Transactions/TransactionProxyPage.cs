@@ -18,14 +18,9 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
         }
 
         public double PageFullness => throw new NotImplementedException();
-        public int UsedRecords
-        {
-            get { return _inner.UsedRecords; }
-        }
+       
 
-        public PageReference Reference => _inner.Reference;
-
-        public byte RegisteredPageType => _inner.RegisteredPageType;
+      
 
         public bool AddRecord(TRecord type)
         {

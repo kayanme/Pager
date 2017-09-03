@@ -15,10 +15,7 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
     {
         public byte HeaderPageType;
 
-        public override IPage CreateLogicalPage(IPageManager physicalPageManager)
-        {
-            return new VirtualContiniousPage<TRecord>(physicalPageManager,PageTypeNum,HeaderPageType);
-        }
+      
     }
 }
 
