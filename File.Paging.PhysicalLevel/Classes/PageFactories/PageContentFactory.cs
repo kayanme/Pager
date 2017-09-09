@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Implementations;
 
 namespace File.Paging.PhysicalLevel.Classes.PageFactories
 {
@@ -17,12 +18,14 @@ namespace File.Paging.PhysicalLevel.Classes.PageFactories
 
 
         public IPage<TRecordType> CreatePage<TRecordType>(BufferedPage page, PageReference pageNum, Action actionToClean)
-            where TRecordType : TypedRecord, new()
+            where TRecordType : struct
         {
             switch (page.Config)
             {
                 case FixedRecordTypePageConfiguration<TRecordType> conf:
-                    return new FixedRecordTypedPage<TRecordType>(page.Headers, page.ContentAccessor, pageNum, conf,actionToClean);
+                    var ser = new RecordAcquirer<TRecordType>(page.ContentAccessor,conf.RecordMap);
+                    return new FixedRecordTypedPage<TRecordType>(
+                        page.Headers, ser, pageNum, conf,actionToClean);
                 //case VariableRecordTypePageConfiguration<TRecordType> conf:
                 //    return new ComplexRecordTypePage<TRecordType>(page.Headers, page.ContentAccessor,
                 //        pageNum, page.Config.PageSize, page.PageType, conf);

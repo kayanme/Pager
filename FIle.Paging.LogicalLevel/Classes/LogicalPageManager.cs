@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.PageFactories;
 using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using File.Paging.PhysicalLevel.Contracts;
 using FIle.Paging.LogicalLevel.Classes.Configurations;
 using FIle.Paging.LogicalLevel.Classes.Factories;
@@ -34,7 +35,7 @@ namespace FIle.Paging.LogicalLevel.Classes
             throw new NotImplementedException();
         }
 
-        public IPage GetPageInfo(PageReference pageNum)
+        public IPageInfo GetPageInfo(PageReference pageNum)
         {
             throw new NotImplementedException();
         }
@@ -44,7 +45,7 @@ namespace FIle.Paging.LogicalLevel.Classes
             throw new NotImplementedException();
         }
 
-        public IPage<TRecord> GetRecordAccessor<TRecord>(PageReference pageNum) where TRecord : TypedRecord, new()
+        public IPage<TRecord> GetRecordAccessor<TRecord>(PageReference pageNum) where TRecord : struct
         {
             LogicalPageConfiguration conf = null;
             if (pageNum is VirtualPageReference)
@@ -69,7 +70,12 @@ namespace FIle.Paging.LogicalLevel.Classes
                 return _physicalManager.GetRecordAccessor<TRecord>(pageNum);
         }
 
-        public ILogicalRecordOrderManipulation GetSorter(PageReference pageNum)
+        public IBinarySearcher<TRecord> GetBinarySearchForPage<TRecord>(PageReference pageNum) where TRecord : struct
+        {
+            throw new NotImplementedException();
+        }
+
+        public ILogicalRecordOrderManipulation GetSorter<TRecord>(PageReference pageNum) where TRecord : struct
         {
             throw new NotImplementedException();
         }

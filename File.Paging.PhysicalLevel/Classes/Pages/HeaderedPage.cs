@@ -32,7 +32,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         {          
             var header = new THeader();
             var bytes = _accessor.GetByteArray(0, _config.HeaderSize);
-            _config.Header.FillFromBytes( bytes,header);
+            _config.Header.FillFromBytes( bytes,ref header);
             return header;
          
         }
@@ -40,7 +40,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
         public void ModifyHeader(THeader header)
         {
             var bytes = new byte[_config.Header.GetSize];
-            _config.Header.FillBytes(header, bytes);
+            _config.Header.FillBytes(ref header, bytes);
             _accessor.SetByteArray(bytes, 0, bytes.Length);
             _accessor.Flush();
         }

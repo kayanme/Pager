@@ -8,7 +8,7 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
 {
     internal sealed class TransactionProxyHeaderedPage<TRecord,THeader> :IHeaderedPage<THeader>
         where THeader:new()
-        where TRecord : TypedRecord, new()
+        where TRecord : struct
     {
         private readonly byte _readlock;
         private readonly byte _writellock;
@@ -16,13 +16,13 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
 
         private readonly IHeaderedPage<THeader> _inner;
 
-        public TransactionProxyHeaderedPage(IHeaderedPage<THeader> inner, IPage innerContent,byte readlock,byte writellock):this(inner,innerContent)
+        public TransactionProxyHeaderedPage(IHeaderedPage<THeader> inner, IPageInfo innerContent,byte readlock,byte writellock):this(inner,innerContent)
         {
             _readlock = readlock;
             _writellock = writellock;
         }
 
-        public TransactionProxyHeaderedPage(IHeaderedPage<THeader> inner, IPage innerContent)
+        public TransactionProxyHeaderedPage(IHeaderedPage<THeader> inner, IPageInfo innerContent)
         {
             _inner = inner;
         

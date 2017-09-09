@@ -2,6 +2,6 @@
 {
     public interface IPageDefinitionBuilder
     {
-        IPageRecordTypeBuilder<TRecordType> AsPageWithRecordType<TRecordType>() where TRecordType : TypedRecord, new();
+        IPageRecordTypeBuilder<TRecordType> AsPageWithRecordType<TRecordType>() where TRecordType : struct;
     }
 }

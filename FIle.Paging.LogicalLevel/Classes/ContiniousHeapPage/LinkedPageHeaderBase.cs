@@ -13,12 +13,12 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
         public PageReference PreviousPage { get; set; }
         public PageReference NextPage { get; set; }
 
-        public void FillBytes(LinkedPageHeaderBase record, byte[] targetArray)
+        public void FillBytes(ref LinkedPageHeaderBase record, byte[] targetArray)
         {
             throw new NotImplementedException();
         }
 
-        public void FillFromBytes(byte[] sourceArray, LinkedPageHeaderBase record)
+        public void FillFromBytes(byte[] sourceArray,ref LinkedPageHeaderBase record)
         {
             throw new NotImplementedException();
         }

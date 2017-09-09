@@ -11,8 +11,8 @@ namespace FIle.Paging.LogicalLevel.Classes.Factories
 
         IPage<TRecord> GetVirtualRecordAccessor<TRecord>(IPageManager pageManager, VirtualPageConfiguration pageConfig,
             VirtualPageReference pageNum,
-            byte pageType) where TRecord : TypedRecord, new();
-        IPage<TRecord> GetBindedRecordAccessor<TRecord>(IPageManager pageManager, BindedToPhysicalPageConfiguration pageConfig, PageReference page) where TRecord : TypedRecord, new();
+            byte pageType) where TRecord : struct;
+        IPage<TRecord> GetBindedRecordAccessor<TRecord>(IPageManager pageManager, BindedToPhysicalPageConfiguration pageConfig, PageReference page) where TRecord : struct;
 
         
     }

@@ -6,6 +6,7 @@ using BenchmarkDotNet.Attributes;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Classes.References;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
 
@@ -35,15 +36,14 @@ namespace Benchmark.Paging.PhysicalLevel
             {
                 DefinePageType(1)
                     .AsPageWithRecordType<TestRecord>()
-                    .UsingRecordDefinition((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7);
+                    .UsingRecordDefinition((ref TestRecord t, byte[] b) => { t.FillByteArray(b); }, (byte[] b, ref TestRecord t) => { t.FillFromByteArray(b); }, 7);
 
                 DefinePageType(2)
                     .AsPageWithRecordType<TestRecord>()
-                    .WithMultipleTypeRecord(_ => 1)
-                    .UsingRecordDefinition(1, (t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); },
-                        _ => 7)
-                    .UsingRecordDefinition(2, (t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); },
+                    .UsingRecordDefinition((ref TestRecord t, byte[] b) => { t.FillByteArray(b); },
+                        (byte[] b, ref TestRecord t) => { t.FillFromByteArray(b); },
                         _ => 7);
+
             }
         }
         [Params(WriteMethod.FixedSize, WriteMethod.Naive)]
@@ -60,7 +60,7 @@ namespace Benchmark.Paging.PhysicalLevel
 
                 foreach (var page in pages)
                 {
-                    while (page.AddRecord(new TestRecord())) ;
+                    while (page.AddRecord(new TestRecord()) != null) ;
                     page.Flush();
                 }
             }
@@ -69,7 +69,7 @@ namespace Benchmark.Paging.PhysicalLevel
                 var pages2 = Enumerable.Range(0, PageCount).Select(k => _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(2))).ToArray();
                 foreach (var page in pages2)
                 {
-                    while (page.AddRecord(new TestRecord())) ;
+                    while (page.AddRecord(new TestRecord())!=null) ;
                     page.Flush();
                 }
             }
@@ -89,7 +89,7 @@ namespace Benchmark.Paging.PhysicalLevel
             {
                
                 var record = page.GetRecord(new PhysicalPositionPersistentPageRecordReference(rf,(ushort)shift));
-                record.Values[shift % 7] = change.Item2;
+                record.Data.Change(shift % 7,change.Item2);
                 page.StoreRecord(record);
                 _count += _count & Changes.Count;
             }
@@ -100,7 +100,7 @@ namespace Benchmark.Paging.PhysicalLevel
                 var record = page.GetRecord(new PhysicalPositionPersistentPageRecordReference(rf, (ushort)shift));
                 if (record != null)
                 {
-                    record.Values[shift % 7] = change.Item2;
+                    record.Data.Change(shift % 7, change.Item2);
                     page.StoreRecord(record);
                     _count += _count & Changes.Count;
                 }

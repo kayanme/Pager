@@ -34,7 +34,7 @@ namespace Test.Pager
             };
             var fconfig = new FixedRecordTypePageConfiguration<TestRecord>
             {
-                RecordMap = new FixedSizeRecordDeclaration<TestRecord>((t, b) => { t.FillFromByteArray(b); }, (b, t) => { t.FillByteArray(b); }, 7)
+                RecordMap = new FixedSizeRecordDeclaration<TestRecord>((ref TestRecord t, byte[] b) => { t.FillFromByteArray(b); }, (byte[] b, ref TestRecord t) => { t.FillByteArray(b); }, 7)
             };
 
             var vconfig = new VariableRecordTypePageConfiguration<TestRecord>
@@ -45,7 +45,7 @@ namespace Test.Pager
             };
             var hconfig = new PageHeadersConfiguration<TestHeader>
             {
-                Header = new FixedSizeRecordDeclaration<TestHeader>((t, b) => { t.FillFromByteArray(b); },  (b, t) => { t.FillByteArray(b); },7),
+                Header = new FixedSizeRecordDeclaration<TestHeader>((ref TestHeader t, byte[] b) => { t.FillFromByteArray(b); }, (byte[] b, ref TestHeader t) => { t.FillByteArray(b); },7),
                 InnerPageMap = fconfig
             };
            
@@ -137,7 +137,7 @@ namespace Test.Pager
             headerFactory
                 .Expect(k => k.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t,null))
                 .Return(h);
-            var p = MockRepository.GenerateStub<IPage>();
+            var p = MockRepository.GenerateStub<IPageInfo>();
             pageFactory.Expect(k2 => k2.GetPageInfo(Arg<BufferedPage>.Matches(
                 k=>!k.MarkedForRemoval
                  && k.UserCount == 1
@@ -178,7 +178,7 @@ namespace Test.Pager
             BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
             GamMock.Expect(k => k.GetPageType(0)).Return(3);
             var h = MockRepository.GenerateStub<IPageHeaders>();
-            var p = MockRepository.GenerateStub<IPage>();
+            var p = MockRepository.GenerateStub<IPageInfo>();
             headerFactory
                 .Expect(k => k.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, TestContext.Properties["hconfig"] as PageHeadersConfiguration))
                 .Return(h);
@@ -190,7 +190,7 @@ namespace Test.Pager
                          && k.HeaderConfig == TestContext.Properties["hconfig"] as PageHeadersConfiguration
                          && k.Headers == h
                          && k.PageType == 3),Arg.Is(new PageReference(0)),Arg<Action>.Is.NotNull))
-                .Return(p as IPage);
+                .Return(p as IPageInfo);
 
 
             using (var manager = GetManager())
@@ -217,7 +217,7 @@ namespace Test.Pager
             BlockMock.Expect(k => k.GetAccessor(Extent.Size+4096, 4096)).Return(t);
             GamMock.Expect(k => k.GetPageType(1)).Return(1);
             var h = MockRepository.GenerateStub<IPageHeaders>();
-            var p = MockRepository.GenerateStub<IPage>();
+            var p = MockRepository.GenerateStub<IPageInfo>();
             headerFactory
                 .Expect(k => k.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, null))
                 .Return(h);
@@ -229,7 +229,7 @@ namespace Test.Pager
                          && k.HeaderConfig == null
                          && k.Headers == h
                          && k.PageType == 1),Arg.Is(new PageReference(1)), Arg<Action>.Is.NotNull))
-                .Do(new Func<BufferedPage,PageReference,Action,IPage>(
+                .Do(new Func<BufferedPage,PageReference,Action,IPageInfo>(
                     (_,__,a)=> { p.Expect(k => k.Dispose()).Do(a);
                     return p;
                 }));
@@ -263,8 +263,8 @@ namespace Test.Pager
             BlockMock.Expect(k => k.GetAccessor(Extent.Size + 4096, 4096)).Return(t);
             GamMock.Expect(k => k.GetPageType(1)).Return(1);
             var h = MockRepository.GenerateStub<IPageHeaders>();
-            var p = MockRepository.GenerateStub<IPage>();
-            var p2 = MockRepository.GenerateStub<IPage>();
+            var p = MockRepository.GenerateStub<IPageInfo>();
+            var p2 = MockRepository.GenerateStub<IPageInfo>();
             headerFactory
                 .Expect(k => k.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, null))
                 .Return(h);
@@ -277,7 +277,7 @@ namespace Test.Pager
                          && k.HeaderConfig == null
                          && k.Headers == h
                          && k.PageType == 1),Arg.Is(new PageReference(1)), Arg<Action>.Is.NotNull))
-                .Do(new Func<BufferedPage, PageReference, Action, IPage>(
+                .Do(new Func<BufferedPage, PageReference, Action, IPageInfo>(
                     (_, __, a) => {
                         p.Expect(k => k.Dispose()).Do(a);
                         return p;
@@ -290,7 +290,7 @@ namespace Test.Pager
                          && k.HeaderConfig == null
                          && k.Headers == h
                          && k.PageType == 1), Arg.Is(new PageReference(1)), Arg<Action>.Is.NotNull))
-                .Do(new Func<BufferedPage, PageReference, Action, IPage>(
+                .Do(new Func<BufferedPage, PageReference, Action, IPageInfo>(
                     (_, __, a) => {
                         p2.Expect(k => k.Dispose()).Do(a);
                         return p2;
@@ -299,7 +299,7 @@ namespace Test.Pager
             bool pageRemoved = false;
             using (var manager = GetManager())
             {
-                IPage page2;
+                IPageInfo page2;
                 (manager as IPhysicalPageManipulation).PageRemovedFromBuffer += (_, ea) => { Assert.AreEqual(1, ea.Page.PageNum); pageRemoved = true; };
                 using (var page = manager.GetPageInfo(new PageReference(1)))
                 {

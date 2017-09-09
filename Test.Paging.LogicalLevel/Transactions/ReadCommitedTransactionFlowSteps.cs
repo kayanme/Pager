@@ -56,7 +56,7 @@ namespace Test.Paging.LogicalLevel.Transactions
         public void WhenWeModifyAHeader()
         {
             var hp = ScenarioContext.Current["hp"] as TransactionHeaderResource<TestRecord>;
-            pp.Expect(k => k.GetHeader()).Return(null);
+            pp.Expect(k => k.GetHeader()).Return(default(TestRecord));
             ScenarioContext.Current.Add("worktask", new Task(() => hp.SetHeader(th)));
         }
         

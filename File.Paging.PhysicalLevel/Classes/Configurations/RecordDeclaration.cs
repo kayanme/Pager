@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace File.Paging.PhysicalLevel.Classes.Configurations
 {
@@ -7,23 +8,26 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         public abstract Type ClrType { get; }
         public bool IsVariableLength { get; protected set; }
     }
-
+    public delegate void Setter<TRecordType>(byte[] source, ref TRecordType record);
+    public delegate void Getter<TRecordType>(ref TRecordType record, byte[] target);
     internal abstract class RecordDeclaration<TRecordType> : RecordDeclaration
     {
         public sealed override Type ClrType => typeof(TRecordType);
 
-        public void FillFromBytes(byte[] bytes, TRecordType record) => _fillFromByte(bytes, record);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void FillFromBytes(byte[] bytes,ref TRecordType record) => _fillFromByte(bytes,ref record);
 
-        public void FillBytes(TRecordType record, byte[] bytes) => _fillBytes(record, bytes);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void FillBytes(ref TRecordType record, byte[] bytes) => _fillBytes(ref record, bytes);
 
        
 
-        private readonly Action<TRecordType,byte[]> _fillBytes;
-        private readonly Action<byte[], TRecordType> _fillFromByte;
+        private readonly Getter<TRecordType> _fillBytes;
+        private readonly Setter<TRecordType> _fillFromByte;
        
       
 
-        protected RecordDeclaration(Action<TRecordType, byte[]> fillBytes, Action<byte[], TRecordType> fillFromByte)
+        protected RecordDeclaration(Getter<TRecordType> fillBytes, Setter<TRecordType> fillFromByte)
         {
             _fillBytes = fillBytes;
             _fillFromByte = fillFromByte;

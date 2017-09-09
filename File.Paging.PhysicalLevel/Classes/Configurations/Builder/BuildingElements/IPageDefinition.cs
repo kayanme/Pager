@@ -20,7 +20,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 
       
 
-        public IPageRecordTypeBuilder<TRecordType> AsPageWithRecordType<TRecordType>() where TRecordType:TypedRecord,new()
+        public IPageRecordTypeBuilder<TRecordType> AsPageWithRecordType<TRecordType>() where TRecordType:struct
         {
             var t = new PageDefinitionBuilder<TRecordType>(_config, _pageNum);
             return t;

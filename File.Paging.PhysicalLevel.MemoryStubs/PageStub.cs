@@ -4,11 +4,12 @@ using System.Linq;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using File.Paging.PhysicalLevel.Exceptions;
 
 namespace File.Paging.PhysicalLevel.MemoryStubs
 {
-    internal sealed class PageStub<TRecord> : IPage<TRecord>,IPage where TRecord:TypedRecord,new()
+    internal sealed class PageStub<TRecord> : IPage<TRecord>,IPageInfo where TRecord:struct
     {
         private readonly Dictionary<PageRecordReference, byte[]> _records = new Dictionary<PageRecordReference, byte[]>();
         private readonly Dictionary<PageRecordReference, int> _recordSize = new Dictionary<PageRecordReference, int>();
@@ -31,7 +32,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
 
         public byte RegisteredPageType { get; }
 
-        public bool AddRecord(TRecord record)
+        public TypedRecord<TRecord> AddRecord(TRecord record)
         {
             lock (_records)
             {
@@ -43,19 +44,19 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                     var c = _config as FixedRecordTypePageConfiguration<TRecord>;
                     size = c.RecordMap.GetSize;
                     d = new byte[size];
-                    c.RecordMap.FillBytes(record, d);
+                    c.RecordMap.FillBytes(ref record, d);
                 }
                 if (_config is VariableRecordTypePageConfiguration<TRecord>)
                 {
                     var c = _config as VariableRecordTypePageConfiguration<TRecord>;
-                    type = c.GetRecordType(record);
-                    size = c.RecordMap[type].GetSize(record);
+                 
+                    size = c.RecordMap.GetSize(record);
                     d = new byte[size];
-                    c.RecordMap[type].FillBytes(record, d);
+                    c.RecordMap.FillBytes(ref record, d);
                 }
                 if (_recordSize.Values.Sum() + size >_pageSize)
                 {
-                    return false;
+                    return null;
                 }
                 for (ushort i = 0; i < ushort.MaxValue; i++)
                 {
@@ -66,18 +67,23 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                         _records.Add(r, d);
                         _recordSize.Add(r,size);
                         _recordType.Add(r, type);
-                        return true;
+                        return new TypedRecord<TRecord>{Reference = r,Data = record};
                     }
                 }
-                return false;
+                return null;
             }
+        }
+
+        public IBinarySearcher<TRecord> BinarySearch()
+        {
+            throw new NotImplementedException();
         }
 
         public void Flush()
         {           
         }
 
-        public void FreeRecord(TRecord record)
+        public void FreeRecord(TypedRecord<TRecord> record)
         {
             lock (_records)
             {
@@ -88,8 +94,8 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             }
         }
 
-      
-        public TRecord GetRecord(PageRecordReference reference)
+
+        public TypedRecord<TRecord> GetRecord(PageRecordReference reference)
         {
             lock (_records)
             {
@@ -101,7 +107,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             }
         }
 
-        private TRecord Retrieve(PageRecordReference reference)
+        private TypedRecord<TRecord> Retrieve(PageRecordReference reference)
         {
             int size = 0;
             byte[] d = null;
@@ -112,7 +118,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                 var c = _config as FixedRecordTypePageConfiguration<TRecord>;
                 size = c.RecordMap.GetSize;
                 d = new byte[size];
-                c.RecordMap.FillFromBytes(record, nr);
+                c.RecordMap.FillFromBytes(record, ref nr);
             }
             if (_config is VariableRecordTypePageConfiguration<TRecord>)
             {
@@ -120,12 +126,12 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                 var type = _recordType[reference];
                 size = _recordSize[reference];
                 d = new byte[size];
-                c.RecordMap[type].FillFromBytes(record, nr);
+                c.RecordMap.FillFromBytes(record,ref nr);
             }
-            return nr;
+            return new TypedRecord<TRecord>{Reference = reference,Data = nr};
         }
 
-        public void StoreRecord(TRecord record)
+        public void StoreRecord(TypedRecord<TRecord> record)
         {
             lock (_records)
             {
@@ -141,7 +147,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                         var c = _config as FixedRecordTypePageConfiguration<TRecord>;
                         size = c.RecordMap.GetSize;
                         d = new byte[size];
-                        c.RecordMap.FillBytes(record, d);
+                        c.RecordMap.FillBytes(ref record.Data, d);
                     }
                     if (_config is VariableRecordTypePageConfiguration<TRecord>)
                     {
@@ -149,7 +155,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                         type = _recordType[record.Reference];
                         size = _recordSize[record.Reference];
                         d = new byte[size];
-                        c.RecordMap[type].FillBytes(record, d);
+                        c.RecordMap.FillBytes(ref record.Data, d);
                     }
                     if (_recordSize[record.Reference] > size)
                         throw new InvalidOperationException();
@@ -200,10 +206,10 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             }
         }
 
-        public IEnumerable<PageRecordReference> IterateRecords()
+        public IEnumerable<TypedRecord<TRecord>> IterateRecords()
         {
             lock (_records)
-                return _records.Keys.ToArray();
+                return _records.Select(k=>GetRecord(k.Key)).ToArray();
         }
 
 

@@ -21,17 +21,14 @@ namespace File.Paging.PhysicalLevel.Classes.PageFactories
                     var pageCalculator =
                         new FixedPageParametersCalculator((ushort) headerAccessor.PageSize, headerInfo.RecordSize);
                     pageCalculator.CalculatePageParameters();
-                    var rawPam = headerAccessor.GetByteArray(0, pageCalculator.PamSize);
-                    pageCalculator.ProcessPam(rawPam);
-                    return new FixedRecordPhysicalOnlyHeader(headerAccessor, pageCalculator);
+                    var used = pageCalculator.CalculateUsed(accessor.GetByteArray(0, pageCalculator.PamSize));
+                    return new FixedRecordPhysicalOnlyHeader(headerAccessor, pageCalculator, used);
                 }
                 else
                 {
                     var pageCalculator =
                         new FixedPageParametersCalculator((ushort) headerAccessor.PageSize, headerInfo.RecordSize, 16);
-                    pageCalculator.CalculatePageParameters();
-                    var rawPam = headerAccessor.GetByteArray(0, pageCalculator.PamSize);
-                    pageCalculator.ProcessPam(rawPam);
+                    pageCalculator.CalculatePageParameters();                 
                     return new FixedRecordWithLogicalOrderHeader(headerAccessor, pageCalculator);
                 }
             else

@@ -6,7 +6,7 @@ using File.Paging.PhysicalLevel.Implementations.Headers;
 
 namespace File.Paging.PhysicalLevel.Classes.Configurations
 {
-    internal sealed class FixedRecordTypePageConfiguration<TRecordType> : PageContentConfiguration where TRecordType : TypedRecord, new()
+    internal sealed class FixedRecordTypePageConfiguration<TRecordType> : PageContentConfiguration where TRecordType :  new()
     {
         internal override Type RecordType => typeof(TRecordType);
         internal FixedSizeRecordDeclaration<TRecordType> RecordMap { get; set; }

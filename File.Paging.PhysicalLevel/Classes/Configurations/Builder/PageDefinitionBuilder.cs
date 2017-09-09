@@ -3,29 +3,22 @@ using System;
 namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 {
     internal class PageDefinitionBuilder<TRecordType, THeader> : PageDefinitionBuilder<TRecordType>,
-        IHeaderedFixedPageBuilder<TRecordType, THeader>,
-        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader>,
-        IHeaderedVariablePageBuilder<TRecordType, THeader> where TRecordType : TypedRecord, new() where THeader:new()
+        IHeaderedFixedPageBuilder<TRecordType, THeader>,     
+        IHeaderedVariablePageBuilder<TRecordType, THeader> where TRecordType : struct where THeader:new()
     {
         IHeaderedVariablePageBuilder<TRecordType, THeader> IHeaderedVariablePageBuilder<TRecordType, THeader>.ApplyLogicalSortIndex()
         {
             return ApplyLogicalSort() as PageDefinitionBuilder<TRecordType, THeader>;
         }
 
-        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader> IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader>.ApplyLogicalSortIndex()
-        {
-            return ApplyLogicalSort() as PageDefinitionBuilder<TRecordType, THeader>;
-        }
+        
 
         IHeaderedVariablePageBuilder<TRecordType, THeader> IHeaderedVariablePageBuilder<TRecordType, THeader>.ApplyLockScheme(LockRuleset locksRuleset)
         { 
             return ApplyLockScheme(locksRuleset) as PageDefinitionBuilder<TRecordType, THeader>;
         }
 
-        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader> IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader>.ApplyLockScheme(LockRuleset locksRuleset)
-        {
-            return ApplyLockScheme(locksRuleset) as PageDefinitionBuilder<TRecordType, THeader>;
-        }
+       
 
         IHeaderedFixedPageBuilder<TRecordType, THeader> IHeaderedFixedPageBuilder<TRecordType, THeader>.ApplyLockScheme(LockRuleset locksRuleset)
         {
@@ -40,9 +33,8 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
     internal class PageDefinitionBuilder<TRecordType> : PageDefinitionBuilder,
         IPageRecordTypeBuilder<TRecordType>,
         IFixedPageBuilder<TRecordType>,
-        IVariablePageBuilder<TRecordType>,
-        IVariablePageWithOneRecordTypeBuilder<TRecordType>
-         where TRecordType : TypedRecord, new()
+        IVariablePageBuilder<TRecordType>     
+         where TRecordType : struct
     {
       
         public PageDefinitionBuilder(PageManagerConfiguration config, byte pageNum):base(config,pageNum)
@@ -59,7 +51,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return this;
         }
 
-        public IFixedPageBuilder<TRecordType> UsingRecordDefinition(Action<TRecordType,byte[]> fillBytes,Action<byte[],TRecordType> fillFromBytes,int size)
+        public IFixedPageBuilder<TRecordType> UsingRecordDefinition(Getter<TRecordType> fillBytes, Setter<TRecordType> fillFromBytes,int size)
         {
             if (fillBytes == null) throw new ArgumentNullException(nameof(fillBytes));
             if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
@@ -69,80 +61,13 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             conf.RecordMap = new FixedSizeRecordDeclaration<TRecordType>(fillBytes, fillFromBytes, size);
             _config.PageMap[_pageNum] =  conf;
             return this;
-        }
-
-        public IVariablePageBuilder<TRecordType> WithMultipleTypeRecord(Func<TRecordType, byte> discriminatorFunction)
-        {
-            var conf = new VariableRecordTypePageConfiguration<TRecordType>(discriminatorFunction);
-            conf.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
-            _config.PageMap[_pageNum] = conf;
-            return this;
-        }
-
-        public IVariablePageWithOneRecordTypeBuilder<TRecordType> UsingRecordDefinition(Action<TRecordType, byte[]> fillBytes, Action<byte[], TRecordType> fillFromBytes, Func<TRecordType,int> size)
-        {
-            if (fillBytes == null) throw new ArgumentNullException(nameof(fillBytes));
-            if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
-            if (size == null) throw new ArgumentNullException(nameof(size));
-            var config = new VariableRecordTypePageConfiguration<TRecordType>();
-            config.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
-            _config.PageMap[_pageNum] = config;
-            config.RecordMap.Add(1, new VariableSizeRecordDeclaration<TRecordType>(fillBytes, fillFromBytes, size));
-            return this;
-        }
-
-        public IVariablePageWithOneRecordTypeBuilder<TRecordType> UsingRecordDefinition(IVariableSizeRecordDefinition<TRecordType> recordDefinition)
-        {
-            if (recordDefinition == null) throw new ArgumentNullException(nameof(recordDefinition));
-            var config = new VariableRecordTypePageConfiguration<TRecordType>();
-            config.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
-            _config.PageMap[_pageNum] = config;
-            config.RecordMap.Add(1, new VariableSizeRecordDeclaration<TRecordType>(recordDefinition.FillBytes, recordDefinition.FillFromBytes, recordDefinition.Size));
-            return this;
-        }
-
-        public IVariablePageBuilder<TRecordType> UsingRecordDefinition(byte recordType,IVariableSizeRecordDefinition<TRecordType> recordDefinition)
-        {
-            if (recordDefinition == null) throw new ArgumentNullException(nameof(recordDefinition));
-            var config = _config.PageMap[_pageNum] as VariableRecordTypePageConfiguration<TRecordType>;
-          
-            config.RecordMap.Add(recordType,new VariableSizeRecordDeclaration<TRecordType>(recordDefinition.FillBytes,recordDefinition.FillFromBytes,recordDefinition.Size));
-            return this;
-        }
-
-        public IVariablePageBuilder<TRecordType> UsingRecordDefinition(byte recordType, Action<TRecordType, byte[]> fillBytes, Action<byte[], TRecordType> fillFromBytes, Func<TRecordType, int> size)
-        {
-            if (fillBytes == null) throw new ArgumentNullException(nameof(fillBytes));
-            if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
-            if (size == null) throw new ArgumentNullException(nameof(size));
-
-            var config = _config.PageMap[_pageNum] as VariableRecordTypePageConfiguration<TRecordType>;
-            config.RecordMap.Add(recordType, new VariableSizeRecordDeclaration<TRecordType>(fillBytes, fillFromBytes, size));
-            return this;
-        }
-
-
-
-        public IVariablePageBuilder<TRecordType> UsingRecordDefinition(byte recordType, IFixedSizeRecordDefinition<TRecordType> recordDefinition)
-        {
-            if (recordDefinition == null) throw new ArgumentNullException(nameof(recordDefinition));
-            var config = _config.PageMap[_pageNum] as VariableRecordTypePageConfiguration<TRecordType>;
-            config.RecordMap.Add(recordType, new VariableSizeRecordDeclaration<TRecordType>(recordDefinition.FillBytes, recordDefinition.FillFromBytes,_=>recordDefinition.Size));
-            return Copy();
-        }
-
+        }                 
       
 
         IVariablePageBuilder<TRecordType> IVariablePageBuilder<TRecordType>.ApplyLogicalSortIndex()
         {
             return ApplyLogicalSort();
         }
-
-        IVariablePageWithOneRecordTypeBuilder<TRecordType> IVariablePageWithOneRecordTypeBuilder<TRecordType>.ApplyLogicalSortIndex()
-        {
-            return ApplyLogicalSort();
-        }
-
 
 
          IFixedPageBuilder<TRecordType> IFixedPageBuilder<TRecordType>.ApplyLogicalSortIndex()
@@ -195,15 +120,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return ApplyLockScheme(consitencyAbilities);
         }
 
-        IVariablePageWithOneRecordTypeBuilder<TRecordType> IVariablePageWithOneRecordTypeBuilder<TRecordType>.ApplyLockScheme(LockRuleset consitencyAbilities)
-        {
-            return ApplyLockScheme(consitencyAbilities);
-        }
-
-        IHeaderedVariablePageWithOneRecordBuilder<TRecordType, THeader> IVariablePageWithOneRecordTypeBuilder<TRecordType>.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition) 
-        {
-            return CreateHeaderedConfiguration(headerDefinition);
-        }
+     
 
         IHeaderedVariablePageBuilder<TRecordType, THeader> IVariablePageBuilder<TRecordType>.WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition)
         {
@@ -215,6 +132,27 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
             return CreateHeaderedConfiguration(headerDefinition);
         }
 
-     
+
+
+        IVariablePageBuilder<TRecordType> IPageRecordTypeBuilder<TRecordType>.UsingRecordDefinition(IVariableSizeRecordDefinition<TRecordType> recordDefinition)
+        {
+            var config = new VariableRecordTypePageConfiguration<TRecordType>();
+            config.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
+            _config.PageMap[_pageNum] = config;
+            config.RecordMap = new VariableSizeRecordDeclaration<TRecordType>(recordDefinition.FillBytes, recordDefinition.FillFromBytes, recordDefinition.Size);
+            return this;
+        }
+
+        IVariablePageBuilder<TRecordType> IPageRecordTypeBuilder<TRecordType>.UsingRecordDefinition(Getter<TRecordType> fillBytes, Setter<TRecordType> fillFromBytes, Func<TRecordType, int> size)
+        {
+            if (fillBytes == null) throw new ArgumentNullException(nameof(fillBytes));
+            if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
+            if (size == null) throw new ArgumentNullException(nameof(size));
+            var config = new VariableRecordTypePageConfiguration<TRecordType>();
+            config.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
+            _config.PageMap[_pageNum] = config;
+            config.RecordMap = new VariableSizeRecordDeclaration<TRecordType>(fillBytes, fillFromBytes, size);
+            return this;
+        }
     }
 }

@@ -27,8 +27,11 @@ namespace File.Paging.PhysicalLevel.Classes.PageFactories
 
         public IPhysicalLocks CreatePage(BufferedPage page, PageReference pageNum, Action actionToClean)
         {
-            return new LockingPage(_pageLockManager, _pageRecordLockManager, 
-                new LockMatrix(page.Config.ConsistencyConfiguration.LockRules), pageNum, actionToClean);           
+            return page.Config.ConsistencyConfiguration.ConsistencyAbilities.HasFlag(ConsistencyAbilities.PhysicalLocks)
+                ? new LockingPage(_pageLockManager, _pageRecordLockManager,
+                    new LockMatrix(page.Config.ConsistencyConfiguration.LockRules), pageNum, actionToClean)
+                : null;
+          
         }
     }
 }

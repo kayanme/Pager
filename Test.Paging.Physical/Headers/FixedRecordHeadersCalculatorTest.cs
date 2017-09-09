@@ -19,9 +19,9 @@ namespace Test.Pager.Headers
             Assert.AreEqual(96,t.MaxRecordCount);
             Assert.AreEqual(12,t.PamSize);
             Assert.AreEqual(0,t.LastMask);
-            t.ProcessPam(new byte[]{0,0,0,0,0,0,0,0,0,0,0,0});
+            t.CalculateUsed(new byte[]{0,0,0,0,0,0,0,0,0,0,0,0});
             Assert.AreEqual(0,t.UsedRecords);
-            CollectionAssert.AreEqual(new[]{0,0,0}, t.PageAllocationMap);
+        
         }
 
 
@@ -33,11 +33,11 @@ namespace Test.Pager.Headers
             Assert.AreEqual(96, t.MaxRecordCount);
             Assert.AreEqual(12, t.PamSize);
             Assert.AreEqual(0, t.LastMask);
-            t.ProcessPam(new byte[] { 0, 0, 0, 0x0F,
+            t.CalculateUsed(new byte[] { 0, 0, 0, 0x0F,
                                       0, 0, 0, 0,
                                    0xF0, 0, 0, 0 });
             Assert.AreEqual(8, t.UsedRecords);
-            CollectionAssert.AreEqual(new[] { 0x0F_00_00_00, 0,  0x00_00_00_F0 }, t.PageAllocationMap);
+          
         }
 
         [TestMethod]
@@ -51,12 +51,12 @@ namespace Test.Pager.Headers
             {
                 Assert.AreEqual((int)0xFF_FE_00_00, t.LastMask);
             }
-            t.ProcessPam(new byte[] { 0, 0, 0, 0,
+            t.CalculateUsed(new byte[] { 0, 0, 0, 0,
                                       0, 0, 0, 0,
                                       0, 0, 0, 0,
                                       0, 0, 0 });//три байта, но под запись в последнем может быть выделен только один бит, т.к. записей 113
             Assert.AreEqual(0, t.UsedRecords);
-            CollectionAssert.AreEqual(new[] { 0, 0, 0, 0 }, t.PageAllocationMap);
+        
         }
 
         [TestMethod]
@@ -70,12 +70,12 @@ namespace Test.Pager.Headers
             {
                 Assert.AreEqual((int) 0xFF_FE_00_00, t.LastMask);
             }
-            t.ProcessPam(new byte[] { 0,    0, 0, 0x0F,
+            t.CalculateUsed(new byte[] { 0,    0, 0, 0x0F,
                                       0,    0, 0, 0,
                                    0xF0,    0, 0, 0,
                                    0x0C, 0x0F, 0 });
             Assert.AreEqual(14, t.UsedRecords);
-            CollectionAssert.AreEqual(new[] { 0x0F_00_00_00, 0, 0xF0, 0x00_00_0F_0C }, t.PageAllocationMap);
+            
         }
 
 
@@ -105,14 +105,14 @@ namespace Test.Pager.Headers
                 Assert.AreEqual((int) 0xFFFF0000, t.LastMask);
             }
 
-            t.ProcessPam(new byte[]
+            t.CalculateUsed(new byte[]
             {
                 0, 0x1,
                 0, 0x02,
                 0, 0
             });
             Assert.AreEqual(2, t.UsedRecords);
-            CollectionAssert.AreEqual(new[] {0x02_00_01_00, 0x00_00_00_00}, t.PageAllocationMap);
+         
         }
 
         [TestMethod]

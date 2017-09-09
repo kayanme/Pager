@@ -1,26 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    public interface IPage : IDisposable
+    public interface IPage<TRecordType> :IDisposable where TRecordType : struct
     {
-        byte RegisteredPageType { get; }
-        PageReference Reference { get; }
-        double PageFullness { get; }
-        int UsedRecords { get; }
-        int ExtentNumber { get; }
-    }
 
-    public interface IPage<TRecordType> :IDisposable where TRecordType : TypedRecord, new()
-    {
-              
-        bool AddRecord(TRecordType type);          
-        void FreeRecord(TRecordType record);
-        TRecordType GetRecord(PageRecordReference reference);
-        void StoreRecord(TRecordType record);
+        TypedRecord<TRecordType> AddRecord(TRecordType type);          
+        void FreeRecord(TypedRecord<TRecordType> record);
+        TypedRecord<TRecordType> GetRecord(PageRecordReference reference);
+        void StoreRecord(TypedRecord<TRecordType> record);
       
-        IEnumerable<PageRecordReference> IterateRecords();
+        IEnumerable<TypedRecord<TRecordType>> IterateRecords();
+        
 
         void Flush();
     }

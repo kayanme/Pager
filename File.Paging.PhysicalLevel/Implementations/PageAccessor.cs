@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
+using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Implementations
@@ -20,7 +22,24 @@ namespace File.Paging.PhysicalLevel.Implementations
             PageSize = pageSize;
             ExtentNumber = extentNumber;
         }
-    
+
+        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+        public unsafe void QueueByteArrayOperation(int position, int length, ByteAction byteAction)
+        {
+            Debug.Assert(position + length <= PageSize, "position + length <= _pageSize");
+            RuntimeHelpers.PrepareConstrainedRegions();
+            byte* memory = null;
+            try
+            {                
+                _map.SafeMemoryMappedViewHandle.AcquirePointer(ref memory);
+                byteAction(memory + _startOffset + position);
+            }
+            finally
+            {
+                _map.SafeMemoryMappedViewHandle.ReleasePointer();
+            }
+        }
+
         public int PageSize { get; }
 
         public uint ExtentNumber { get; }
@@ -32,6 +51,15 @@ namespace File.Paging.PhysicalLevel.Implementations
                _map.Flush();
         }
 
+        public byte[] GetWholePage()
+        {
+            if (_disposedValue)
+                throw new ObjectDisposedException("IPageAccessor");          
+            var b = new byte[PageSize];
+            _map.ReadArray(_startOffset, b, 0, PageSize );
+            return b;
+        }
+
         public byte[] GetByteArray(int position, int length)
         {
            if (_disposedValue)
@@ -39,6 +67,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             Debug.Assert(position + length <= PageSize, "position + length <= _pageSize");
             var b = new byte[length];
             _map.ReadArray(position + _startOffset, b, 0, length);
+      
             return b; 
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Transactions;
+using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Pages;
 using FIle.Paging.LogicalLevel.Classes.Transactions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -57,7 +58,7 @@ namespace Test.Paging.LogicalLevel.Transactions
                 {
                     case IPage<TestRecord> t:
                         t.BackToRecord();
-                        t.Expect(k => k.AddRecord(null)).IgnoreArguments().Return(true).Repeat.Any();
+                        t.Expect(k => k.AddRecord(default(TestRecord))).IgnoreArguments().Return(new TypedRecord<TestRecord>()).Repeat.Any();
                         t.Replay();
                         var rs = new TransactionContentResource<TestRecord>(() => { },t, level);
                         try
@@ -74,7 +75,7 @@ namespace Test.Paging.LogicalLevel.Transactions
                         break;
                     case IHeaderedPage<TestRecord> t:
                         t.BackToRecord();
-                        t.Expect(k => k.GetHeader()).IgnoreArguments().Return(null).Repeat.Any();
+                        t.Expect(k => k.GetHeader()).IgnoreArguments().Return(default(TestRecord)).Repeat.Any();
                         t.Replay();
                         var r2 = new TransactionHeaderResource<TestRecord>(() => { }, t, level,0,0);
                         try

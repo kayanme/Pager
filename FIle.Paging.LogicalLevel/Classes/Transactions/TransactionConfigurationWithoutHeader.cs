@@ -5,7 +5,7 @@ using FIle.Paging.LogicalLevel.Classes.Transactions;
 
 namespace FIle.Paging.LogicalLevel.Classes.Configurations
 {
-    public sealed class TransactionConfigurationWithoutHeader<TRecord> : TransactionParticipancyConfiguration where TRecord : TypedRecord, new() 
+    public sealed class TransactionConfigurationWithoutHeader<TRecord> : TransactionParticipancyConfiguration where TRecord : struct 
     {
 
         //public override IPage CreateTransactionLayerPage(IPage physicalPage)

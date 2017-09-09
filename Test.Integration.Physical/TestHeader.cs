@@ -16,14 +16,14 @@ namespace Test.Integration.Physical
 
     public class TestHeaderGetter : IHeaderDefinition<TestHeader>
     {
-        public  void FillBytes(TestHeader record, byte[] targetArray)
+        public  void FillBytes(ref TestHeader record, byte[] targetArray)
         {
             
            RecordUtils.StringToBytes(targetArray,0,record.HeaderInfo,32);
            
         }
 
-        public  void FillFromBytes(byte[] sourceArray, TestHeader record)
+        public  void FillFromBytes(byte[] sourceArray,ref TestHeader record)
         {
             record.HeaderInfo = RecordUtils.StringFromBytes(sourceArray, 0,  32);
         }

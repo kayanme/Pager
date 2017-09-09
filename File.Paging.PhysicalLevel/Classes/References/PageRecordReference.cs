@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Reflection;
+using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Classes.References;
 
 namespace File.Paging.PhysicalLevel.Classes
 {
@@ -33,6 +35,22 @@ namespace File.Paging.PhysicalLevel.Classes
             if (t == null)
                 return false;
             return t == this;
+        }
+
+        internal static PageRecordReference CreateReference(PageReference pageReference, ushort persistenceNum,
+            KeyPersistanseType keyType)
+        {
+            switch (keyType)
+            {
+                case KeyPersistanseType.Key:
+                    return new RowKeyPersistentPageRecordReference(pageReference, persistenceNum);
+                case KeyPersistanseType.Physical:
+                    return new PhysicalPositionPersistentPageRecordReference(pageReference, persistenceNum);
+                case KeyPersistanseType.Logical:
+                    return new LogicalPositionPersistentPageRecordReference(pageReference, persistenceNum);
+                    ;
+                default: return new NullPageRecordReference(pageReference);
+            }
         }
 
         public override int GetHashCode()

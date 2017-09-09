@@ -3,11 +3,11 @@ using File.Paging.PhysicalLevel.Classes;
 
 namespace Test.Pager
 {
-    internal class TestRecord : TypedRecord
+    internal struct TestRecord
     {
         public  ushort RecordSize => 7;
 
-        public int Value = 0;
+        public int Value;
 
         public  void FillByteArray(IList<byte> b)
         {

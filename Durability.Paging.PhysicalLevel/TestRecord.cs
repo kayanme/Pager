@@ -3,7 +3,7 @@ using File.Paging.PhysicalLevel.Classes;
 
 namespace Durability.Paging.PhysicalLevel
 {
-    internal class TestRecord:TypedRecord
+    internal struct TestRecord
     {
         public Guid Data;
 

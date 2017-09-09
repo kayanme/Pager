@@ -11,7 +11,7 @@ using FIle.Paging.LogicalLevel.Classes.Configurations;
 namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
 {
     internal sealed class ContiniousHeapPageConfiguration<TRecord> : VirtualPageConfiguration
-        where TRecord : TypedRecord, new() 
+        where TRecord : struct 
     {
         public byte HeaderPageType;
 

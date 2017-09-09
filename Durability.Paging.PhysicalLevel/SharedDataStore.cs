@@ -40,7 +40,7 @@ namespace Durability.Paging.PhysicalLevel
             _inUse.Remove(reference);
         }
 
-        public TestRecord SelectRandom()
+        public Tuple<PageRecordReference,TestRecord> SelectRandom()
         {
             if (!_store.Any())
                 return null;
@@ -53,7 +53,7 @@ namespace Durability.Paging.PhysicalLevel
                     key = _store.Keys.ToArray()[keyNum];
                 }
                 while (!_inUse.Add(key));                        
-                return _store[key];
+                return Tuple.Create(key,_store[key]);
             }
             catch
             {
@@ -61,9 +61,9 @@ namespace Durability.Paging.PhysicalLevel
             }
         }
 
-        public void Check(TestRecord data)
+        public void Check(Tuple<PageRecordReference,TestRecord> data)
         {            
-            if (!_store.TryGetValue(data.Reference,out var rec) || rec.Data != data.Data)
+            if (!_store.TryGetValue(data.Item1,out var rec) || rec.Data != data.Item2.Data)
                 Debugger.Break();
         }
     }

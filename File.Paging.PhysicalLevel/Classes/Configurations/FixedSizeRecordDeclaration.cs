@@ -6,11 +6,12 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
     {
         internal int GetSize { get; }
 
-        public FixedSizeRecordDeclaration(Action<TRecordType, byte[]>fillBytes, Action<byte[], TRecordType> fillFromByte, int size):base(fillBytes,fillFromByte)
+       
+        public FixedSizeRecordDeclaration(Getter<TRecordType> fillBytes, Setter<TRecordType> fillFromByte, int size):base(fillBytes,fillFromByte)
         {
 
             GetSize =  size;
-            IsVariableLength = false;
+            IsVariableLength = false; 
         }
     }
 }

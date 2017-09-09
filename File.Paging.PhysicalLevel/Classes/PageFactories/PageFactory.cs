@@ -6,6 +6,7 @@ using System.Runtime.Remoting.Channels;
 using System.Text;
 using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.PageFactories
 {
@@ -17,27 +18,34 @@ namespace File.Paging.PhysicalLevel.Classes.PageFactories
         private readonly PageContentFactory _pageContentFactory;
         private readonly LogicalLevelManipulationFactory _logicalLevelManipulationFactory;
         private readonly PageInfoFactory _pageInfoFactory;
+        private readonly BinarySearcherFactory _binarySearcherFactory;
 
         [ImportingConstructor]
         public PageFactory(HeaderPageFactory headerPageFactory, 
             LockingPageFactory lockingPageFactory, 
             PageContentFactory pageContentFactory, 
             LogicalLevelManipulationFactory logicalLevelManipulationFactory,
-            PageInfoFactory pageInfoFactory)
+            PageInfoFactory pageInfoFactory, BinarySearcherFactory binarySearcherFactory)
         {
             _headerPageFactory = headerPageFactory;
             _lockingPageFactory = lockingPageFactory;
             _pageContentFactory = pageContentFactory;
             _logicalLevelManipulationFactory = logicalLevelManipulationFactory;
             _pageInfoFactory = pageInfoFactory;
+            _binarySearcherFactory = binarySearcherFactory;
         }
 
-        public IPage<TRecord> GetRecordAccessor<TRecord>(BufferedPage page, PageReference pageNum,Action actionToClean) where TRecord : TypedRecord, new()
+        public IPage<TRecord> GetRecordAccessor<TRecord>(BufferedPage page, PageReference pageNum,Action actionToClean) where TRecord : struct
         {
             return _pageContentFactory.CreatePage<TRecord>(page, pageNum, actionToClean);
         }
 
-        public IPage GetPageInfo(BufferedPage page, PageReference pageNum, Action actionToClean)
+        public IBinarySearcher<TRecord> GetBinarySearcher<TRecord>(BufferedPage page, PageReference pageNum, Action actionToClean) where TRecord : struct
+        {
+            return _binarySearcherFactory.CreatePage<TRecord>(page, pageNum, actionToClean);
+        }
+
+        public IPageInfo GetPageInfo(BufferedPage page, PageReference pageNum, Action actionToClean)
         {
             return _pageInfoFactory.CreatePage(page, pageNum, actionToClean);
         }
@@ -53,9 +61,9 @@ namespace File.Paging.PhysicalLevel.Classes.PageFactories
             return _lockingPageFactory.CreatePage(page, pageNum, actionToClean);
         }
 
-        public ILogicalRecordOrderManipulation GetSorter(BufferedPage page, PageReference pageNum, Action actionToClean)
+        public ILogicalRecordOrderManipulation GetSorter<TRecord>(BufferedPage page, PageReference pageNum, Action actionToClean) where TRecord:struct
         {
-            return _logicalLevelManipulationFactory.CreatePage(page, pageNum, actionToClean);
+            return _logicalLevelManipulationFactory.CreatePage<TRecord>(page, pageNum, actionToClean);
         }
 
 

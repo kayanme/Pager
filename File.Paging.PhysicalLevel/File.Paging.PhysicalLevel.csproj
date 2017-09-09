@@ -71,13 +71,11 @@
     <Compile Include="Classes\Configurations\Builder\IHeaderDefinition.cs" />
     <Compile Include="Classes\Configurations\Builder\BuildingElements\IHeaderedFixedPageBuilder.cs" />
     <Compile Include="Classes\Configurations\Builder\BuildingElements\IHeaderedVariablePageBuilder.cs" />
-    <Compile Include="Classes\Configurations\Builder\BuildingElements\IHeaderedVariablePageWithOneRecordBuilder.cs" />
     <Compile Include="Classes\Configurations\Builder\BuildingElements\IPageDefinition.cs" />
     <Compile Include="Classes\Configurations\Builder\BuildingElements\IPageDefinitionBuilder.cs" />
     <Compile Include="Classes\Configurations\Builder\BuildingElements\IPageRecordTypeBuilder.cs" />
     <Compile Include="Classes\Configurations\Builder\IRecordDefinition.cs" />
     <Compile Include="Classes\Configurations\Builder\BuildingElements\IVariablePageBuilder.cs" />
-    <Compile Include="Classes\Configurations\Builder\BuildingElements\IVariablePageWithOneRecordTypeBuilder.cs" />
     <Compile Include="Classes\Configurations\Builder\IVariableSizeRecordDefinition.cs" />
     <Compile Include="Classes\Configurations\Builder\LockRuleset.cs" />
     <Compile Include="Classes\Configurations\Builder\PageDefinitionBuilder.cs" />
@@ -98,7 +96,10 @@
     <Compile Include="Classes\PageFactories\PageContentFactory.cs" />
     <Compile Include="Classes\PageFactories\PageFactory.cs" />
     <Compile Include="Classes\PageFactories\PageInfoFactory.cs" />
+    <Compile Include="Classes\Pages\BinarySearchContext.cs" />
+    <Compile Include="Classes\Pages\Contracts\IBinarySearchContext.cs" />
     <Compile Include="Classes\Pages\Contracts\ILogicalRecordOrderManipulation.cs" />
+    <Compile Include="Classes\Pages\Contracts\IPageInfo.cs" />
     <Compile Include="Classes\Pages\LogicalRecordManipulator.cs" />
     <Compile Include="Classes\Pages\PageInfo.cs" />
     <Compile Include="Classes\RecordUtils.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Classes\References\RowKeyPersistentPageRecordReference.cs" />
     <Compile Include="Classes\Pages\TypedPageBase.cs" />
     <Compile Include="Contracts\Internal\IPageHeaders.cs" />
+    <Compile Include="Contracts\Internal\IRecordAcquirer.cs" />
     <Compile Include="Contracts\IPagePhysicalManipulation.cs" />
     <Compile Include="Events\NewPageCreatedEvent.cs" />
     <Compile Include="Events\PageRemovedFromBufferEvent.cs" />
@@ -146,6 +148,8 @@
     <Compile Include="Implementations\PageManagerFactory.cs" />
     <Compile Include="Classes\Configurations\PageManagerConfiguration.cs" />
     <Compile Include="Classes\References\PageRecordReference.cs" />
+    <Compile Include="Implementations\RecordAcquirer.cs" />
+    <Compile Include="Implementations\Serialization\SerializationCore.cs" />
     <Compile Include="Implementations\UnderyingFileOperator.cs" />
     <Compile Include="Implementations\Headers\VariableRecordPageHeaders.cs" />
     <Compile Include="Implementations\Headers\VariableRecordWithLogicalOrderHeaders.cs" />

@@ -1,8 +1,9 @@
 ﻿namespace File.Paging.PhysicalLevel.Classes
 {
-    public abstract class TypedRecord
+    public class TypedRecord<TRecord> where TRecord:struct
     {
         public PageRecordReference Reference { get; internal set; }
-        internal int RecordStamp;         
+        internal int RecordStamp;
+        public TRecord Data;
     }
 }

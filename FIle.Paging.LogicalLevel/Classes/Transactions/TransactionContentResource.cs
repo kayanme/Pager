@@ -7,7 +7,7 @@ using File.Paging.PhysicalLevel.Classes.Pages;
 
 namespace FIle.Paging.LogicalLevel.Classes.Transactions
 {
-    internal sealed class TransactionContentResource<TRecord> : ISinglePhaseNotification where TRecord:TypedRecord,new()
+    internal sealed class TransactionContentResource<TRecord> : ISinglePhaseNotification where TRecord:struct
     {
 
         private ConcurrentQueue<TRecord> _changeQueue = new ConcurrentQueue<TRecord>();
@@ -25,7 +25,7 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
 
         private bool LockCapable => _locks != null;
 
-        public bool AddRecord(TRecord type)
+        public TypedRecord<TRecord> AddRecord(TRecord type)
         {
             switch (_isolation)
             {
@@ -35,22 +35,22 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
             throw new NotImplementedException();
         }
 
-        public void FreeRecord(TRecord record)
+        public void FreeRecord(TypedRecord<TRecord> record)
         {
             throw new NotImplementedException();
         }
 
-        public TRecord GetRecord(PageRecordReference reference)
+        public TypedRecord<TRecord> GetRecord(PageRecordReference reference)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<PageRecordReference> IterateRecords()
+        public IEnumerable<TypedRecord<TRecord>> IterateRecords()
         {
             throw new NotImplementedException();
         }
 
-        public void StoreRecord(TRecord record)
+        public void StoreRecord(TypedRecord<TRecord> record)
         {
             throw new NotImplementedException();
         }

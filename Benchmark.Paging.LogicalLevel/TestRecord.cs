@@ -3,7 +3,7 @@ using File.Paging.PhysicalLevel.Classes;
 
 namespace Benchmark.Paging.LogicalLevel
 {
-    public class TestRecord:TypedRecord
+    public struct TestRecord
     {
         public int Order;
 

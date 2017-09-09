@@ -62,9 +62,9 @@ namespace Test.Paging.LogicalLevel
                 physManager.Expect(k => k.IteratePages(_headerType)).Return(new[] { new PageReference(1) });
                 physManager.Expect(k => k.GetRecordAccessor<HeapHeader>(new PageReference(1))).Return( heapHeaders);
                 heapHeaders.Expect(k => k.IterateRecords())
-                    .Return(new[] { new LogicalPositionPersistentPageRecordReference(1, 0) });
+                    .Return(new[] {new TypedRecord<HeapHeader>{Data  =new HeapHeader { Fullness = .9, LogicalPageNum = 5 }} });
                 heapHeaders.Expect(k => k.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0)))
-                    .Return(new HeapHeader { Fullness = .9, LogicalPageNum = 5 });
+                    .Return(new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 }});
             }
             IPage<TestRecord> page;
             using (mocks.Playback())
@@ -78,31 +78,31 @@ namespace Test.Paging.LogicalLevel
             using (mocks.Ordered())           
             {               
               
-                var pageInfo = mocks.StrictMock<IPage>();
+                var pageInfo = mocks.StrictMock<IPageInfo>();
                 physManager.Expect(k => k.GetRecordAccessor<TestRecord>(new PageReference(5))).Return(realPage);
                 //physManager.Expect(k => k.RetrievePage<IPage>(new PageReference(5))).Return(pageInfo);
-                realPage.Expect(k => k.AddRecord(tr)).Return(false);              
-                heapHeaders.Expect(k => k.StoreRecord(new HeapHeader { LogicalPageNum = 5, Fullness = 1 }));
+                realPage.Expect(k => k.AddRecord(tr)).Return(null);              
+                heapHeaders.Expect(k => k.StoreRecord(new TypedRecord<HeapHeader> { Data = new HeapHeader { LogicalPageNum = 5, Fullness = 1 }}));
 
                 heapHeaders.Expect(k => k.IterateRecords())
-                    .Return(new[] { new LogicalPositionPersistentPageRecordReference(1, 0) });
+                    .Return(new[] { new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = 1, LogicalPageNum = 5 } }});
                 heapHeaders.Expect(k => k.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0)))
-                    .Return(new HeapHeader { Fullness = 1, LogicalPageNum = 5 });
+                    .Return(new TypedRecord<HeapHeader> { Data =new HeapHeader { Fullness = 1, LogicalPageNum = 5 }});
 
                 physManager.Expect(k => k.CreatePage(_pageType)).Return(new PageReference(6));
                 heapHeaders
                     .Expect(k => k.AddRecord(new HeapHeader { Fullness = 0, LogicalPageNum = 6 }))
-                    .Return(true);
+                    .Return(new TypedRecord<HeapHeader>());
                 
                 physManager.Expect(k => k.GetRecordAccessor<TestRecord>(new PageReference(6))).Return(realPage2);               
-                realPage2.Expect(k => k.AddRecord(tr)).Return(true);
+                realPage2.Expect(k => k.AddRecord(tr)).Return(new TypedRecord<TestRecord>());
                 physManager.Expect(k => k.GetPageInfo(new PageReference(6))).Return(pageInfo);
                 pageInfo.Expect(k => k.PageFullness).Return(.1);
-                heapHeaders.Expect(k => k.StoreRecord(new HeapHeader { LogicalPageNum = 6, Fullness = .1 }));
+                heapHeaders.Expect(k => k.StoreRecord(new TypedRecord<HeapHeader> { Data = new HeapHeader { LogicalPageNum = 6, Fullness = .1 }}));
              
             }
             using (mocks.Playback())
-                Assert.IsTrue(page.AddRecord(tr));
+                Assert.IsNotNull(page.AddRecord(tr));
            
         }
 
@@ -110,20 +110,20 @@ namespace Test.Paging.LogicalLevel
         public void AddInEmpty()
         {
             var realPage = mocks.StrictMock<IPage<TestRecord>>();
-            var pageInfo = mocks.StrictMock<IPage>();
+            var pageInfo = mocks.StrictMock<IPageInfo>();
             using (mocks.Record())           
             {
                 physManager.Expect(k => k.IteratePages(_headerType)).Return(new[] { new PageReference(1) });
                 physManager.Expect(k => k.GetRecordAccessor<HeapHeader>(new PageReference(1))).Return(heapHeaders);
              //   physManager.Expect(k => k.GetPageInfo(new PageReference(5))).Return(pageInfo);
                 heapHeaders.Expect(k => k.IterateRecords())
-                    .Return(new PageRecordReference[0]);
+                    .Return(new TypedRecord<HeapHeader>[0]);
                 physManager.Expect(k => k.CreatePage(_pageType)).Return(new PageReference(5));
              //   physManager.Expect(k => k.GetRecordAccessor<TestRecord>(new PageReference(5))).Return(realPage);
              //   pageInfo.Expect(k => k.Reference).Return(new PageReference(5));
                 heapHeaders
                     .Expect(k => k.AddRecord(Arg<HeapHeader>.Matches(k2 => k2.Fullness == 0 && k2.LogicalPageNum == 5)))
-                    .Return(true);
+                    .Return(new TypedRecord<HeapHeader>());
             
 
             }
@@ -138,16 +138,16 @@ namespace Test.Paging.LogicalLevel
              
                 physManager.Expect(k => k.GetRecordAccessor<TestRecord>(new PageReference(5))).Return(realPage);
                 physManager.Expect(k => k.GetPageInfo(new PageReference(5))).Return(pageInfo);
-                realPage.Expect(k => k.AddRecord(tr)).Return(true);
+                realPage.Expect(k => k.AddRecord(tr)).Return(new TypedRecord<TestRecord>());
                 pageInfo.Expect(k => k.PageFullness).Return(.1);
-                heapHeaders.Expect(k => k.StoreRecord(new HeapHeader { LogicalPageNum = 5, Fullness = .1 }));
+                heapHeaders.Expect(k => k.StoreRecord(new TypedRecord<HeapHeader> { Data = new HeapHeader { LogicalPageNum = 5, Fullness = .1 }}));
                 realPage.Expect(k => k.Dispose()).Repeat.Once();
             }
 
            
             using (mocks.Playback())
             {
-                Assert.IsTrue(page.AddRecord(tr));
+                Assert.IsNotNull(page.AddRecord(tr));
             }
             mocks.VerifyAll();
         }
@@ -156,15 +156,15 @@ namespace Test.Paging.LogicalLevel
         public void Modify()
         {
             var realPage = mocks.StrictMock<IPage<TestRecord>>();
-            var pageInfo = mocks.StrictMock<IPage>();
+            var pageInfo = mocks.StrictMock<IPageInfo>();
             using (mocks.Record())
             {
                 physManager.Expect(k => k.IteratePages(_headerType)).Return(new[] { new PageReference(1) });
                 physManager.Expect(k => k.GetRecordAccessor<HeapHeader>(new PageReference(1))).Return(heapHeaders);
                 heapHeaders.Expect(k => k.IterateRecords())
-                    .Return(new[] { new LogicalPositionPersistentPageRecordReference(1, 0) });
+                    .Return(new[] { new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 } }});
                 heapHeaders.Expect(k => k.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0)))
-                    .Return(new HeapHeader { Fullness = .9, LogicalPageNum = 5 });
+                    .Return(new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 }});
                        
             }
             IPage<TestRecord> page;
@@ -172,7 +172,7 @@ namespace Test.Paging.LogicalLevel
             using (mocks.Playback())
                 page = CreatePage();
             var reference =  new LogicalPositionPersistentPageRecordReference(5,4);
-            var tr = new TestRecord{ Reference = reference};
+            var tr = new TypedRecord<TestRecord>{ Reference = reference};
             realPage.Expect(k => k.Dispose()).Repeat.Any();
             pageInfo.Expect(k => k.Dispose()).Repeat.Any();
             using (mocks.Record())
@@ -195,15 +195,15 @@ namespace Test.Paging.LogicalLevel
         public void Free()
         {
             var realPage = mocks.StrictMock<IPage<TestRecord>>();
-            var pageInfo = mocks.StrictMock<IPage>();
+            var pageInfo = mocks.StrictMock<IPageInfo>();
             using (mocks.Record())
             {
                 physManager.Expect(k => k.IteratePages(_headerType)).Return(new[] { new PageReference(1) });
                 physManager.Expect(k => k.GetRecordAccessor<HeapHeader>(new PageReference(1))).Return(heapHeaders);
                 heapHeaders.Expect(k => k.IterateRecords())
-                    .Return(new[] { new LogicalPositionPersistentPageRecordReference(1, 0) });
+                    .Return(new[] { new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 } }});
                 heapHeaders.Expect(k => k.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0)))
-                    .Return(new HeapHeader { Fullness = .9, LogicalPageNum = 5 });
+                    .Return(new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 }});
              
             }
             IPage<TestRecord> page;
@@ -211,7 +211,7 @@ namespace Test.Paging.LogicalLevel
             using (mocks.Playback())
                 page = CreatePage();
             var reference = new LogicalPositionPersistentPageRecordReference(5,4);
-            var tr = new TestRecord { Reference = reference };
+            var tr = new TypedRecord<TestRecord> { Reference = reference };
             realPage.Expect(k => k.Dispose()).Repeat.Any();
             pageInfo.Expect(k => k.Dispose()).Repeat.Any();
             using (mocks.Record())
@@ -222,12 +222,12 @@ namespace Test.Paging.LogicalLevel
                 realPage.Expect(k => k.FreeRecord(tr));
                 pageInfo.Expect(k => k.Reference).Return(new PageReference(5)).Repeat.Any();
                 heapHeaders.Expect(k => k.IterateRecords())
-                    .Return(new[] { new LogicalPositionPersistentPageRecordReference(1, 0) });
+                    .Return(new[] { new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 } }});
                 heapHeaders.Expect(k => k.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0)))
-                    .Return(new HeapHeader { Fullness = .9, LogicalPageNum = 5 });
+                    .Return(new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 }});
 
                 pageInfo.Expect(k => k.PageFullness).Return(0.2);
-                heapHeaders.Expect(k => k.StoreRecord(new HeapHeader {Fullness = .2, LogicalPageNum = 5}));
+                heapHeaders.Expect(k => k.StoreRecord(new TypedRecord<HeapHeader> { Data = new HeapHeader {Fullness = .2, LogicalPageNum = 5}}));
              
             }
 
@@ -242,22 +242,22 @@ namespace Test.Paging.LogicalLevel
         public void Retrieve()
         {
             var realPage = mocks.StrictMock<IPage<TestRecord>>();
-            var pageInfo = mocks.StrictMock<IPage>();
+            var pageInfo = mocks.StrictMock<IPageInfo>();
             using (mocks.Record())
             {
                 physManager.Expect(k => k.IteratePages(_headerType)).Return(new[] { new PageReference(1) });
                 physManager.Expect(k => k.GetRecordAccessor<HeapHeader>(new PageReference(1))).Return(heapHeaders);
                 heapHeaders.Expect(k => k.IterateRecords())
-                    .Return(new[] { new LogicalPositionPersistentPageRecordReference(1, 0) });
+                    .Return(new[] { new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 }} });
                 heapHeaders.Expect(k => k.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0)))
-                    .Return(new HeapHeader { Fullness = .9, LogicalPageNum = 5 });
+                    .Return(new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 }});
             }
             IPage<TestRecord> page;
 
             using (mocks.Playback())
                 page = CreatePage();
             var reference = new LogicalPositionPersistentPageRecordReference(5,4);
-            var tr = new TestRecord { Reference = reference };
+            var tr = new TypedRecord<TestRecord> { Reference = reference };
             realPage.Expect(k => k.Dispose()).Repeat.Any();
             pageInfo.Expect(k => k.Dispose()).Repeat.Any();
             using (mocks.Record())
@@ -281,9 +281,9 @@ namespace Test.Paging.LogicalLevel
             var hh = new HeapHeader { Fullness = fullness, LogicalPageNum = pageNum };
             var data = new byte[hh.Size];
             var t = new HeapHeader();
-            t.FillBytes(hh, data);
+            t.FillBytes(ref hh, data);
          
-            t.FillFromBytes(data, t);
+            t.FillFromBytes(data,ref t);
             Assert.AreEqual(fullness,t.Fullness);
             Assert.AreEqual(pageNum, t.LogicalPageNum);
         }

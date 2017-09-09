@@ -9,6 +9,7 @@ using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.PageFactories;
 using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Events;
 
@@ -178,6 +179,8 @@ namespace File.Paging.PhysicalLevel.Implementations
                   
                     if (headerType == null)
                     {
+                        if (!_config.PageMap.ContainsKey(pageType))
+                            throw new InvalidOperationException("Unknown page type "+pageType);
                         var type = _config.PageMap[pageType];
                         var headers = _headerFactory.CreateHeaders(type, block, headerType);
                         return 
@@ -230,9 +233,9 @@ namespace File.Paging.PhysicalLevel.Implementations
             return RetrievePage<IHeaderedPage<THeader>>(pageNum, k => k.GetHeaderAccessor<THeader>);
         }
 
-        public IPage GetPageInfo(PageReference pageNum)
+        public IPageInfo GetPageInfo(PageReference pageNum)
         {
-            return RetrievePage<IPage>(pageNum, k => k.GetPageInfo);
+            return RetrievePage<IPageInfo>(pageNum, k => k.GetPageInfo);
         }
 
         public IPhysicalLocks GetPageLocks(PageReference pageNum)
@@ -240,14 +243,19 @@ namespace File.Paging.PhysicalLevel.Implementations
             return RetrievePage<IPhysicalLocks>(pageNum, k => k.GetPageLocks);
         }
 
-        public IPage<TRecord> GetRecordAccessor<TRecord>(PageReference pageNum) where TRecord : TypedRecord, new()
+        public IPage<TRecord> GetRecordAccessor<TRecord>(PageReference pageNum) where TRecord : struct
         {
             return RetrievePage<IPage<TRecord>>(pageNum, k => k.GetRecordAccessor<TRecord>);
         }
 
-        public ILogicalRecordOrderManipulation GetSorter(PageReference pageNum)
+        public IBinarySearcher<TRecord> GetBinarySearchForPage<TRecord>(PageReference pageNum) where TRecord : struct
         {
-            return RetrievePage<ILogicalRecordOrderManipulation>(pageNum, k => k.GetSorter);
+            return RetrievePage<IBinarySearcher<TRecord>>(pageNum, k => k.GetBinarySearcher<TRecord>);
+        }
+
+        public ILogicalRecordOrderManipulation GetSorter<TRecord>(PageReference pageNum) where TRecord : struct
+        {
+            return RetrievePage<ILogicalRecordOrderManipulation>(pageNum, k => k.GetSorter<TRecord>);
         }
 
         public PageReference CreatePage(byte type)

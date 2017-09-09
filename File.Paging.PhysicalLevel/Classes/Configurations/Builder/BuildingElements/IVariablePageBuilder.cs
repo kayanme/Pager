@@ -2,16 +2,10 @@ using System;
 
 namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 {
-    public interface IVariablePageBuilder<TRecordType> where TRecordType : TypedRecord, new()
+    public interface IVariablePageBuilder<TRecordType> where TRecordType : struct
     {
-        IVariablePageBuilder<TRecordType> UsingRecordDefinition(byte recordType,IVariableSizeRecordDefinition<TRecordType> recordDefinition);
-        IVariablePageBuilder<TRecordType> UsingRecordDefinition(byte recordType, IFixedSizeRecordDefinition<TRecordType> recordDefinition);
-        IVariablePageBuilder<TRecordType> UsingRecordDefinition(byte recordType, Action<TRecordType, byte[]> fillBytes,
-            Action<byte[], TRecordType> fillFromBytes, Func<TRecordType, int> size);
-
         IVariablePageBuilder<TRecordType> ApplyLogicalSortIndex();
-        IVariablePageBuilder<TRecordType> ApplyLockScheme(LockRuleset locksRuleset);
-
+        IVariablePageBuilder<TRecordType> ApplyLockScheme(LockRuleset locksRules);
         IHeaderedVariablePageBuilder<TRecordType, THeader> WithHeader<THeader>(IHeaderDefinition<THeader> headerDefinition) where THeader : new();
     }
 }

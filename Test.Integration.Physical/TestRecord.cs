@@ -6,14 +6,11 @@ using System.Threading.Tasks;
 
 namespace Test.Integration.Physical
 {
-    public class TestRecord:TypedRecord
+    public struct TestRecord
     {
         public long Value;
 
-        public TestRecord()
-        {
-            
-        }
+       
 
         public TestRecord(long value)
         {

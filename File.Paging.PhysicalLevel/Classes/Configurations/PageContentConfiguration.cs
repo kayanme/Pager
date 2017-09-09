@@ -7,7 +7,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
     internal abstract class PageContentConfiguration
     {
         public ConsistencyConfiguration ConsistencyConfiguration;
-
+     
         internal abstract Type RecordType { get; }
 
         internal ushort PageSize { get; set; }

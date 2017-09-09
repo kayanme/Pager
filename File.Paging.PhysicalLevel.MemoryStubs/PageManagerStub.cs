@@ -4,13 +4,14 @@ using System.Linq;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.MemoryStubs
 {
     internal sealed class PageManagerStub : IPageManager
     {
-        private readonly Dictionary<PageReference, IPage> _pages = new Dictionary<PageReference, IPage>();
+        private readonly Dictionary<PageReference, IPageInfo> _pages = new Dictionary<PageReference, IPageInfo>();
         private readonly Dictionary<PageReference, object> _headeredPages = new Dictionary<PageReference, object>();
         private readonly Dictionary<PageReference, byte> _pageTypes = new Dictionary<PageReference, byte>();
         private readonly PageManagerConfiguration _config;
@@ -35,7 +36,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             }
         }
 
-        public IPage GetPageInfo(PageReference pageNum)
+        public IPageInfo GetPageInfo(PageReference pageNum)
         {
             lock (_pages)
             {
@@ -54,7 +55,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             throw new NotImplementedException();
         }
 
-        public IPage<TRecord> GetRecordAccessor<TRecord>(PageReference pageNum) where TRecord : TypedRecord, new()
+        public IPage<TRecord> GetRecordAccessor<TRecord>(PageReference pageNum) where TRecord : struct
         {
             lock (_pages)
             {
@@ -68,7 +69,12 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             }
         }
 
-        public ILogicalRecordOrderManipulation GetSorter(PageReference pageNum)
+        public IBinarySearcher<TRecord> GetBinarySearchForPage<TRecord>(PageReference pageNum) where TRecord : struct
+        {
+            throw new NotImplementedException();
+        }
+
+        public ILogicalRecordOrderManipulation GetSorter<TRecord>(PageReference pageNum) where TRecord : struct
         {
             throw new NotImplementedException();
         }
@@ -86,7 +92,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
 
                     if (!_pages.ContainsKey(r))
                     {
-                        var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), r, pageConfig, _size) as IPage;
+                        var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), r, pageConfig, _size) as IPageInfo;
                         _pageTypes.Add(r, type);
                         if (headerConfig == null)
                         {
@@ -137,7 +143,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                 }
                 var headerConfig = _config.HeaderConfig.ContainsKey(type) ? _config.HeaderConfig[type] : null;
                 var pageConfig = _config.PageMap[type];
-                var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), pageNum, pageConfig, _size) as IPage;            
+                var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), pageNum, pageConfig, _size) as IPageInfo;            
                 if (headerConfig == null)
                 {
                     _pages[pageNum]  = page;                   

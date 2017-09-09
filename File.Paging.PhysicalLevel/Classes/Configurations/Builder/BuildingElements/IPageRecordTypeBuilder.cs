@@ -3,16 +3,15 @@ using System;
 namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 {
    
-    public interface IPageRecordTypeBuilder<TRecordType> where TRecordType : TypedRecord, new()
+    public interface IPageRecordTypeBuilder<TRecordType> where TRecordType : struct
     {
         IFixedPageBuilder<TRecordType> UsingRecordDefinition(IFixedSizeRecordDefinition<TRecordType> recordDefinition);
-        IFixedPageBuilder<TRecordType> UsingRecordDefinition(Action<TRecordType, byte[]> fillBytes,
-            Action<byte[], TRecordType> fillFromBytes, int size);
+        IFixedPageBuilder<TRecordType> UsingRecordDefinition(Getter<TRecordType> fillBytes,
+            Setter<TRecordType> fillFromBytes, int size);
 
-
-        IVariablePageBuilder<TRecordType> WithMultipleTypeRecord(Func<TRecordType, byte> discriminatorFunction);
-        IVariablePageWithOneRecordTypeBuilder<TRecordType> UsingRecordDefinition(IVariableSizeRecordDefinition<TRecordType> recordDefinition);
-        IVariablePageWithOneRecordTypeBuilder<TRecordType> UsingRecordDefinition(Action<TRecordType, byte[]> fillBytes,
-            Action<byte[], TRecordType> fillFromBytes, Func<TRecordType, int> size);
+      
+        IVariablePageBuilder<TRecordType> UsingRecordDefinition(IVariableSizeRecordDefinition<TRecordType> recordDefinition);
+        IVariablePageBuilder<TRecordType> UsingRecordDefinition(Getter<TRecordType> fillBytes,
+            Setter<TRecordType> fillFromBytes, Func<TRecordType, int> size);
     }
 }

@@ -2,21 +2,26 @@
 
 namespace Test.Paging.LogicalLevel
 {
-    public class TestRecord:TypedRecord
+    public struct TestRecord
     {
         public int Order;
 
+        public TestRecord(int order)
+        {
+            Order = order;
+        }
         public override bool Equals(object obj)
         {
-            var t = obj as TestRecord;
-            if (t == null)
+            if (!(obj is TestRecord))
                 return false;
-            return Order == t.Order && Reference?.PersistentRecordNum == t.Reference?.PersistentRecordNum;
+            var t = (TestRecord)obj;
+           
+            return Order == t.Order;
         }
 
         public override int GetHashCode()
         {
-            return Order.GetHashCode() ^ Reference.PersistentRecordNum.GetHashCode();
+            return Order.GetHashCode();
         }
     }
 }

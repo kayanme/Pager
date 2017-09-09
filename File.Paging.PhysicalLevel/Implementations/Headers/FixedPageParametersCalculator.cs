@@ -14,11 +14,11 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
         private readonly ushort _fixedRecordSize;
         private readonly ushort _bitPerRecordInHeader;
         public virtual int PamSize { get; private set; }
+        public virtual int PamIntLength { get; private set; }
         public virtual ushort MaxRecordCount { get; private set; }
-        public virtual int LastMask { get; private set; }
-        public virtual int[] PageAllocationMap { get; private set; }
+        public virtual int LastMask { get; private set; }       
         public virtual int UsedRecords { get; private set; }
-
+        public virtual byte BitsUnusedInLastInt { get; private set; }
         public virtual ushort PageSize => _pageSize;
 
         public virtual ushort FixedRecordSize => _fixedRecordSize;
@@ -41,23 +41,20 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
                 int markUsedBecauseOfIntOverhead;
                 if (hasIntOverhead)
                 {
-                    PageAllocationMap = new int[PamSize / 4 + 1];
+                    PamIntLength = PamSize / 4 + 1;                 
                     markUsedBecauseOfIntOverhead = (4 - (PamSize % 4)) * 8;
                 }
                 else
                 {
-                    PageAllocationMap = new int[PamSize / 4];
+                    PamIntLength = PamSize / 4;               
                     markUsedBecauseOfIntOverhead = 0;
                 }
                 if (hasByteOverBitsOverhead || hasIntOverhead)            
                 {                                     
                     var markUsedBecauseOfBitOverhead = PamSize * 8 - MaxRecordCount * _bitPerRecordInHeader;
-                    var countOfBitToMarkUsed = markUsedBecauseOfBitOverhead + markUsedBecauseOfIntOverhead;
-                    LastMask = int.MinValue >> (countOfBitToMarkUsed-1);                    
-                }
-               
-
-              
+                    BitsUnusedInLastInt = (byte)(markUsedBecauseOfBitOverhead + markUsedBecauseOfIntOverhead);
+                    LastMask = int.MinValue >> (BitsUnusedInLastInt - 1);                    
+                }                             
             }
         }
 
@@ -73,32 +70,27 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
             }
         }
 
-        public unsafe void ProcessPam(byte[] rawPam)
+        public int CalculateUsed(byte[] rawPam)
         {
-            Debug.Assert(rawPam.Length == PamSize, "rawPam.Length == PamSize");
-            Debug.Assert(BitConverter.IsLittleEndian, "BitConverter.IsLittleEndian");
-            //Array.Resize(ref rawPam, PageAllocationMap.Length * 4);
-            //for (var index = 0; index < PageAllocationMap.Length; index++)
-            //{
-            //    var data = (rawPam[index * 4+3] << 24)
-            //             | (rawPam[index * 4 + 2] << 16)
-            //             | (rawPam[index * 4 + 1] << 8)
-            //             | (rawPam[index * 4 ]);
-            //    var bv = new BitVector32(data);
-            //    var used = Enumerable.Range(0, 32).Select(k => bv[1 << k]).Count(k => k);
-            //    UsedRecords += used;
-            //    PageAllocationMap[index] = data;
-            //}
-            foreach (byte t in rawPam)
+            UsedRecords = 0;
+            for (int i = 0; i < PamSize; i++)
             {
-                UsedRecords += _sizes[t];
+                UsedRecords += _sizes[rawPam[i]];
             }
+            return UsedRecords;
+        }
 
-            fixed (void* src = rawPam)
-            fixed (void* dst = PageAllocationMap)
+        public  unsafe int[] ProcessPam(byte* rawPam)
+        {
+          
+            Debug.Assert(BitConverter.IsLittleEndian, "BitConverter.IsLittleEndian");
+            
+            var pm = new int[PamIntLength];
+            fixed (void* dst = pm)
             {
-                Buffer.MemoryCopy(src, dst, PamSize, PamSize);
+                Buffer.MemoryCopy(rawPam, dst, PamSize, PamSize);
             }
+            return pm;
         }
     }
 }

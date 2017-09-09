@@ -54,6 +54,7 @@
     <Compile Include="Classes\ContiniousHeapPage\VirtualContiniousPage.cs" />
     <Compile Include="Classes\Factories\ILogicalPageFactory.cs" />
     <Compile Include="Classes\Factories\LogicalPageFactory.cs" />
+    <Compile Include="Classes\OrderedPage\SortStateContoller.cs" />
     <Compile Include="Classes\Transactions\NoTransactionConfiguration.cs" />
     <Compile Include="Classes\OrderedPage\OrderedLogicalPageConfiguration.cs" />
     <Compile Include="Classes\Transactions\TransactionConfigurationWithHeader.cs" />

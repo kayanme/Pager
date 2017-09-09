@@ -1,6 +1,6 @@
 namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 {
-    public interface IFixedPageBuilder<TRecordType> where TRecordType :TypedRecord,new()
+    public interface IFixedPageBuilder<TRecordType> where TRecordType :struct
     {
         IFixedPageBuilder<TRecordType> ApplyLogicalSortIndex();
        IFixedPageBuilder<TRecordType> ApplyLockScheme(LockRuleset locksRuleset);

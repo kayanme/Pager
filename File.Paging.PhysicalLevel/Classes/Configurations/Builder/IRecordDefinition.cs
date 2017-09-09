@@ -1,8 +1,8 @@
 namespace File.Paging.PhysicalLevel.Classes.Configurations.Builder
 {
-    public interface IRecordDefinition<TRecordType> where TRecordType : TypedRecord, new()
+    public interface IRecordDefinition<TRecordType> where TRecordType :  new()
     {
-        void FillBytes(TRecordType record, byte[] targetArray);
-        void FillFromBytes(byte[] sourceArray, TRecordType record);
+        void FillBytes(ref TRecordType record, byte[] targetArray);
+        void FillFromBytes(byte[] sourceArray,ref TRecordType record);
     }
 }

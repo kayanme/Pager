@@ -47,9 +47,9 @@ namespace Test.Pager.Configurations
 
         [TestMethod]        
         public void DefineOnlyNumberTypeAndFixedRecord()
-        {
-            Action<TestRecord,byte[]> filler = (a, b) => { b[0] = 1; };
-            Action<byte[], TestRecord> getter = (a, b) => { a[0] = 2; };
+         {
+           Getter<TestRecord> filler = (ref TestRecord a,byte[] b) => { b[0] = 1; };
+             Setter<TestRecord> getter = (byte[] a,ref TestRecord b) => { a[0] = 2; };
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
                 dp => dp(1).AsPageWithRecordType<TestRecord>().UsingRecordDefinition(filler,getter,10));
 
@@ -61,8 +61,8 @@ namespace Test.Pager.Configurations
         [TestMethod]
         public void DefineOnlyNumberTypeAndOneRecordVariable()
         {
-            Action<TestRecord, byte[]> filler = (a, b) => { b[0] = 1; };
-            Action<byte[], TestRecord> getter = (a, b) => { a[0] = 2; };
+            Getter<TestRecord> filler = (ref TestRecord a, byte[] b) => { b[0] = 1; };
+            Setter<TestRecord> getter = (byte[] a, ref TestRecord b) => { a[0] = 2; };
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
                 dp => dp(1).AsPageWithRecordType<TestRecord>().UsingRecordDefinition(filler, getter, (r)=>10));
 
@@ -153,26 +153,25 @@ namespace Test.Pager.Configurations
             VerifyHeaderCommon(tc);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void DefineOnlyNumberTypeAndMultipleTypes()
-        {            
-            var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
-                dp => dp(1).AsPageWithRecordType<TestRecord>().WithMultipleTypeRecord(k=>1));
-
-            tc.Verify();
-
-            
-        }
+      
 
         private static IVariableSizeRecordDefinition<TestRecord> VariableRecordDefinitionCommon()
         {
-            Action<TestRecord, byte[]> filler = (a, b) => { b[0] = 1; };
-            Action<byte[], TestRecord> getter = (a, b) => { a[0] = 2; };
+            void Filler(ref TestRecord a, byte[] b)
+            {
+                b[0] = 1;
+            }
+
+            void Getter(byte[] a,ref TestRecord b)
+            {
+                a[0] = 2;
+            }
+
+            var t = default(TestRecord);
             var ti = MockRepository.GenerateStub<IVariableSizeRecordDefinition<TestRecord>>();
-            ti.Expect(k => k.FillBytes(null, null)).IgnoreArguments().Do(filler);
-            ti.Expect(k => k.FillFromBytes(null, null)).IgnoreArguments().Do(getter);
-            ti.Expect(k => k.Size(null)).IgnoreArguments().Return(10);
+            ti.Expect(k => k.FillBytes(ref t, null)).IgnoreArguments().Do((Getter<TestRecord>)Filler);
+            ti.Expect(k => k.FillFromBytes(null,ref t)).IgnoreArguments().Do((Setter<TestRecord>)Getter);
+            ti.Expect(k => k.Size(default(TestRecord))).IgnoreArguments().Return(10);
             return ti;
         }
 
@@ -195,15 +194,15 @@ namespace Test.Pager.Configurations
             var c2 = c as VariableRecordTypePageConfiguration<TestRecord>;
             Assert.IsNotNull(c2.RecordMap);
             Assert.AreEqual(slotInfo, c2.WithLogicalSort);
-            Assert.AreEqual(1, c2.RecordMap.Count);
-            Assert.IsTrue(c2.RecordMap.ContainsKey(1));
-            var c3 = c2.RecordMap[1];
+         
+            var c3 = c2.RecordMap;
 
-            Assert.AreEqual(10, c3.GetSize(null));
+            Assert.AreEqual(10, c3.GetSize(default(TestRecord)));
             var t = new byte[1];
-            c3.FillBytes(null, t);
+            var t2 = default(TestRecord);
+            c3.FillBytes(ref t2, t);
             Assert.AreEqual(1, t[0]);
-            c3.FillFromBytes(t, null);
+            c3.FillFromBytes(t,ref t2);
             Assert.AreEqual(2, t[0]);
         }
 
@@ -225,20 +224,22 @@ namespace Test.Pager.Configurations
             Assert.IsNotNull(c2.RecordMap);
             Assert.AreEqual(10, c2.RecordMap.GetSize);
             var t = new byte[1];
-            c2.RecordMap.FillBytes(null, t);
+            var t2 = default(TestRecord);
+            c2.RecordMap.FillBytes(ref t2, t);
             Assert.AreEqual(1, t[0]);
-            c2.RecordMap.FillFromBytes(t, null);
+            c2.RecordMap.FillFromBytes(t,ref t2);
             Assert.AreEqual(2, t[0]);
         }
 
         [TestMethod]
         public void DefineOnlyNumberTypeAndFixedRecordAlt()
         {
-            Action<TestRecord, byte[]> filler = (a, b) => { b[0] = 1; };
-            Action<byte[], TestRecord> getter = (a, b) => { a[0] = 2; };
+            Getter<TestRecord> filler = (ref TestRecord a, byte[] b) => { b[0] = 1; };
+            Setter<TestRecord> getter = (byte[] a, ref TestRecord b) => { a[0] = 2; };
             var definition = MockRepository.GenerateStub<IFixedSizeRecordDefinition<TestRecord>>();
-            definition.Expect(k => k.FillBytes(null, null)).IgnoreArguments().Do(filler);
-            definition.Expect(k => k.FillFromBytes(null, null)).IgnoreArguments().Do(getter);
+            var t2 = default(TestRecord);
+            definition.Expect(k => k.FillBytes(ref t2, null)).IgnoreArguments().Do(filler);
+            definition.Expect(k => k.FillFromBytes(null,ref t2)).IgnoreArguments().Do(getter);
             definition.Expect(k => k.Size).Return(10);
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
                 dp => dp(1).AsPageWithRecordType<TestRecord>().UsingRecordDefinition(definition));
@@ -252,11 +253,12 @@ namespace Test.Pager.Configurations
         [TestMethod]
         public void DefineOnlyNumberTypeAndFixedRecordAndConsistency()
         {
-            Action<TestRecord, byte[]> filler = (a, b) => { b[0] = 1; };
-            Action<byte[], TestRecord> getter = (a, b) => { a[0] = 2; };
+            Getter<TestRecord> filler = (ref TestRecord a, byte[] b) => { b[0] = 1; };
+            Setter<TestRecord> getter = (byte[] a, ref TestRecord b) => { a[0] = 2; };
             var definition = MockRepository.GenerateStub<IFixedSizeRecordDefinition<TestRecord>>();
-            definition.Expect(k => k.FillBytes(null, null)).IgnoreArguments().Do(filler);
-            definition.Expect(k => k.FillFromBytes(null, null)).IgnoreArguments().Do(getter);
+            var t2 = default(TestRecord);
+            definition.Expect(k => k.FillBytes(ref t2, null)).IgnoreArguments().Do(filler);
+            definition.Expect(k => k.FillFromBytes(null, ref t2)).IgnoreArguments().Do(getter);
             definition.Expect(k => k.Size).Return(10);
             var locks = MockRepository.GenerateStub<LockRuleset>();
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
@@ -338,30 +340,33 @@ namespace Test.Pager.Configurations
             Assert.IsNotNull(c2.Header);
             Assert.AreEqual(10, c2.Header.GetSize);
             var t2 = new byte[1];
-            c2.Header.FillBytes(null, t2);
+            var t3 = new TestHeader{Value = 3};
+            c2.Header.FillBytes(ref t3, t2);
             Assert.AreEqual(3, t2[0]);
-            c2.Header.FillFromBytes(t2, null);
+            c2.Header.FillFromBytes(t2, ref t3);
             Assert.AreEqual(4, t2[0]);
         }
 
         private static IHeaderDefinition<TestHeader> CommonHeaderDefinition()
         {
-            Action<TestHeader, byte[]> filler = (a, b) => { b[0] = 3; };
-            Action<byte[], TestHeader> getter = (a, b) => { a[0] = 4; };
+            Getter<TestHeader> filler = (ref TestHeader a, byte[] b) => { b[0] = 3; };
+            Setter<TestHeader> getter = (byte[] a, ref TestHeader b) => { a[0] = 4; };
             var t = MockRepository.GenerateStub<IHeaderDefinition<TestHeader>>();
-            t.Expect(k => k.FillBytes(null, null)).IgnoreArguments().Do(filler);
-            t.Expect(k => k.FillFromBytes(null, null)).IgnoreArguments().Do(getter);
+            var t3 = default(TestHeader);
+            t.Expect(k => k.FillBytes(ref t3, null)).IgnoreArguments().Do(filler);
+            t.Expect(k => k.FillFromBytes(null, ref t3)).IgnoreArguments().Do(getter);
             t.Expect(k => k.Size).Return(10);
             return t;
         }
 
         private static IFixedSizeRecordDefinition<TestRecord> CommonFixedRecordDefinition()
         {
-            Action<TestRecord, byte[]> filler = (a, b) => { b[0] = 1; };
-            Action<byte[], TestRecord> getter = (a, b) => { a[0] = 2; };
+            Getter<TestRecord> filler = (ref TestRecord a, byte[] b) => { b[0] = 1; };
+            Setter<TestRecord> getter = (byte[] a, ref TestRecord b) => { a[0] = 2; };
             var definition = MockRepository.GenerateStub<IFixedSizeRecordDefinition<TestRecord>>();
-            definition.Expect(k => k.FillBytes(null, null)).IgnoreArguments().Do(filler);
-            definition.Expect(k => k.FillFromBytes(null, null)).IgnoreArguments().Do(getter);
+            var t3 = default(TestRecord);
+            definition.Expect(k => k.FillBytes(ref t3, null)).IgnoreArguments().Do(filler);
+            definition.Expect(k => k.FillFromBytes(null, ref t3)).IgnoreArguments().Do(getter);
             definition.Expect(k => k.Size).Return(10);
             return definition;
         }

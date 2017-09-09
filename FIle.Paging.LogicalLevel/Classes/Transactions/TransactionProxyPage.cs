@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Transactions;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 
 namespace FIle.Paging.LogicalLevel.Classes.Transactions
 {
-    internal sealed class TransactionProxyPage<TRecord> : IPage<TRecord> where TRecord : TypedRecord, new()
+    internal sealed class TransactionProxyPage<TRecord> : IPage<TRecord> where TRecord : struct
     {
         private readonly IPage<TRecord> _inner;
         private readonly ConcurrentDictionary<Transaction, TransactionContentResource<TRecord>> _transactionBlocks = new ConcurrentDictionary<Transaction, TransactionContentResource<TRecord>>();
@@ -22,7 +23,7 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
 
       
 
-        public bool AddRecord(TRecord type)
+        public TypedRecord<TRecord> AddRecord(TRecord type)
         {
             var store = GetStore();
             if (store != null)
@@ -37,21 +38,26 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
             throw new NotImplementedException();
         }
 
+        public IBinarySearcher<TRecord> BinarySearch()
+        {
+            throw new NotImplementedException();
+        }
+
         public void Flush()
         {
             throw new NotImplementedException();
         }
 
-        public void FreeRecord(TRecord record)
+        public void FreeRecord(TypedRecord<TRecord> record)
         {
             var store = GetStore();
             if (store != null)
                 store.FreeRecord(record);
             else
-                _inner.AddRecord(record);
+                _inner.AddRecord(record.Data);
         }
 
-        public TRecord GetRecord(PageRecordReference reference)
+        public TypedRecord<TRecord> GetRecord(PageRecordReference reference)
         {
             var store = GetStore();
             if (store != null)
@@ -60,7 +66,7 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
                 return _inner.GetRecord(reference);
         }
 
-        public IEnumerable<PageRecordReference> IterateRecords()
+        public IEnumerable<TypedRecord<TRecord>> IterateRecords()
         {
             var store = GetStore();
             if (store != null)
@@ -69,7 +75,7 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
                 return _inner.IterateRecords();
         }
 
-        public void StoreRecord(TRecord record)
+        public void StoreRecord(TypedRecord<TRecord> record)
         {
             var store = GetStore();
             if (store != null)

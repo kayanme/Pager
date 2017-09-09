@@ -7,7 +7,7 @@
 
 //namespace File.Paging.PhysicalLevel.Classes.Pages
 //{
-//    internal sealed class ComplexRecordTypePage<TRecordType> : TypedPageBase where TRecordType : TypedRecord, new()
+//    internal sealed class ComplexRecordTypePage<TRecordType> : TypedPageBase where TRecordType : struct
 //    {
        
 //        private readonly VariableRecordTypePageConfiguration<TRecordType> _config;

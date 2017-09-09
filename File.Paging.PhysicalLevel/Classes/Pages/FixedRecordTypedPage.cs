@@ -1,98 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using File.Paging.PhysicalLevel.Classes.Configurations;
+using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using File.Paging.PhysicalLevel.Classes.References;
 using File.Paging.PhysicalLevel.Contracts;
+using File.Paging.PhysicalLevel.Contracts.Internal;
+using File.Paging.PhysicalLevel.Implementations.Serialization;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase,IPage<TRecordType> where TRecordType : TypedRecord, new()
+    internal sealed class FixedRecordTypedPage<TRecordType> : TypedPageBase,IPage<TRecordType> where TRecordType : struct
     {
         public IPageHeaders Headers { get; }
-        public IPageAccessor Accessor { get; }
-      
-     
-     
-  
-
+        private readonly IRecordAcquirer<TRecordType> _recordGetter;             
         private readonly FixedRecordTypePageConfiguration<TRecordType> _config;
-        internal FixedRecordTypedPage(IPageHeaders headers, IPageAccessor accessor, PageReference reference, FixedRecordTypePageConfiguration<TRecordType> config,Action actionToClean):base(reference, actionToClean)
+        private KeyPersistanseType _keyType;
+        internal FixedRecordTypedPage(IPageHeaders headers,
+            IRecordAcquirer<TRecordType> recordGetter, PageReference reference, 
+            FixedRecordTypePageConfiguration<TRecordType> config,
+            Action actionToClean):base(reference, actionToClean)
         {
             Headers = headers;
-            Accessor = accessor;
-            
-        
-
+            _recordGetter = recordGetter;                
             _config = config;
-        }              
-       
+            _keyType = config.WithLogicalSort ? KeyPersistanseType.Logical : KeyPersistanseType.Physical;
+        }
 
-        public  TRecordType GetRecord(PageRecordReference reference)
+
+        public  TypedRecord<TRecordType> GetRecord(PageRecordReference reference)
         {
             CheckReferenceToPageAffinity(reference);
             if (reference is NullPageRecordReference)
                 return null;
-            
-                Debug.Assert(reference is PhysicalPositionPersistentPageRecordReference, "reference is PhysicalPositionPersistentPageRecordReference");
-                if (!Headers.IsRecordFree(reference.PersistentRecordNum))
-                {                    
-                    var offset = reference.PersistentRecordNum;
-                    var size = Headers.RecordSize(reference.PersistentRecordNum);
-                    var bytes = Accessor.GetByteArray(offset, size);
-                    var r = new TRecordType()
-                    {
-                        Reference = reference
-                    };
-                    _config.RecordMap.FillFromBytes(bytes, r);
-                    return r;
-                }
-                return null;
-          
+
+            Debug.Assert(reference is PhysicalPositionPersistentPageRecordReference,
+                "reference is PhysicalPositionPersistentPageRecordReference");
+            if (!Headers.IsRecordFree(reference.PersistentRecordNum))
+            {
+                var offset = reference.PersistentRecordNum;
+                var size = Headers.RecordSize(reference.PersistentRecordNum);
+                TypedRecord<TRecordType> r2 = new TypedRecord<TRecordType>{Reference = reference};
+                r2.Data=_recordGetter.GetRecord(offset, size);               
+                return r2;
+            }
+            return null;
+
         }
 
-        public  bool AddRecord(TRecordType type)
+        public TypedRecord<TRecordType> AddRecord(TRecordType type)
         {
-          
-                var physicalRecordNum = Headers.TakeNewRecord(0, (ushort) _config.RecordMap.GetSize);
-                if (physicalRecordNum == -1)
-                    return false;
-                SetRecord(physicalRecordNum, type);
-                if (type.Reference == null)
-                    type.Reference = new PhysicalPositionPersistentPageRecordReference(Reference, (ushort)physicalRecordNum);
-                return true;
-          
+
+            var physicalRecordNum = Headers.TakeNewRecord(0, (ushort) _config.RecordMap.GetSize);
+            if (physicalRecordNum == -1)
+                return null;
+            SetRecord(physicalRecordNum, type);
+            var d = new TypedRecord<TRecordType>
+            {
+                Data = type,
+                Reference = new PhysicalPositionPersistentPageRecordReference(Reference, (ushort) physicalRecordNum)
+            };
+            return d;
+
         }
 
-        private void SetRecord(int logicalRecordNum, TRecordType record)
+        private  void SetRecord(int logicalRecordNum, TRecordType record)
         {
             var recordStart = Headers.RecordShift((ushort)logicalRecordNum);
             var recordSize = Headers.RecordSize((ushort)logicalRecordNum);
-            var bytes = Accessor.GetByteArray(recordStart, recordSize);
-            _config.RecordMap.FillBytes(record, bytes);
-            Accessor.SetByteArray(bytes, recordStart, recordSize);
+
+            _recordGetter.SetRecord(recordStart, recordSize,record);
         }
 
-        private void SetRecord(ushort physicalRecordNum, TRecordType record)
+        private  void SetRecord(ushort physicalRecordNum, TRecordType record)
         {
-
-            var recordSize = _config.RecordMap.GetSize;
-            var bytes = Accessor.GetByteArray(physicalRecordNum, recordSize);
-            _config.RecordMap.FillBytes(record, bytes);
-            Accessor.SetByteArray(bytes, physicalRecordNum, recordSize);
+            var recordSize = (ushort) _config.RecordMap.GetSize;
+            _recordGetter.SetRecord(physicalRecordNum, recordSize, record);
         }
 
-        public  void StoreRecord(TRecordType record)
+        public  void StoreRecord(TypedRecord<TRecordType> record)
         {
             if (record.Reference.Page != Reference)
                 throw new ArgumentException();
           
                 Debug.Assert(record.Reference is PhysicalPositionPersistentPageRecordReference, "record.Reference is PhysicalPositionPersistentPageRecordReference");
-                SetRecord(record.Reference.PersistentRecordNum, record);
+                SetRecord(record.Reference.PersistentRecordNum, record.Data);
           
         }
 
-        public void FreeRecord(TRecordType record)
+        public void FreeRecord(TypedRecord<TRecordType> record)
         {
             if (record == null)
                 throw new ArgumentNullException(nameof(record));
@@ -104,19 +102,29 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             record.Reference = new NullPageRecordReference(Reference);
 
         }
+    
 
-        public  IEnumerable<PageRecordReference> IterateRecords()
-        {
+        public IEnumerable<TypedRecord<TRecordType>> IterateRecords()
+        {          
+            var s = (ushort) _config.RecordMap.GetSize;
+                       
             foreach (var nonFreeRecord in Headers.NonFreeRecords())
             {
-                yield return new PhysicalPositionPersistentPageRecordReference(Reference,nonFreeRecord);
-            }
+                var shift = Headers.RecordShift(nonFreeRecord);
+                var t = _recordGetter.GetRecord(shift, s);
+                var reference = PageRecordReference.CreateReference(Reference,nonFreeRecord,_keyType);
+                yield return new TypedRecord<TRecordType>{Data = t,Reference = reference};
+            }           
+
         }
+
+      
 
         public void Flush()
         {
-            Accessor.Flush();
+            throw new NotImplementedException();
         }
+
 
         ~FixedRecordTypedPage()
         {

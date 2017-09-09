@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using File.Paging.PhysicalLevel.Classes;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace ConsoleApp1
@@ -16,61 +19,35 @@ namespace ConsoleApp1
             BenchmarkDotNet.Running.BenchmarkRunner.Run<A>();
         }
     }
+    [Serializable]
+    public class Ser
+    {
+        public long E;
+    }
 
     public class A
     {
-        private static int _i=0;
-
-        private static int E()
-        {
-            return _i++;
-        }
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static T E2<T>()
-        {
-            if (typeof(T) == typeof(int))
-                return (T)(object) (_i++);
-            return default(T);
-        }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static T E3<T>()
-        {
-            if (typeof(T) == typeof(int))
-                return (T)(object)(_i++);
-            return default(T);
-        }
-
-        [MethodImpl(MethodImplOptions.NoOptimization)]
-        private static T E4<T>()
-        {
-            if (typeof(T) == typeof(int))
-                return (T)(object)(_i++);
-            return default(T);
-        }
-
+        private BinaryFormatter _formatter = new BinaryFormatter();
         [Benchmark]
-        public object Native()
+        public object Bin()
         {
-            return E();
+            var s = new Ser{E = 35};
+            var d = new byte[8];
+            using (var str = new MemoryStream(d))
+            {
+                _formatter.Serialize(str,s);
+                str.Position = 0;
+               return _formatter.Deserialize(str);
+            }
         }
-
         [Benchmark]
-        public object NoInl()
+        public object My()
         {
-            return E2<int>();
-        }
-
-        [Benchmark]
-        public object Aggr()
-        {
-            return E3<int>();
-        }
-
-        [Benchmark]
-        [MethodImpl(MethodImplOptions.NoOptimization)]
-        public object NoOpt()
-        {
-            return E4<int>();
+            var s = new Ser { E = 35 };
+            var d = new byte[4];
+            RecordUtils.ToBytes(ref s.E,d,0);
+            RecordUtils.FromBytes(d,0,ref s.E);
+            return s;
         }
     }
 

@@ -5,7 +5,7 @@ using FIle.Paging.LogicalLevel.Classes.Transactions;
 
 namespace FIle.Paging.LogicalLevel.Classes.Configurations
 {
-    public sealed class TransactionConfigurationWithHeader<TRecord,THeader> : TransactionParticipancyConfiguration where TRecord : TypedRecord, new() where THeader:new()
+    public sealed class TransactionConfigurationWithHeader<TRecord,THeader> : TransactionParticipancyConfiguration where TRecord : struct where THeader:new()
     {
         public int ReadLockNumber;
         public int WriteLockNumber;

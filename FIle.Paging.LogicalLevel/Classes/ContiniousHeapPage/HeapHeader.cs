@@ -9,7 +9,7 @@ using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
 
 namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
 {
-    internal sealed class HeapHeader:TypedRecord,IFixedSizeRecordDefinition<HeapHeader>
+    internal struct HeapHeader:IFixedSizeRecordDefinition<HeapHeader>
     {
         public uint LogicalPageNum;
         public double Fullness;       
@@ -34,7 +34,7 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
             }           
         }
 
-        public void FillBytes(HeapHeader record, byte[] targetArray)
+        public void FillBytes(ref HeapHeader record, byte[] targetArray)
         {
             var b = BitConverter.GetBytes(record.LogicalPageNum);
             b[3] &= 0xC;
@@ -57,7 +57,7 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
             Array.Copy(b,targetArray,4);
         }
 
-        public void FillFromBytes(byte[] sourceArray, HeapHeader record)
+        public void FillFromBytes(byte[] sourceArray,ref HeapHeader record)
         {
             var fb = sourceArray[3];
             sourceArray[3] &= 0xC;

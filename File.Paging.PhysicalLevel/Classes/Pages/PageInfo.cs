@@ -7,7 +7,7 @@ using File.Paging.PhysicalLevel.Contracts;
 
 namespace File.Paging.PhysicalLevel.Classes.Pages
 {
-    internal class PageInfo: TypedPageBase,IPage
+    internal class PageInfo: TypedPageBase,IPageInfo
     {
         private IPageHeaders _headers;
         private readonly ushort _pageSize;

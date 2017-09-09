@@ -8,7 +8,7 @@ namespace File.Paging.PhysicalLevel.Classes.Configurations
         private readonly Func<TRecordType, int> _sizeGet;
 
     
-        public VariableSizeRecordDeclaration(Action<TRecordType, byte[]> fillBytes, Action<byte[], TRecordType> fillFromByte, 
+        public VariableSizeRecordDeclaration(Getter<TRecordType> fillBytes, Setter<TRecordType> fillFromByte, 
             Func<TRecordType, int> sizeGet):base(fillBytes,fillFromByte)
         {
            

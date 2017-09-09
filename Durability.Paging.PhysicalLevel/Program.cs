@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Contracts;
@@ -64,32 +65,33 @@ namespace Durability.Paging.PhysicalLevel
         {
             TestRecord rec = new TestRecord { Data = Guid.NewGuid() };
             _log($"Adding {rec.Data}");
-            while (!_lastunempty.AddRecord(rec))
-                _lastunempty = _pageManager.CreatePage(2) as IPage<TestRecord>;
+            TypedRecord<TestRecord> trec;
+            while ((trec = _lastunempty.AddRecord(rec))!=null)
+                _lastunempty = _pageManager.GetRecordAccessor<TestRecord>( _pageManager.CreatePage(2));
             _log($"Added {rec.Data}");
-            _store.Add(rec.Reference, rec);
+            _store.Add(trec.Reference, rec);
         }
 
         private static void ProcessUpdate()
         {
             var rec = _store.SelectRandom();
-            if (rec == null)
+            if (rec.Item2.Data == default(Guid))
                 return;
             var newData = Guid.NewGuid();
-            var old = new TestRecord { Data = rec.Data };
+            var old = new TestRecord { Data = rec.Item2.Data };
             _log($"{old.Data} becoming {newData}");
-            if (rec == null)
+            if (rec.Item2.Data == default(Guid))
                 return;
-            var page = _pageManager.GetRecordAccessor<TestRecord>(rec.Reference.Page);
-            var record = page.GetRecord(rec.Reference);
+            var page = _pageManager.GetRecordAccessor<TestRecord>(rec.Item1.Page);
+            var record = page.GetRecord(rec.Item1);
             if (record == null)
-                _log($"{rec.Data} found deleted");
+                _log($"{rec.Item2.Data} found deleted");
             else
             {
-                record.Data = newData;
+                record.Data.Data = newData;
                 page.StoreRecord(record);
                 Console.WriteLine($"{old.Data} became {record.Data}");
-                _store.Update(rec.Reference, old, record);
+                _store.Update(rec.Item1, old, record.Data);
             }
         }
 
@@ -98,15 +100,15 @@ namespace Durability.Paging.PhysicalLevel
             var rec = _store.SelectRandom();
             if (rec == null)
                 return;
-            _log($"deleting {rec.Data}");
+            _log($"deleting {rec.Item2.Data}");
             if (rec == null)
                 return;
-            var page = _pageManager.GetRecordAccessor<TestRecord>(rec.Reference.Page);
-            var old = rec.Reference.Copy();
+            var page = _pageManager.GetRecordAccessor<TestRecord>(rec.Item1.Page);
+            var old = rec.Item1.Copy();
             var t = page.GetRecord(old);
             page.FreeRecord(t);
-            _log($"deleted {rec.Data}");
-            _store.Delete(rec.Reference, rec);
+            _log($"deleted {rec.Item2.Data}");
+            _store.Delete(rec.Item1, rec.Item2);
         }
     }
 }
