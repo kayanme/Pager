@@ -7,6 +7,9 @@ namespace FIle.Paging.LogicalLevel.Contracts
     {
 
         TypedRecord<TRecord> FindByKey(TKey key);
+        TypedRecord<TRecord>[] FindInKeyRange(TKey start, TKey end);
+        TypedRecord<TRecord> FindTheMostLesser(TKey key,bool orEqual);
+        TypedRecord<TRecord> FindTheLessGreater(TKey key, bool orEqual);
 #if DEBUG
         TypedRecord<TRecord> TestGetRecord(PageRecordReference extRef);
 #endif

@@ -167,6 +167,15 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
             }
         }
 
+        public IEnumerable<TypedRecord<TRecord>> GetRecordRange(PageRecordReference start, PageRecordReference end)
+        {
+            lock (_records)
+                return _records.SkipWhile(k => k.Key.PersistentRecordNum < start.PersistentRecordNum)
+                    .TakeWhile(k => k.Key.PersistentRecordNum <= end.PersistentRecordNum)
+                    .Select(k => Retrieve(k.Key));
+
+        }
+
         #region IDisposable Support
         private bool _disposedValue = false;
 

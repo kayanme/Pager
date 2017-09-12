@@ -115,6 +115,11 @@ namespace FIle.Paging.LogicalLevel.Classes
             finally { _sortController.ReleaseReadLock(); }
         }
 
+        public IEnumerable<TypedRecord<TRecord>> GetRecordRange(PageRecordReference start, PageRecordReference end)
+        {
+            return _physicalPage.GetRecordRange(start, end);
+        }
+
         public TypedRecord<TRecord> FindByKey(TKey key)
         {
             try
@@ -123,20 +128,140 @@ namespace FIle.Paging.LogicalLevel.Classes
                 ResortIfNeeded();
                 using (var s = _manager.GetBinarySearchForPage<TRecord>(_reference))
                 {
-                    if (s.Current == null)
+                  
+                    TKey curKey;
+                   var current = s.Current;
+                    if (current == null)
+                        return null;
+                    do
+                    {
+
+                        curKey = _keySelector(current.Data);
+                        if (curKey.CompareTo(key) < 0)
+                            if (!s.MoveRight())
+                                return null;
+                            else
+                                current = s.Current;
+                        if (curKey.CompareTo(key) > 0)
+                            if (!s.MoveLeft())
+                                return null;
+                            else
+                                current = s.Current;
+
+                    } while (curKey.CompareTo(key) != 0);
+                    return current;
+                }
+            }
+            finally
+            {
+                _sortController.ReleaseSortLock();
+            }
+        }
+
+        public TypedRecord<TRecord>[] FindInKeyRange(TKey start, TKey end)
+        {           
+            var startPosition = FindTheMostLesser(end,true)?.Reference;
+            var endPosition = FindTheLessGreater(start, true)?.Reference;
+            using (var p = _manager.GetRecordAccessor<TRecord>(_reference))
+            {
+                return p.GetRecordRange(startPosition, endPosition).ToArray();
+            }
+               
+        }
+
+        public TypedRecord<TRecord> FindTheMostLesser(TKey key,bool orEqual)
+        {
+            TypedRecord<TRecord> theMostLesser = null; 
+            try
+            {
+                _sortController.AcquireSortLock();
+                ResortIfNeeded();
+                using (var s = _manager.GetBinarySearchForPage<TRecord>(_reference))
+                {
+                    var current = s.Current;
+                    if (current == null)
                         return null;
                     TKey curKey;
                     do
                     {
-                        curKey = _keySelector(s.Current.Data);
-                        if (curKey.CompareTo(key) <0)
+                        curKey = _keySelector(current.Data);
+                        if (curKey.CompareTo(key) < 0)
+                        {
+                            theMostLesser = current;
                             if (!s.MoveRight())
-                                return null;
-                        if (curKey.CompareTo(key) >0)
+                                break;
+                            else
+                            {
+                                current = s.Current;
+                            }
+                        }
+                        if (curKey.CompareTo(key) > 0)
                             if (!s.MoveLeft())
-                                return null;
+                                break;
+                            else
+                            {
+                                current = s.Current;
+                            }
                     } while (curKey.CompareTo(key) != 0);
-                    return s.Current;
+                    if (orEqual && curKey.CompareTo(key) == 0)
+                        theMostLesser = current;
+                    else if (curKey.CompareTo(key) == 0)
+                    {
+                        theMostLesser = s.LeftOfCurrent;
+                    }
+                    return theMostLesser;
+                }
+            }
+            finally
+            {
+                _sortController.ReleaseSortLock();
+            }
+        }
+
+        public TypedRecord<TRecord> FindTheLessGreater(TKey key, bool orEqual)
+        {
+            TypedRecord<TRecord> theLessGreater = null;
+            try
+            {
+                _sortController.AcquireSortLock();
+                ResortIfNeeded();
+                using (var s = _manager.GetBinarySearchForPage<TRecord>(_reference))
+                {
+                    var current = s.Current;
+                    if (current == null)
+                        return null;
+                    TKey curKey;
+                    do
+                    {
+                        curKey = _keySelector(current.Data);
+                        if (curKey.CompareTo(key) < 0)
+                        {
+
+                            if (!s.MoveRight())
+                                break;
+                            else
+                            {
+                                current = s.Current;
+                            }
+                        }
+                        if (curKey.CompareTo(key) > 0)
+                        {
+                            theLessGreater = current;
+                            if (!s.MoveLeft())
+                                break;
+                            else
+                            {
+                                current = s.Current;
+                            }
+                        }
+                    } while (curKey.CompareTo(key) != 0);
+                    if (orEqual && curKey.CompareTo(key) == 0)
+                        theLessGreater = current;
+                    else if (curKey.CompareTo(key) == 0)
+                    {
+                        theLessGreater = s.RightOfCurrent;
+                    }
+                    return theLessGreater;
                 }
             }
             finally

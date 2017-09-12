@@ -70,5 +70,46 @@ namespace Benchmark.Paging.LogicalLevel
             var r = e.FindByKey(d);
             _count = (_count + 1) % _data.Length;
         }
+
+        [Benchmark]
+        public void Scan()
+        {
+            var d = _data[_count];
+            var e = _pages[0] as IOrderedPage<TestRecord, int>;
+            var r = e.IterateRecords().FirstOrDefault(k=>k.Data.Order == d);
+            _count = (_count + 1) % _data.Length;
+        }
+
+        [Benchmark]
+        public void SearchRange()
+        {
+            var d = _data[_count];
+            var d2 = _data[_count + 1];
+            if (d > d2)
+            {
+                var t = d2;
+                d2 = d;
+                d = t;
+            }
+            var e = _pages[0] as IOrderedPage<TestRecord, int>;
+            var r = e.FindInKeyRange(d,d2);
+            _count = (_count + 2) % _data.Length;
+        }
+
+        [Benchmark]
+        public void ScanForRange()
+        {
+            var d = _data[_count];
+            var d2 = _data[_count + 1];
+            if (d > d2)
+            {
+                var t = d2;
+                d2 = d;
+                d = t;
+            }
+            var e = _pages[0] as IOrderedPage<TestRecord, int>;
+            var r = e.IterateRecords().SkipWhile(k => k.Data.Order != d).TakeWhile(k=>k.Data.Order != d2).ToArray();
+            _count = (_count + 2) % _data.Length;
+        }
     }
 }

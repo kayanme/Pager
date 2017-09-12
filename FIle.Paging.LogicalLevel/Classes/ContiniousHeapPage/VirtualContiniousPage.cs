@@ -157,6 +157,11 @@ namespace FIle.Paging.LogicalLevel.Classes.ContiniousHeapPage
             }
         }
 
+        public IEnumerable<TypedRecord<TRecord>> GetRecordRange(PageRecordReference start, PageRecordReference end)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<TypedRecord<TRecord>> IterateRecords()
         {
             using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(_headersPage))

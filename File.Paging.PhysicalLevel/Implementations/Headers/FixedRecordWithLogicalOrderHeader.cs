@@ -64,7 +64,7 @@ namespace File.Paging.PhysicalLevel.Implementations.Headers
             for (var currentRecord = 0; currentRecord <orders.Length;currentRecord++)
             {
                 if (orders[currentRecord] == 0)
-                for (; lastLookedRecord <=orders.Length/2; lastLookedRecord++)
+                for (; lastLookedRecord <=(uint)(orders.Length-1)>>1; lastLookedRecord++)
                 {
                     var orderNum = FixUshort((ushort)(pageAllocationMap[lastLookedRecord] >> 16)) - 1;//порядок начинается с 1
                     if (orderNum >orders.Length)

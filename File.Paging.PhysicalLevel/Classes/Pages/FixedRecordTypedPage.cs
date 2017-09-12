@@ -90,6 +90,23 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
           
         }
 
+        public IEnumerable<TypedRecord<TRecordType>> GetRecordRange(PageRecordReference start, PageRecordReference end)
+        {
+            CheckReferenceToPageAffinity(start);
+            CheckReferenceToPageAffinity(end);
+            var nonFreeHeaders = Headers.NonFreeRecords()
+                .SkipWhile(k=>k <start.PersistentRecordNum)
+                .TakeWhile(k=>k<=end.PersistentRecordNum).ToArray();
+            foreach (var nonFreeRecord in nonFreeHeaders)
+            {
+                var shift = Headers.RecordShift(nonFreeRecord);
+                var size = Headers.RecordSize(nonFreeRecord);
+                var t = _recordGetter.GetRecord(shift, size);
+                var reference = PageRecordReference.CreateReference(Reference, nonFreeRecord, _keyType);
+                yield return new TypedRecord<TRecordType> { Data = t, Reference = reference };
+            }
+        }
+
         public void FreeRecord(TypedRecord<TRecordType> record)
         {
             if (record == null)

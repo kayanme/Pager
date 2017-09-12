@@ -66,6 +66,11 @@ namespace FIle.Paging.LogicalLevel.Classes.Transactions
                 return _inner.GetRecord(reference);
         }
 
+        public IEnumerable<TypedRecord<TRecord>> GetRecordRange(PageRecordReference start, PageRecordReference end)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<TypedRecord<TRecord>> IterateRecords()
         {
             var store = GetStore();

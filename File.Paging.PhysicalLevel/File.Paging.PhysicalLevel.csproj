@@ -97,7 +97,7 @@
     <Compile Include="Classes\PageFactories\PageFactory.cs" />
     <Compile Include="Classes\PageFactories\PageInfoFactory.cs" />
     <Compile Include="Classes\Pages\BinarySearchContext.cs" />
-    <Compile Include="Classes\Pages\Contracts\IBinarySearchContext.cs" />
+    <Compile Include="Classes\Pages\Contracts\IBinarySearcher.cs" />
     <Compile Include="Classes\Pages\Contracts\ILogicalRecordOrderManipulation.cs" />
     <Compile Include="Classes\Pages\Contracts\IPageInfo.cs" />
     <Compile Include="Classes\Pages\LogicalRecordManipulator.cs" />

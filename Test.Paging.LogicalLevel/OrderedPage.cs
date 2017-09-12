@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Pages;
+using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using File.Paging.PhysicalLevel.Contracts;
 using FIle.Paging.LogicalLevel.Classes;
 using FIle.Paging.LogicalLevel.Classes.OrderedPage;
@@ -31,18 +32,23 @@ namespace Test.Paging.LogicalLevel
                 .IgnoreArguments()
                 .Do(new Func<PageRecordReference, TypedRecord<TestRecord>>
                     (r => initialState.FirstOrDefault(k2 => k2.Reference == r))).Repeat.Any();
-            physPage.Replay();
-            var page = new OrderedPage<TestRecord, int>(pageNum,t, k => k.Order,new SortStateContoller());
-            physPage.BackToRecord();
+            rep.ReplayAll();
+            var page = new OrderedPage<TestRecord, int>(pageNum,t, k => k.Order,new SortStateContoller{IsSorted = true});
+            rep.BackToRecordAll();
          
 
             TestContext.Properties.Add("page", physPage);
-            
+            TestContext.Properties.Add("manager", t);
+            TestContext.Properties.Add("mocks", rep);
+
             return page;
         }
 
         private IPage<TestRecord> PhysPage => TestContext.Properties["page"] as IPage<TestRecord>;
         private ILogicalRecordOrderManipulation ManPage => TestContext.Properties["page"] as ILogicalRecordOrderManipulation;
+
+        private IPageManager Manager => TestContext.Properties["manager"] as IPageManager;
+        private MockRepository mocks => TestContext.Properties["mocks"] as MockRepository;
 
         [TestMethod]
         public void InsertInEmpty()
@@ -226,6 +232,262 @@ namespace Test.Paging.LogicalLevel
           
             //Assert.AreEqual(0, page.First().Order);
             //Assert.AreEqual(9, page.Last().Order);
+        }
+
+        private TypedRecord<TestRecord> CreateRecord(ushort num)
+        {
+            var r1 = new RowKeyPersistentPageRecordReference(0, num);
+            var exRec = new TypedRecord<TestRecord> { Data = new TestRecord(num), Reference = r1 };
+            return exRec;
+        }
+
+        [TestMethod]
+        public void SearchForKeyWhenPresent()
+        {
+
+            var r1 = CreateRecord(1);
+            var r2 = CreateRecord(2);
+            var r3 = CreateRecord(3);
+            var page = Create(r1,r2,r3);
+
+            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
+            using (mocks.Record())
+            {
+                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                    .Return(searcher);
+                searcher.Expect(k => k.Current).Return(r2);
+                searcher.Expect(k => k.MoveRight()).Return(true);
+                searcher.Expect(k => k.Current).Return(r3);
+                searcher.Expect(k => k.Dispose());
+            }
+
+            using (mocks.Playback())
+            {
+                var rec = page.FindByKey(3);
+                Assert.AreEqual(r3.Data.Order,rec.Data.Order);
+            }
+        }
+
+        [TestMethod]
+        public void SearchForKeyWhenNotPresent_TooBig()
+        {
+
+            var r1 = CreateRecord(1);
+            var r2 = CreateRecord(2);
+            var r3 = CreateRecord(3);
+            var page = Create(r1, r2, r3);
+
+            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
+            using (mocks.Record())
+            {
+                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                    .Return(searcher);
+                searcher.Expect(k => k.Current).Return(r2);
+                searcher.Expect(k => k.MoveRight()).Return(true);
+                searcher.Expect(k => k.Current).Return(r3);
+                searcher.Expect(k => k.MoveRight()).Return(false);
+                searcher.Expect(k => k.Dispose());
+            }
+
+            using (mocks.Playback())
+            {
+                var rec = page.FindByKey(4);
+                Assert.IsNull(rec);
+            }
+        }
+
+        [TestMethod]
+        public void SearchForKeyWhenNotPresent_TooSmall()
+        {
+
+            var r1 = CreateRecord(1);
+            var r2 = CreateRecord(2);
+            var r3 = CreateRecord(3);
+            var page = Create(r1, r2, r3);
+
+            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
+            using (mocks.Record())
+            {
+                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                    .Return(searcher);
+                searcher.Expect(k => k.Current).Return(r2);
+                searcher.Expect(k => k.MoveLeft()).Return(true);
+                searcher.Expect(k => k.Current).Return(r1);
+                searcher.Expect(k => k.MoveLeft()).Return(false);
+                searcher.Expect(k => k.Dispose());
+            }
+
+            using (mocks.Playback())
+            {
+                var rec = page.FindByKey(0);
+                Assert.IsNull(rec);
+            }
+        }
+
+        [TestMethod]
+        public void SearchForTheMostLesserKey()
+        {
+
+            var r1 = CreateRecord(1);
+            var r2 = CreateRecord(2);
+            var r3 = CreateRecord(4);
+            var page = Create(r1, r2, r3);
+
+            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
+            using (mocks.Record())
+            {
+                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                    .Return(searcher);
+                searcher.Expect(k => k.Current).Return(r2);
+                searcher.Expect(k => k.MoveRight()).Return(true);
+                searcher.Expect(k => k.Current).Return(r3);
+                searcher.Expect(k => k.MoveLeft()).Return(false);
+                searcher.Expect(k => k.Dispose());
+            }
+
+            using (mocks.Playback())
+            {
+                var rec = page.FindTheMostLesser(3,true);
+                Assert.AreEqual(2,rec.Data.Order);
+            }
+        }
+
+        [TestMethod]
+        public void SearchForTheMostLesserNotEqualKey()
+        {
+
+            var r1 = CreateRecord(1);
+            var r2 = CreateRecord(2);
+            var r3 = CreateRecord(3);
+            var page = Create(r1, r2, r3);
+
+            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
+            using (mocks.Record())
+            {
+                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                    .Return(searcher);
+                searcher.Expect(k => k.Current).Return(r2);
+                searcher.Expect(k => k.LeftOfCurrent).Return(r1);                           
+                searcher.Expect(k => k.Dispose());
+            }
+
+            using (mocks.Playback())
+            {
+                var rec = page.FindTheMostLesser(2, false);
+                Assert.AreEqual(1, rec.Data.Order);
+            }
+        }
+
+        [TestMethod]
+        public void SearchForTheMostLesserEqualKey()
+        {
+
+            var r1 = CreateRecord(1);
+            var r2 = CreateRecord(2);
+            var r3 = CreateRecord(3);
+            var page = Create(r1, r2, r3);
+
+            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
+            using (mocks.Record())
+            {
+                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                    .Return(searcher);
+                searcher.Expect(k => k.Current).Return(r2);
+                searcher.Expect(k => k.MoveRight()).Return(true);
+                searcher.Expect(k => k.Current).Return(r3);
+                searcher.Expect(k => k.Dispose());
+            }
+
+            using (mocks.Playback())
+            {
+                var rec = page.FindTheMostLesser(3, true);
+                Assert.AreEqual(3, rec.Data.Order);
+            }
+        }
+
+
+
+
+        [TestMethod]
+        public void SearchForTheLessGreaterKey()
+        {
+
+            var r1 = CreateRecord(1);
+            var r2 = CreateRecord(2);
+            var r3 = CreateRecord(4);
+            var page = Create(r1, r2, r3);
+
+            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
+            using (mocks.Record())
+            {
+                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                    .Return(searcher);
+                searcher.Expect(k => k.Current).Return(r2);
+                searcher.Expect(k => k.MoveRight()).Return(true);
+                searcher.Expect(k => k.Current).Return(r3);
+                searcher.Expect(k => k.MoveLeft()).Return(false);
+                searcher.Expect(k => k.Dispose());
+            }
+
+            using (mocks.Playback())
+            {
+                var rec = page.FindTheLessGreater(3, true);
+                Assert.AreEqual(4, rec.Data.Order);
+            }
+        }
+
+        [TestMethod]
+        public void SearchForTheLessGreaterNotEqualKey()
+        {
+
+            var r1 = CreateRecord(1);
+            var r2 = CreateRecord(3);
+            var r3 = CreateRecord(4);
+            var page = Create(r1, r2, r3);
+
+            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
+            using (mocks.Record())
+            {
+                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                    .Return(searcher);
+                searcher.Expect(k => k.Current).Return(r2);              
+                searcher.Expect(k => k.RightOfCurrent).Return(r3);
+    
+                searcher.Expect(k => k.Dispose());
+            }
+
+            using (mocks.Playback())
+            {
+                var rec = page.FindTheLessGreater(3, false);
+                Assert.AreEqual(4, rec.Data.Order);
+            }
+        }
+
+        [TestMethod]
+        public void SearchForTheLessGreaterEqualKey()
+        {
+
+            var r1 = CreateRecord(1);
+            var r2 = CreateRecord(2);
+            var r3 = CreateRecord(3);
+            var page = Create(r1, r2, r3);
+
+            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
+            using (mocks.Record())
+            {
+                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                    .Return(searcher);
+                searcher.Expect(k => k.Current).Return(r2);
+                searcher.Expect(k => k.MoveRight()).Return(true);
+                searcher.Expect(k => k.Current).Return(r3);
+                searcher.Expect(k => k.Dispose());
+            }
+
+            using (mocks.Playback())
+            {
+                var rec = page.FindTheLessGreater(3, true);
+                Assert.AreEqual(3, rec.Data.Order);
+            }
         }
     }
 }

@@ -12,5 +12,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages.Contracts
         bool MoveRight();
         TypedRecord<TRecord> Current { get; }
 
+        TypedRecord<TRecord> LeftOfCurrent { get; }
+        TypedRecord<TRecord> RightOfCurrent { get; }
     }
 }
