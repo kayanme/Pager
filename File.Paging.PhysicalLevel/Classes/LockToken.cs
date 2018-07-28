@@ -1,5 +1,8 @@
 ﻿using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using File.Paging.PhysicalLevel.Exceptions;
+using File.Paging.PhysicalLevel.Implementations;
+using System.Threading;
 
 namespace File.Paging.PhysicalLevel.Classes
 {
@@ -9,13 +12,18 @@ namespace File.Paging.PhysicalLevel.Classes
         internal readonly T LockedObject;
         private readonly IPhysicalLockManager<T> _holder;
         private readonly LockMatrix _matrix;
-        internal LockToken(byte lockLevel, T lockedObject, IPhysicalLockManager<T> holder, LockMatrix matrix)
+        private int _isReleased;
+        internal LockToken(byte lockLevel, T lockedObject, IPhysicalLockManager<T> holder, LockMatrix matrix,int sharedLockCount)
         {
             LockLevel = lockLevel;
             LockedObject = lockedObject;
             _holder = holder;
             _matrix = matrix;
+            _isReleased = 0;
+            SharedLockCount = sharedLockCount;
         }
+        public readonly int SharedLockCount;
+        internal string TokenState => $"{(_holder as LockManager<T>)}";
 
         public override bool Equals(object obj)
         {
@@ -34,7 +42,9 @@ namespace File.Paging.PhysicalLevel.Classes
 
         public void Release()
         {
-            _holder.ReleaseLock(this,_matrix);
+            if (Interlocked.CompareExchange(ref _isReleased, 1, 0) == 1)
+                throw new LockTokenWasAlreadyReleasedException();
+            _holder.ReleaseLock(this,_matrix);            
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using File.Paging.PhysicalLevel.Classes;
@@ -101,6 +102,24 @@ namespace Benchmark.Paging.PhysicalLevel
                 _count = (_count + 1) % PageCount;
                 return p.IterateRecords().ToArray();
             }          
+        }
+        [GlobalCleanup]
+        public void DeleteFile()
+        {
+            _other.Dispose();
+         
+            _manager.Dispose();
+            Thread.Sleep(100);
+            try
+            {
+                System.IO.File.Delete("testFile");
+                System.IO.File.Delete("testFile2");
+            }
+            catch
+            {
+
+            }
+            Thread.Sleep(100);
         }
     }
 }

@@ -7,15 +7,25 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
-using Rhino.Mocks.Constraints;
+
 
 namespace File.Paging.PhysicalLevel.Classes
 {
     internal sealed class LockMatrix
     {
+        /// <summary>
+        /// Описывает один допустимый вариант переходы из одной комбинации блокировок в другую.
+        /// </summary>
         public  struct MatrPair
         {
+            /// <summary>
+            /// Битовая маска, описывающая начальную комбинацию блокировок.
+            /// </summary>
+            /// <remarks>Бит в каждой позиции означает удерживаемую блокировку соответсвующего типа (кроме самого первого бита, <see cref="SharenessCheckLock"/>).</remarks>
             public readonly uint BlockEntrance;
+            /// <summary>
+            /// Битовая маска, описывающая конечную комбинацию блокировок.
+            /// </summary>
             public readonly uint BlockExit;
 
             public MatrPair(uint blockEntrance, uint blockExit)
@@ -39,6 +49,11 @@ namespace File.Paging.PhysicalLevel.Classes
 
         private readonly MatrPair[,][] _lockEscalationMatrix;
 
+        /// <summary>
+        /// Является ли передаваемый тип блокировки разделяемым сам с собой.
+        /// </summary>
+        /// <param name="lockType">Тип блокировки.</param>
+        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsSelfShared(byte lockType) => _lockSelfSharedFlag[lockType]!=255;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -77,6 +92,11 @@ namespace File.Paging.PhysicalLevel.Classes
             return null;
         }
 
+        /// <summary>
+        /// Все возможные начальные сочетания блокировок, для которых возможно получить данную.
+        /// </summary>
+        /// <param name="acquiringLockType"></param>
+        /// <returns>Переходы для соответствующих начальных сочетаний.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal IEnumerable<MatrPair> EntrancePairs(byte acquiringLockType)
         {
@@ -87,6 +107,12 @@ namespace File.Paging.PhysicalLevel.Classes
             }
         }
 
+        /// <summary>
+        /// Все возможные переходы из начального сочетания блокировок в конечное для эскалации блокировки указанного типа в следующий.
+        /// </summary>
+        /// <param name="initialLockType"></param>
+        /// <param name="newLockType"></param>
+        /// <returns>Все соответствующие переходы.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IEnumerable<MatrPair> EscalationPairs(byte initialLockType,byte newLockType)
         {
@@ -99,7 +125,10 @@ namespace File.Paging.PhysicalLevel.Classes
 
       
 
-
+        /// <summary>
+        /// Флаг, который сигнализирует запрет изменения текущей комбинации блокировок (на время проверки количества разделямых блокировок).
+        /// </summary>
+        /// <remarks>Это работает, т.к. он формирует такое входное состояние, которое точно будет недопустимым к переходу из него.</remarks>
         public const uint SharenessCheckLock = 0b10000000000000000000000000000000;
         public const uint SharenessCheckLockDrop = ~SharenessCheckLock;
 

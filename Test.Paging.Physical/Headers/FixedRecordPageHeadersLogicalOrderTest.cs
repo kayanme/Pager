@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Linq;
-using System.Security.AccessControl;
+using FakeItEasy;
 using File.Paging.PhysicalLevel.Contracts;
-using File.Paging.PhysicalLevel.Implementations;
 using File.Paging.PhysicalLevel.Implementations.Headers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Rhino.Mocks;
 
 namespace Test.Pager.Headers
 {
@@ -15,35 +13,33 @@ namespace Test.Pager.Headers
 
         public TestContext TestContext { get; set; }
 
-        private unsafe IPageHeaders Create(long headers,int usedRecords)
+        private unsafe IPageHeaders Create(long headers, int usedRecords)
         {
-            var m = new MockRepository().StrictMock<IPageAccessor>();                  
-         
+            var m = A.Fake<IPageAccessor>();
+            var calc = A.Fake<FixedPageParametersCalculator>(o => o.WithArgumentsForConstructor(new[] { (object)(ushort)100, (ushort)8, (ushort)16 }));
+            A.CallTo(() => calc.FixedRecordSize).Returns((ushort)8);
+            A.CallTo(() => calc.PamIntLength).Returns((ushort)2);
 
-            var calc = new MockRepository().StrictMock<FixedPageParametersCalculator>((ushort)100,(ushort)8, (ushort)16);
-            calc.Expect(k => k.FixedRecordSize).Return((ushort)8).Repeat.Any();
-            calc.Expect(k => k.PamIntLength).Return((ushort)2).Repeat.Any();
-            
             int[] header;
             unchecked
             {
                 header = new[]
                     {(int) ((headers & (long) 0xFF_FF_FF_FF_00_00_00_00) >> 32),
                     (int) (headers & (int) 0xFF_FF_FF_FF)};
-                
+
             }
-          
-                
-            calc.Expect(k => k.PamSize).Return(6).Repeat.Any();
+
+
+            A.CallTo(() => calc.PamSize).Returns(6);
             unchecked
             {
-                calc.Expect(k => k.LastMask).Return((int) 0xFF_FF_00_00); //3 records
+                A.CallTo(() => calc.LastMask).Returns((int)0xFF_FF_00_00); //3 records
             }
-            calc.Expect(k => k.UsedRecords).Return(usedRecords);
-            calc.Replay();
+            A.CallTo(() => calc.UsedRecords).Returns(usedRecords);
+
             var p = new FixedRecordWithLogicalOrderHeader(m, calc);
             TestContext.Properties.Add("page", m);
-            
+
             return p;
         }
 
@@ -76,9 +72,8 @@ namespace Test.Pager.Headers
 
         private unsafe void MakeAccessorExpectation(int position, byte[] sourceAr, byte[] targetArr)
         {
-            Page.Expect(k => k.QueueByteArrayOperation(Arg.Is(position), Arg.Is(6), Arg<ByteAction>.Is.Anything))
-                .Do(VerifyForArray(sourceAr, targetArr));
-            Page.Replay();
+            A.CallTo(() => Page.QueueByteArrayOperation((position), (6), A<ByteAction>.Ignored))
+                .Invokes(a => VerifyForArray(sourceAr, targetArr)((int)a.Arguments[0], (int)a.Arguments[1],(ByteAction)a.Arguments[2])); ;           
         }
 
         [TestMethod]
@@ -95,7 +90,7 @@ namespace Test.Pager.Headers
             headers.FreeRecord(6);
             Assert.AreEqual(0,headers.RecordCount);
             Assert.AreEqual(6, headers.TotalUsedSize);
-            Page.VerifyAllExpectations();
+
         }
 
         [TestMethod]
@@ -106,7 +101,7 @@ namespace Test.Pager.Headers
 
             MakeAccessorExpectation(0, fromPageContent(ref pageContent), new byte[] { 0x0, 0, 0, 0, 0, 0 });
             headers.FreeRecord(6);
-            Page.VerifyAllExpectations();
+
         }
 
 
@@ -120,14 +115,14 @@ namespace Test.Pager.Headers
             }
             
             var headers = Create(pageContent,1);
-            MakeAccessorExpectation(0,  fromPageContent(ref pageContent), new byte[] { 0, 0x01, 0xFF, 0xFF, 0, 0 });          
+            MakeAccessorExpectation(0,fromPageContent(ref pageContent), new byte[] { 0, 0x01, 0xFF, 0xFF, 0, 0 });          
             var pos = headers.TakeNewRecord(0,8);
             Assert.AreEqual(14, pos);
             Assert.AreEqual(14,headers.RecordShift(14));
             Assert.AreEqual(8, headers.RecordSize(14));
             Assert.AreEqual(2, headers.RecordCount);
             Assert.AreEqual(22, headers.TotalUsedSize);
-            Page.VerifyAllExpectations();
+
         }
 
         [TestMethod]
@@ -148,7 +143,7 @@ namespace Test.Pager.Headers
             Assert.AreEqual(8, headers.RecordSize(22));
             Assert.AreEqual(3, headers.RecordCount);
             Assert.AreEqual(30, headers.TotalUsedSize);
-            Page.VerifyAllExpectations();
+
         }
 
 
@@ -164,7 +159,7 @@ namespace Test.Pager.Headers
             MakeAccessorExpectation(0, fromPageContent(ref pageContent), new byte[] { 0x00, 0x02, 0x00, 0x02, 0x00, 0x03 });
             var pos = headers.TakeNewRecord(0,8);
             Assert.AreEqual(-1, pos);
-            Page.VerifyAllExpectations();
+
         }
 
         [TestMethod]
@@ -179,7 +174,7 @@ namespace Test.Pager.Headers
             MakeAccessorExpectation(0, fromPageContent(ref pageContent), new byte[] { 0x00, 0x02, 0x00, 0x01, 0xFF, 0xFF });
             var records = headers.NonFreeRecords().ToArray();
             CollectionAssert.AreEqual(new ushort[]{14,6,22},records);
-            Page.VerifyAllExpectations();
+
         }
 
 
@@ -194,7 +189,7 @@ namespace Test.Pager.Headers
             var headers = Create(pageContent,1);
             MakeAccessorExpectation(0, fromPageContent(ref pageContent), new byte[] { 0x00, 0x02, 0x00, 0x00, 0x00, 0x00 });
             var isFree = headers.IsRecordFree(6);
-            Page.VerifyAllExpectations();
+
             Assert.AreEqual(false,isFree);
         }
 
@@ -209,7 +204,7 @@ namespace Test.Pager.Headers
             var headers = Create(pageContent, 3);
             MakeAccessorExpectation(0, fromPageContent(ref pageContent), new byte[] { 0x00, 0x02, 0x00, 0x01, 0x00, 0x03 });
             headers.ApplyOrder(new ushort[]{14,6,22});
-            Page.VerifyAllExpectations();            
+
         }
 
         [TestMethod]
@@ -224,7 +219,7 @@ namespace Test.Pager.Headers
             var headers = Create(pageContent, 0);
             MakeAccessorExpectation(0, fromPageContent(ref pageContent), new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
             var isFree = headers.IsRecordFree(6);
-            Page.VerifyAllExpectations();
+
             Assert.AreEqual(isFree, true);
         }
     }

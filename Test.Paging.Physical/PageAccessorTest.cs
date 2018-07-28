@@ -1,11 +1,11 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
+using FakeItEasy;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Rhino.Mocks;
+
 
 namespace Test.Pager
 {
@@ -17,9 +17,9 @@ namespace Test.Pager
         {
             var m = MemoryMappedFile.CreateFromFile(TestContext.TestName,FileMode.OpenOrCreate,TestContext.TestName,8192);
             var acc = m.CreateViewAccessor(0, 8192);
-            var p = new MockRepository().StrictMock<IExtentAccessorFactory>();
-            p.Expect(k => k.ReturnAccessor(null)).IgnoreArguments().Repeat.Any().Do(new Action<MemoryMappedViewAccessor>(k2 => k2.Dispose()));
-            p.Replay();
+            var p = A.Fake<IExtentAccessorFactory>();
+            A.CallTo(()=> p.ReturnAccessor(null)).WithAnyArguments().Invokes((k => (k.Arguments[0] as MemoryMappedViewAccessor).Dispose()));
+          
             var t = new PageAccessor(4096, 4096,1, acc, p);
             TestContext.Properties.Add("Map", m);
             return t;

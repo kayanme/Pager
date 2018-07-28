@@ -3,7 +3,7 @@
 namespace File.Paging.PhysicalLevel.Exceptions
 {
     [Serializable]
-    class FileSizeInsufficientException:Exception
+    public class FileSizeInsufficientException:Exception
     {
     }
 }

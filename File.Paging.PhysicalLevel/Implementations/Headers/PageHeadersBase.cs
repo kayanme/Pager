@@ -69,6 +69,10 @@ namespace File.Paging.PhysicalLevel.Implementations
 
         public bool IsRecordFree(ushort physicalRecordNum)
         {
+            if (physicalRecordNum == 0)
+            {
+                return !RecordInfo.Any(k2 => (k2 & ShiftMask)  == 0 && ((k2 & SizeMask >> 4) != 0));
+            }
             return RecordInfo.Where(k => k != 0).Any(k2=>((k2 & ShiftMask >> 18) == physicalRecordNum) && ((k2 & SizeMask >> 4) != 0));
         }
 

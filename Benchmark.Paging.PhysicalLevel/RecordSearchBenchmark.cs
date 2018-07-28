@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using File.Paging.PhysicalLevel.Classes;
@@ -11,6 +12,7 @@ using File.Paging.PhysicalLevel.Implementations;
 
 namespace Benchmark.Paging.PhysicalLevel
 {
+    
     public class Physical_RecordSearchBenchmark
     {
         private IPageManager _manager;
@@ -108,5 +110,26 @@ namespace Benchmark.Paging.PhysicalLevel
             }
             _cutCount = (_cutCount + 1) % _data.Length;
         }
+    
+
+    [GlobalCleanup]
+    public void DeleteFile()
+    {
+
+    
+    _manager.Dispose();
+    Thread.Sleep(100);
+    try
+    {
+        System.IO.File.Delete("testFile");
+        System.IO.File.Delete("testFile2");
     }
+    catch
+    {
+
+    }
+    Thread.Sleep(100);
 }
+}
+}
+

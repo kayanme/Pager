@@ -1,16 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using FakeItEasy;
 using File.Paging.PhysicalLevel.Classes;
-using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Contracts.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Rhino.Mocks;
+
 
 namespace Test.Pager.Pages
 {
-   [TestClass]
+    [TestClass]
     public class PageBinarySearchTest
     {
         public TestContext TestContext { get; set; }
@@ -18,21 +17,18 @@ namespace Test.Pager.Pages
         [TestInitialize]
         public void TestInit()
         {
-            var mp = new MockRepository();
-            var headers = mp.StrictMock<IPageHeaders>();
-            var access = mp.StrictMock<IRecordAcquirer<TestRecord>>();
+          
+            var headers = A.Fake<IPageHeaders>();
+            var access = A.Fake<IRecordAcquirer<TestRecord>>();
             TestContext.Properties.Add("headers", headers);
             TestContext.Properties.Add("access", access);
         }
 
         private IBinarySearcher<TestRecord> Create()
-        {
-          
-
-            Headers.Expect(k => k.RecordCount).Return(7).Repeat.Any();
-            Headers.Expect(k => k.RecordSize(Arg<ushort>.Is.Anything)).Return(4).Repeat.Any();
-            Headers.Replay();
-            Access.Replay();
+        {          
+            A.CallTo(()=> Headers.RecordCount).Returns<ushort>(7);
+            A.CallTo(() => Headers.RecordSize(A<ushort>.Ignored)).Returns<ushort>(4);
+           
             var page = new BinarySearchContext<TestRecord>(Headers, Access, new PageReference(0), KeyPersistanseType.Logical,()=>{});
           
             return page;
@@ -44,7 +40,7 @@ namespace Test.Pager.Pages
         [TestMethod]
         public void SearchStartForEmptyPage()
         {
-            Headers.Expect(k => k.NonFreeRecords()).Return(new ushort[0]);
+            A.CallTo(() => Headers.NonFreeRecords()).Returns(new ushort[0]);
             var p = Create();
 
 
@@ -55,10 +51,10 @@ namespace Test.Pager.Pages
         [TestMethod]
         public void SearchStartForPageWithOneRecord()
         {
-            Headers.Expect(k => k.NonFreeRecords()).Return(new ushort[] {2});
-            Headers.Expect(k => k.RecordShift(2)).Return(10).Repeat.Any();
+            A.CallTo(() => Headers.NonFreeRecords()).Returns(new ushort[] {2});
+            A.CallTo(() => Headers.RecordShift(2)).Returns<ushort>(10);
             var r = new TestRecord { Value = 4 };
-            Access.Expect(k => k.GetRecord(10, 4)).Return(r).Repeat.Any();
+            A.CallTo(() => Access.GetRecord(10, 4)).Returns(r);
             var t = Create();
                         
             Assert.AreEqual(new LogicalPositionPersistentPageRecordReference(0, 2), t.Current.Reference);
@@ -69,10 +65,10 @@ namespace Test.Pager.Pages
         [TestMethod]
         public void SearchStartForPageWithTwoRecord()
         {
-            Headers.Expect(k => k.NonFreeRecords()).Return(new ushort[] {2, 4});
-            Headers.Expect(k => k.RecordShift(2)).Return(10).Repeat.Any();
+            A.CallTo(() => Headers.NonFreeRecords()).Returns(new ushort[] {2, 4});
+            A.CallTo(() => Headers.RecordShift(2)).Returns<ushort>(10);
             var r = new TestRecord { Value = 4 };
-            Access.Expect(k => k.GetRecord(10, 4)).Return(r).Repeat.Any();
+            A.CallTo(() => Access.GetRecord(10, 4)).Returns(r);
             var t = Create();           
             Assert.AreEqual(new LogicalPositionPersistentPageRecordReference(0, 2), t.Current.Reference);
             Assert.AreEqual(r, t.Current.Data);
@@ -82,10 +78,10 @@ namespace Test.Pager.Pages
         [TestMethod]
         public void SearchStartForPageWithThreeRecord()
         {
-            Headers.Expect(k => k.NonFreeRecords()).Return(new ushort[] {1, 2, 4});
-            Headers.Expect(k => k.RecordShift(2)).Return(10).Repeat.Any();
-            
-            Access.Expect(k => k.GetRecord(10, 4)).Return(new TestRecord { Value = 4 }).Repeat.Any();
+            A.CallTo(() => Headers.NonFreeRecords()).Returns(new ushort[] {1, 2, 4});
+            A.CallTo(() => Headers.RecordShift(2)).Returns<ushort>(10);
+
+            A.CallTo(() => Access.GetRecord(10, 4)).Returns(new TestRecord { Value = 4 });
             var t = Create();
             Assert.AreEqual(new LogicalPositionPersistentPageRecordReference(0, 2), t.Current.Reference);
             Assert.IsNotNull(t.Current.Data);
@@ -95,9 +91,9 @@ namespace Test.Pager.Pages
         [TestMethod]
         public void SearchMoveLeftRightForPageWithOneRecord()
         {
-            Headers.Expect(k => k.NonFreeRecords()).Return(new ushort[] {2});
-            Headers.Expect(k => k.RecordShift(2)).Return(10).Repeat.Any();
-            Access.Expect(k => k.GetRecord(10, 4)).Return(new TestRecord { Value = 4 }).Repeat.Any();
+            A.CallTo(() => Headers.NonFreeRecords()).Returns(new ushort[] {2});
+            A.CallTo(() => Headers.RecordShift(2)).Returns<ushort>(10);
+            A.CallTo(() => Access.GetRecord(10, 4)).Returns(new TestRecord { Value = 4 });
             var t = Create();
 
 
@@ -110,9 +106,9 @@ namespace Test.Pager.Pages
         [TestMethod]
         public void SearchMoveRightLeftForPageWithOneRecord()
         {
-            Headers.Expect(k => k.NonFreeRecords()).Return(new ushort[] {2});
-            Headers.Expect(k => k.RecordShift(2)).Return(10).Repeat.Any();
-            Access.Expect(k => k.GetRecord(10, 4)).Return(new TestRecord { Value = 4 }).Repeat.Any();
+            A.CallTo(() => Headers.NonFreeRecords()).Returns(new ushort[] {2});
+            A.CallTo(() => Headers.RecordShift(2)).Returns<ushort>(10);
+            A.CallTo(() => Access.GetRecord(10, 4)).Returns(new TestRecord { Value = 4 });
             var t = Create();
             Assert.IsFalse(t.MoveRight());
             Assert.IsFalse(t.MoveLeft());
@@ -123,9 +119,9 @@ namespace Test.Pager.Pages
         [TestMethod]
         public void SearchMoveLeftForPageWithTwoRecord()
         {
-            Headers.Expect(k => k.NonFreeRecords()).Return(new ushort[] {2, 4});
-            Headers.Expect(k => k.RecordShift(2)).Return(10).Repeat.Any();
-            Access.Expect(k => k.GetRecord(10, 4)).Return(new TestRecord { Value = 4 }).Repeat.Any();
+            A.CallTo(() => Headers.NonFreeRecords()).Returns(new ushort[] {2, 4});
+            A.CallTo(() => Headers.RecordShift(2)).Returns<ushort>(10);
+            A.CallTo(() => Access.GetRecord(10, 4)).Returns(new TestRecord { Value = 4 });
             var t = Create();
 
 
@@ -138,9 +134,9 @@ namespace Test.Pager.Pages
         [TestMethod]
         public void SearchMoveRightForPageWithTwoRecord()
         {
-            Headers.Expect(k => k.NonFreeRecords()).Return(new ushort[] {2, 4});
-            Headers.Expect(k => k.RecordShift(4)).Return(10).Repeat.Any();
-            Access.Expect(k => k.GetRecord(10, 4)).Return(new TestRecord()).Repeat.Any();
+            A.CallTo(() => Headers.NonFreeRecords()).Returns(new ushort[] {2, 4});
+            A.CallTo(() => Headers.RecordShift(4)).Returns<ushort>(10);
+            A.CallTo(() => Access.GetRecord(10, 4)).Returns(new TestRecord());
             var t = Create();            
             Assert.IsTrue(t.MoveRight());
             Assert.AreEqual(new LogicalPositionPersistentPageRecordReference(0, 4), t.Current.Reference);

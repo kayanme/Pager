@@ -8,7 +8,7 @@ namespace Benchmark.Paging.PhysicalLevel
     {
         public C()
         {
-            Add(Job.Clr.WithInvocationCount(96*2).WithLaunchCount(3).WithAnalyzeLaunchVariance(true));
+            Add(Job.Core.WithInvocationCount(96*2).WithLaunchCount(3).WithAnalyzeLaunchVariance(true));
             Add(DefaultConfig.Instance.GetExporters().ToArray());
             Add(DefaultConfig.Instance.GetLoggers().ToArray());
             Add(DefaultConfig.Instance.GetColumnProviders().ToArray());

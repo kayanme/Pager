@@ -1,7 +1,7 @@
-﻿using File.Paging.PhysicalLevel.Contracts;
+﻿using FakeItEasy;
+using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Rhino.Mocks;
 
 namespace Test.Pager.Headers
 {
@@ -12,10 +12,10 @@ namespace Test.Pager.Headers
 
         private IPageHeaders Create(byte[] page)
         {
-            var m = new MockRepository().StrictMock<IPageAccessor>();            
-            m.Expect(k => k.GetByteArray(0, page.Length)).Return(page);
-            m.Expect(k => k.PageSize).Repeat.Any().Return(page.Length);
-            m.Replay();
+            var m = A.Fake<IPageAccessor>();
+            A.CallTo(() => m.GetByteArray(0, page.Length)).Returns(page);
+            A.CallTo(() => m.PageSize).Returns(page.Length);
+
             var p = new VariableRecordWithLogicalOrderHeaders(m);
             TestContext.Properties.Add("page", m);
             return p;
@@ -27,11 +27,11 @@ namespace Test.Pager.Headers
         {
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
-            Page.BackToRecord();
-            Page.Expect(k => k.SetByteArray(new byte[] { 0 }, 0, 1));
-            Page.Replay();
+
+            A.CallTo(() => Page.SetByteArray(new byte[] { 0 }, 0, 1));
+
             headers.FreeRecord(0);
-            Page.VerifyAllExpectations();
+
         }
 
         [TestMethod]
@@ -39,11 +39,11 @@ namespace Test.Pager.Headers
         {
             var pageContent = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
-            Page.BackToRecord();
-        //    page.Expect(k => k.SetByteArray(new byte[] { 0 }, 0, 1));
-            Page.Replay();
+
+            //A.CallTo(()=>        //    page.SetByteArray(new byte[] { 0 }, 0, 1));
+
             headers.FreeRecord(0);
-            Page.VerifyAllExpectations();
+
         }
 
 
@@ -52,14 +52,14 @@ namespace Test.Pager.Headers
         {
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
-            Page.BackToRecord();
-           Page.Expect(k => k.SetByteArray(new byte[] { 0x10,0x03,0x0,0x01 }, 6, 4));
-            Page.Replay();
-            var pos = headers.TakeNewRecord(1,3);
+
+            A.CallTo(() => Page.SetByteArray(new byte[] { 0x10, 0x03, 0x0, 0x01 }, 6, 4));
+
+            var pos = headers.TakeNewRecord(1, 3);
             Assert.AreEqual(1, pos);
             Assert.AreEqual(10, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));
-            Page.VerifyAllExpectations();
+
         }
 
 
@@ -69,32 +69,32 @@ namespace Test.Pager.Headers
             var pageContent = new byte[] { 0x10, 0x06, 0, 0, 0, 0, 0, 0, 0x10, 0x06, 0, 0x01, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            var pos = headers.TakeNewRecord(1,7);
+            var pos = headers.TakeNewRecord(1, 7);
             Assert.AreEqual(-1, pos);
-            Page.VerifyAllExpectations();
+
         }
 
         [TestMethod]
         public void AcquirePage_WhenSizeIsnotEnough()
         {
-            var pageContent = new byte[] { 0x10, 0x04, 0, 0, 0, 0, 0, 0, 0x10, 0x03, 0, 0x01, 0, 0, 0, 0,0,0,0 };
+            var pageContent = new byte[] { 0x10, 0x04, 0, 0, 0, 0, 0, 0, 0x10, 0x03, 0, 0x01, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
             var pos = headers.TakeNewRecord(1, 7);
             Assert.AreEqual(-1, pos);
-            Page.VerifyAllExpectations();
+
         }
 
 
         [TestMethod]
         public void IsPageFree_ThatNotFree()
         {
-            var pageContent = new byte[] { 0x10, 0x07, 0, 0, 0, 0, 0, 0,0,0,0 };
+            var pageContent = new byte[] { 0x10, 0x07, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
             var isFree = headers.IsRecordFree(0);
-            Page.VerifyAllExpectations();
-            Assert.AreEqual(isFree, false);
+
+            Assert.AreEqual(false, isFree);
         }
 
         [TestMethod]
@@ -104,19 +104,19 @@ namespace Test.Pager.Headers
             var headers = Create(pageContent);
 
             var isFree = headers.IsRecordFree(0);
-            Page.VerifyAllExpectations();
-            Assert.AreEqual(isFree, true);
+
+            Assert.AreEqual(true, isFree);
         }
 
 
         [TestMethod]
         public void InitialRead()
         {
-            var pageContent = new byte[] { 0x10, 0x02, 0, 0x01,0,0, 0x20, 0x03, 0, 0,0,0 ,0,0};
+            var pageContent = new byte[] { 0x10, 0x02, 0, 0x01, 0, 0, 0x20, 0x03, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            
-            Page.VerifyAllExpectations();
+
+
             Assert.AreEqual(10, headers.RecordShift(0));
             Assert.AreEqual(3, headers.RecordSize(0));
             Assert.AreEqual(2, headers.RecordType(0));
@@ -124,7 +124,7 @@ namespace Test.Pager.Headers
             Assert.AreEqual(4, headers.RecordShift(1));
             Assert.AreEqual(2, headers.RecordSize(1));
             Assert.AreEqual(1, headers.RecordType(1));
-            
+
         }
 
         [TestMethod]
@@ -132,14 +132,14 @@ namespace Test.Pager.Headers
         {
             var pageContent = new byte[] { 0x10, 0x02, 0, 0x01, 0, 0, 0x20, 0x03, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
-            
-            Page.BackToRecord();
-            Page.Expect(k => k.SetByteArray(new byte[] { 0,0 }, 2, 2));
-            Page.Expect(k => k.SetByteArray(new byte[] { 0,0x01 }, 8, 2));
-            Page.Replay();
 
-            headers.ApplyOrder(new ushort[]{1, 0});
-            Page.VerifyAllExpectations();
+
+            A.CallTo(() => Page.SetByteArray(new byte[] { 0, 0 }, 2, 2));
+            A.CallTo(() => Page.SetByteArray(new byte[] { 0, 0x01 }, 8, 2));
+
+
+            headers.ApplyOrder(new ushort[] { 1, 0 });
+
 
             Assert.AreEqual(10, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));

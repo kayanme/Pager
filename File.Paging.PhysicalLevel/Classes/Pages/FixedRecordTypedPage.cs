@@ -139,7 +139,7 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
 
         public void Flush()
         {
-            throw new NotImplementedException();
+            _recordGetter.Flush();
         }
 
 

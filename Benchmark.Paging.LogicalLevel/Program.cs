@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
-using File.Paging.PhysicalLevel.Classes.Configurations;
+using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Toolchains.InProcess;
 
 namespace Benchmark.Paging.LogicalLevel
 {
@@ -24,7 +25,9 @@ namespace Benchmark.Paging.LogicalLevel
             ////t.AddRecordWithOrder();
             ////t.AddRecordWithOrder();
             //t.DeleteFile();
-                      BenchmarkDotNet.Running.BenchmarkRunner.Run<Logical_RecordSearch>(new C());
+            var br = BenchmarkConverter.TypeToBenchmarks(typeof(RecordAddBenchmark),new C());
+            var lr = BenchmarkConverter.TypeToBenchmarks(typeof(Logical_RecordSearch), new C());
+            BenchmarkDotNet.Running.BenchmarkRunnerCore.Run(lr, _ => new InProcessToolchain(true));
             //        BenchmarkDotNet.Running.BenchmarkRunner.Run<RecordAddBenchmark>(new C());
 
             //    Console.ReadKey();

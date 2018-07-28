@@ -10,5 +10,6 @@ namespace File.Paging.PhysicalLevel.Contracts.Internal
     {
         TRecord GetRecord(ushort offset, ushort size);
         void SetRecord(ushort offset, ushort size, TRecord record);
+        void Flush();
     }
 }

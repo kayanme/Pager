@@ -2,7 +2,7 @@
 using System.Linq;
 using Benchmark.Paging.PhysicalLevel;
 using BenchmarkDotNet.Running;
-using File.Paging.PhysicalLevel.Classes.Configurations;
+using BenchmarkDotNet.Toolchains.InProcess;
 
 
 namespace Benchmark.Paging.PhysicalLevel
@@ -11,31 +11,21 @@ namespace Benchmark.Paging.PhysicalLevel
     {
         public static void Main()
         {
+            //var t = new Physical_RecordAddBenchmark();
+            //t.Init();
+            //t.AddRecordWithFlush();
 
-            //var t = new Physical_RecordSearchBenchmark() {PageSize = PageManagerConfiguration.PageSize.Kb4, WriteMethod = WriteMethod.FixedSize };
-            //t.Init();
-            //t.ScanSearch();
-            //t.BinarySearch();
-
-            //t.IteratePage();
-            //t.IteratePage();
-            //t.IteratePage();
-            //t.Init();
-            //t.AddRecord();
-            //t.DeleteFile();
-            BenchmarkRunner.Run<Physical_RecordSearchBenchmark>(new C());
-         //   BenchmarkRunner.Run<Physical_RecordIterateBenchmark>(new C());
-            //BenchmarkRunner.Run<Physical_RecordAddBenchmark>(new C());
-            //BenchmarkRunner.Run<Physical_RecordChangeBenchmark>(new C());
-            //BenchmarkRunner.Run<Physical_LockBenchmark>(new C());
-            //  BenchmarkRunner.Run<SearchBench>();
-            //var t = new Physical_RecordAddBenchmark { WriteMethod = WriteMethod.FixedSize };
-            //t.Init();
-            //foreach (var _ in Enumerable.Repeat(0, 1000000))
-            //{
-            //    t.AddRecord();
-            //}
-            //Console.ReadKey();
+            BenchmarkRunInfo r;
+            r = BenchmarkConverter.TypeToBenchmarks(typeof(Physical_RecordSearchBenchmark), new C());
+            BenchmarkRunnerCore.Run(r, _ => new InProcessToolchain(false));
+            r = BenchmarkConverter.TypeToBenchmarks(typeof(Physical_RecordAddBenchmark), new C());
+            BenchmarkRunnerCore.Run(r, _ => new InProcessToolchain(false));
+            r = BenchmarkConverter.TypeToBenchmarks(typeof(Physical_RecordChangeBenchmark), new C());
+            BenchmarkRunnerCore.Run(r, _ => new InProcessToolchain(false));
+            r = BenchmarkConverter.TypeToBenchmarks(typeof(Physical_RecordIterateBenchmark), new C());
+            BenchmarkRunnerCore.Run(r, _ => new InProcessToolchain(false));
+            r = BenchmarkConverter.TypeToBenchmarks(typeof(Physical_LockBenchmark), new C());
+            BenchmarkRunnerCore.Run(r, _ => new InProcessToolchain(false));
         }
     }
 }

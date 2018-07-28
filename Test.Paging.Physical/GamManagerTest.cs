@@ -1,10 +1,11 @@
 ﻿using System.IO;
 using System.IO.MemoryMappedFiles;
+using FakeItEasy;
 using File.Paging.PhysicalLevel;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Rhino.Mocks;
+
 
 namespace Test.Pager
 {
@@ -39,10 +40,9 @@ namespace Test.Pager
         private IGamAccessor GetManager()
         {
             _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, FileName, Extent.Size);
-            var file = new MockRepository().StrictMock<IUnderlyingFileOperator>();
-            file.Expect(k => k.GetMappedFile(Extent.Size)).Return(_map);
-            file.Expect(k => k.ReturnMappedFile(_map));
-            file.Replay();
+            var file = A.Fake<IUnderlyingFileOperator>();
+            A.CallTo(()=> file.GetMappedFile(Extent.Size)).Returns(_map);
+            A.CallTo(() => file.ReturnMappedFile(_map));           
             return new GamAccessor(file);
         }
         [TestCleanup]

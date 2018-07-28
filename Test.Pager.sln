@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Integration.Physical",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{7D0723C8-BD45-4375-AB18-D3F0109DCA22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Timeserver", "Sample.Timeserver\Sample.Timeserver.csproj", "{6025EAC7-32BD-4D4F-AFAE-06D5B1004790}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,8 +71,15 @@ Global
 		{7D0723C8-BD45-4375-AB18-D3F0109DCA22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D0723C8-BD45-4375-AB18-D3F0109DCA22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D0723C8-BD45-4375-AB18-D3F0109DCA22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6025EAC7-32BD-4D4F-AFAE-06D5B1004790}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6025EAC7-32BD-4D4F-AFAE-06D5B1004790}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6025EAC7-32BD-4D4F-AFAE-06D5B1004790}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6025EAC7-32BD-4D4F-AFAE-06D5B1004790}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1B57F0B4-F7A8-4C82-ACA1-1F033D2487E6}
 	EndGlobalSection
 EndGlobal

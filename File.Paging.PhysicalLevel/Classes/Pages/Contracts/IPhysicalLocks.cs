@@ -14,8 +14,8 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
 
         bool ChangeLockLevel(ref LockToken<PageReference> token, byte newLevel);
         bool ChangeLockLevel(ref LockToken<PageRecordReference> token, byte newLevel);
-        Task WaitForLockLevelChange(LockToken<PageReference> token, byte newLevel);
-        Task WaitForLockLevelChange(LockToken<PageRecordReference> token, byte newLevel);
+        Task<LockToken<PageReference>> WaitForLockLevelChange(LockToken<PageReference> token, byte newLevel);
+        Task<LockToken<PageRecordReference>> WaitForLockLevelChange(LockToken<PageRecordReference> token, byte newLevel);
     }
    
 }

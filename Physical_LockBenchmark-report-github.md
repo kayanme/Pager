@@ -1,20 +1,20 @@
 ``` ini
 
-BenchmarkDotNet=v0.10.9, OS=Windows 8.1 (6.3.9600)
-Processor=Intel Core i7-4510U CPU 2.00GHz (Haswell), ProcessorCount=4
-Frequency=2533195 Hz, Resolution=394.7584 ns, Timer=TSC
-  [Host]     : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
-  Job-NQIHYO : .NET Framework 4.7 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.2053.0
+BenchmarkDotNet=v0.10.14, OS=Windows 8.1 (6.3.9600.0)
+Intel Core i7-4510U CPU 2.00GHz (Haswell), 1 CPU, 4 logical and 2 physical cores
+Frequency=2533201 Hz, Resolution=394.7575 ns, Timer=TSC
+.NET Core SDK=2.1.202
+  [Host] : .NET Core 2.0.9 (CoreCLR 4.6.26614.01, CoreFX 4.6.26614.01), 64bit RyuJIT
 
-AnalyzeLaunchVariance=True  Runtime=Clr  InvocationCount=192  
+AnalyzeLaunchVariance=True  Runtime=Core  InvocationCount=192  
 LaunchCount=3  
 
 ```
- |                  Method |     Mean |     Error |    StdDev |   Median |
- |------------------------ |---------:|----------:|----------:|---------:|
- |    NaiveReadTakeRelease | 156.0 ns | 10.000 ns |  52.12 ns | 177.7 ns |
- | NaiveTwoReadTakeRelease | 209.0 ns |  7.107 ns |  29.70 ns | 195.2 ns |
- |     PageReadTakeRelease | 258.2 ns | 16.079 ns |  69.98 ns | 262.6 ns |
- |  PageTwoReadTakeRelease | 468.8 ns | 27.691 ns | 125.98 ns | 382.5 ns |
- |   NaiveWriteTakeRelease | 128.8 ns |  7.215 ns |  36.43 ns | 139.0 ns |
- |    PageWriteTakeRelease | 224.6 ns | 11.860 ns |  51.37 ns | 192.0 ns |
+|                  Method |     Mean |     Error |    StdDev |   Median |
+|------------------------ |---------:|----------:|----------:|---------:|
+|    NaiveReadTakeRelease | 172.3 ns |  3.334 ns |  6.581 ns | 171.8 ns |
+| NaiveTwoReadTakeRelease | 354.7 ns |  8.311 ns | 41.125 ns | 342.5 ns |
+|     PageReadTakeRelease | 517.2 ns | 19.202 ns | 61.792 ns | 488.7 ns |
+|  PageTwoReadTakeRelease | 915.3 ns | 15.132 ns | 71.995 ns | 884.7 ns |
+|   NaiveWriteTakeRelease | 134.0 ns |  3.535 ns | 11.015 ns | 131.6 ns |
+|    PageWriteTakeRelease | 494.2 ns | 12.203 ns | 25.473 ns | 486.0 ns |

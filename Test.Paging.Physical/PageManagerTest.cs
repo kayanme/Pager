@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using FakeItEasy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Rhino.Mocks;
 using File.Paging.PhysicalLevel;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
@@ -10,6 +9,7 @@ using File.Paging.PhysicalLevel.Classes.PageFactories;
 using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
+//using Rhino.Mocks;
 
 namespace Test.Pager
 {
@@ -22,9 +22,11 @@ namespace Test.Pager
         [TestInitialize]
         public void Init()
         {
-            var gamMock = MockRepository.GenerateMock<IGamAccessor>();
-            var blockFactoryMock = MockRepository.GenerateMock<IExtentAccessorFactory>();
-            var fileOperator = MockRepository.GenerateMock<IUnderlyingFileOperator>();
+          
+            var gamMock = A.Fake<IGamAccessor>();
+            
+            var blockFactoryMock = A.Fake<IExtentAccessorFactory>();
+            var fileOperator = A.Fake<IUnderlyingFileOperator>();
             TestContext.Properties.Add("IGAMAccessor", gamMock);
             TestContext.Properties.Add("IExtentAccessorFactory", blockFactoryMock);
             TestContext.Properties.Add("IUnderlyingFileOperator", fileOperator);
@@ -55,10 +57,9 @@ namespace Test.Pager
             config.PageMap.Add(3, fconfig);
             config.HeaderConfig.Add(3, hconfig);
       
-            var pageFact = MockRepository.GenerateStub<IPageFactory>();
-            var headerFact = MockRepository.GenerateStub<IHeaderFactory>();
-            var manager = new PageManager(config, gamMock, blockFactoryMock,fileOperator,
-                  pageFact, headerFact);
+            var pageFact = A.Fake<IPageFactory>();
+            var headerFact = A.Fake<IHeaderFactory>();
+            var manager = new PageManager(config, gamMock, blockFactoryMock,fileOperator, pageFact, headerFact);
             TestContext.Properties.Add("manager", manager);
             TestContext.Properties.Add("fconfig", fconfig);
             TestContext.Properties.Add("hconfig", hconfig);
@@ -87,23 +88,19 @@ namespace Test.Pager
         [TestMethod]
         public void FixedPageCreation()
         {
-            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
-            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
-         
-            t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
-            t.Expect(k => k.GetByteArray(0, 72)).Return(new byte[72]);
-            t.Expect(k => k.Dispose()).Repeat.Any();
-            t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            GamMock.Expect(k => k.MarkPageUsed(1)).Return(0);
+            var t = A.Fake<IPageAccessor>();
+            A.CallTo(() => t.PageSize).Returns(4096);
+
+            A.CallTo(() => t.GetByteArray(0, 4096)).Returns(new byte[4096]);
+            A.CallTo(() => t.GetByteArray(0, 72)).Returns(new byte[72]);         
+            A.CallTo(() => t.GetChildAccessorWithStartShift(0)).Returns(t);
+            A.CallTo(() => BlockMock.GetAccessor(Extent.Size, 4096)).Returns(t);
+            A.CallTo(()=> GamMock.MarkPageUsed(1)).Returns(0);
           
             var manager = GetManager();
             var page = manager.CreatePage(Fconfig);
             manager.Dispose();
-           
-          
-            GamMock.VerifyAllExpectations();
-          
+        
         }
 
      
@@ -112,13 +109,13 @@ namespace Test.Pager
         public void PageDeletion()
         {                            
 
-            GamMock.Expect(k => k.MarkPageFree(0));
+          
             var manager = GetManager();
             manager.DeletePage(new PageReference(0),true);
             manager.Dispose();
-                     
-            GamMock.VerifyAllExpectations();
-            
+
+            A.CallTo(() => GamMock.MarkPageFree(0)).MustHaveHappened();
+
         }
 
 
@@ -126,38 +123,40 @@ namespace Test.Pager
         public void PageAcqure()
         {
 
-            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
-            var h = MockRepository.GenerateStub<IPageHeaders>();
+            var t = A.Fake<IPageAccessor>();
+            var h = A.Fake<IPageHeaders>();
        
-            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
-            t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
-            t.Expect(k => k.GetByteArray(0, 72)).Return(new byte[72]);//заголовок
-            t.Expect(k => k.Dispose()).Repeat.Any();
-        //    t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            headerFactory
-                .Expect(k => k.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t,null))
-                .Return(h);
-            var p = MockRepository.GenerateStub<IPageInfo>();
-            pageFactory.Expect(k2 => k2.GetPageInfo(Arg<BufferedPage>.Matches(
-                k=>!k.MarkedForRemoval
-                 && k.UserCount == 1
-                 && k.Accessor == t
-                 && k.ContentAccessor == t
-                 && k.HeaderConfig == null
-                 && k.Headers == h
-                 && k.PageType ==1),Arg.Is(new PageReference(0)),Arg<Action>.Is.NotNull))
-                .Return(p);
-            BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            GamMock.Expect(k => k.GetPageType(0)).Return(1);
+            A.CallTo(()=> t.PageSize).Returns(4096);
+            A.CallTo(() => t.GetByteArray(0, 4096)).Returns(new byte[4096]);
+            A.CallTo(() => t.GetByteArray(0, 72)).Returns(new byte[72]);//заголовок
+          
+//A.CallTo(()=>        //    t.GetChildAccessorWithStartShift(0)).Returns(t);
+           A.CallTo(() => headerFactory.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t,null))
+                .Returns(h);
+            var p = A.Fake<IPageInfo>();
+     
+            A.CallTo(() => pageFactory.GetPageInfo(A<BufferedPage>.That.Matches(k=> !k.MarkedForRemoval
+                                                                                    && k.UserCount == 1
+                                                                                    && k.Accessor == t
+                                                                                    && k.ContentAccessor == t
+                                                                                    && k.HeaderConfig == null
+                                                                                    && k.Headers == h
+                                                                                    && k.PageType == 1, null, null),
+                                                  A<PageReference>.That.Matches(pr=> pr.PageNum == 0),
+                                                  A<Action>.That.IsNotNull()))
+                .Returns(p);
+            A.CallTo(()=> BlockMock.GetAccessor(Extent.Size, 4096)).Returns(t);
+            A.CallTo(() => GamMock.GetPageType(0)).Returns<byte>(1);
+
             using (var manager = GetManager())
             {
                 var page = manager.GetPageInfo(new PageReference(0));              
                 Assert.AreEqual(p, page);
               
             }
-            pageFactory.VerifyAllExpectations();
-            headerFactory.VerifyAllExpectations();
-            BlockMock.VerifyAllExpectations();
+
+
+
         }
 
        
@@ -169,28 +168,27 @@ namespace Test.Pager
         public void HeaderedPageAcquire()
         {
 
-            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
-            t.Expect(k => k.GetChildAccessorWithStartShift(7)).Repeat.Once().Return(t);
-            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
-            t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
-            t.Expect(k => k.GetByteArray(0, 72)).Return(new byte[72]);//получаем заголовок
-            t.Expect(k => k.Dispose()).Repeat.Any();         
-            BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            GamMock.Expect(k => k.GetPageType(0)).Return(3);
-            var h = MockRepository.GenerateStub<IPageHeaders>();
-            var p = MockRepository.GenerateStub<IPageInfo>();
-            headerFactory
-                .Expect(k => k.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, TestContext.Properties["hconfig"] as PageHeadersConfiguration))
-                .Return(h);
-            pageFactory.Expect(k2 => k2.GetPageInfo(Arg<BufferedPage>.Matches(
+            var t = A.Fake<IPageAccessor>();
+            A.CallTo(() => t.GetChildAccessorWithStartShift(7)).Returns(t);
+            A.CallTo(() => t.PageSize).Returns(4096);
+            A.CallTo(() => t.GetByteArray(0, 4096)).Returns(new byte[4096]);
+            A.CallTo(() => t.GetByteArray(0, 72)).Returns(new byte[72]);//получаем заголовок
+            A.CallTo(() => t.Dispose());         
+            A.CallTo(()=> BlockMock.GetAccessor(Extent.Size, 4096)).Returns(t);
+            A.CallTo(() => GamMock.GetPageType(0)).Returns<byte>(3);
+            var h = A.Fake<IPageHeaders>();
+            var p = A.Fake<IPageInfo>();
+            A.CallTo(() => headerFactory.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, TestContext.Properties["hconfig"] as PageHeadersConfiguration))
+                .Returns(h);
+            A.CallTo(() => pageFactory.GetPageInfo(A<BufferedPage>.That.Matches(
                     k => !k.MarkedForRemoval
                          && k.UserCount == 1
                          && k.Accessor == t
                          && k.ContentAccessor == t
                          && k.HeaderConfig == TestContext.Properties["hconfig"] as PageHeadersConfiguration
                          && k.Headers == h
-                         && k.PageType == 3),Arg.Is(new PageReference(0)),Arg<Action>.Is.NotNull))
-                .Return(p as IPageInfo);
+                         && k.PageType == 3),new PageReference(0),A<Action>.That.IsNotNull()))
+                .Returns(p as IPageInfo);
 
 
             using (var manager = GetManager())
@@ -198,41 +196,38 @@ namespace Test.Pager
                 var page = manager.GetPageInfo(new PageReference(0));
                 Assert.AreEqual(p, page);                      
             }
-            pageFactory.VerifyAllExpectations();
-            headerFactory.VerifyAllExpectations();
-            BlockMock.VerifyAllExpectations();
+           
         }
         
         [TestMethod]
         public void RemovePageFromBuffer()
         {
-            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
+            var t = A.Fake<IPageAccessor>();
 
-            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
-            t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
-            t.Expect(k => k.GetByteArray(0, 72)).Return(new byte[72]);//заголовок
-            t.Expect(k => k.Dispose()).Repeat.Any();
-            t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            t.Expect(k => k.Flush());
-            BlockMock.Expect(k => k.GetAccessor(Extent.Size+4096, 4096)).Return(t);
-            GamMock.Expect(k => k.GetPageType(1)).Return(1);
-            var h = MockRepository.GenerateStub<IPageHeaders>();
-            var p = MockRepository.GenerateStub<IPageInfo>();
-            headerFactory
-                .Expect(k => k.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, null))
-                .Return(h);
-            pageFactory.Expect(k2 => k2.GetPageInfo(Arg<BufferedPage>.Matches(
+            A.CallTo(() => t.PageSize).Returns(4096);
+            A.CallTo(() => t.GetByteArray(0, 4096)).Returns(new byte[4096]);
+            A.CallTo(() => t.GetByteArray(0, 72)).Returns(new byte[72]);//заголовок
+          
+            A.CallTo(() => t.GetChildAccessorWithStartShift(0)).Returns(t);
+            
+            A.CallTo(() => BlockMock.GetAccessor(Extent.Size+4096, 4096)).Returns(t).Once();
+            A.CallTo(() => GamMock.GetPageType(1)).Returns<byte>(1);
+            var h = A.Fake<IPageHeaders>();
+            var p = A.Fake<IPageInfo>();
+            A.CallTo(() => headerFactory.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, null))
+                .Returns(h);
+            A.CallTo(() => pageFactory.GetPageInfo(
+                A<BufferedPage>.That.Matches(
                     k => !k.MarkedForRemoval
                          && k.UserCount == 1
                          && k.Accessor == t
                          && k.ContentAccessor == t
                          && k.HeaderConfig == null
                          && k.Headers == h
-                         && k.PageType == 1),Arg.Is(new PageReference(1)), Arg<Action>.Is.NotNull))
-                .Do(new Func<BufferedPage,PageReference,Action,IPageInfo>(
-                    (_,__,a)=> { p.Expect(k => k.Dispose()).Do(a);
-                    return p;
-                }));
+                         && k.PageType == 1),new PageReference(1), A<Action>.That.IsNotNull()))                  
+                .ReturnsLazily(
+                    (a)=> { A.CallTo(() => p.Dispose()).Invokes(_=>(a.Arguments[2] as Action)()); return p;
+                });
             bool pageRemoved = false;
 
             using (var manager = GetManager())
@@ -245,57 +240,49 @@ namespace Test.Pager
                 }
                 Assert.IsTrue(pageRemoved);
             }
-            BlockMock.VerifyAllExpectations();
+            A.CallTo(() => t.Dispose()).MustHaveHappened();
         }
 
 
         [TestMethod]
         public void RemovePageFromBufferWithConcurrentCreation()
         {
-            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
+            var t = A.Fake<IPageAccessor>();
 
-            t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
-            t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
-            t.Expect(k => k.GetByteArray(0, 72)).Return(new byte[72]);//заголовок
-            t.Expect(k => k.Dispose()).Repeat.Any();
-            t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            t.Expect(k => k.Flush()).Repeat.Twice();
-            BlockMock.Expect(k => k.GetAccessor(Extent.Size + 4096, 4096)).Return(t);
-            GamMock.Expect(k => k.GetPageType(1)).Return(1);
-            var h = MockRepository.GenerateStub<IPageHeaders>();
-            var p = MockRepository.GenerateStub<IPageInfo>();
-            var p2 = MockRepository.GenerateStub<IPageInfo>();
-            headerFactory
-                .Expect(k => k.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, null))
-                .Return(h);
-            pageFactory.BackToRecord();
-            pageFactory.Expect(k2 => k2.GetPageInfo(Arg<BufferedPage>.Matches(
+            A.CallTo(() => t.PageSize).Returns(4096);
+            A.CallTo(() => t.GetByteArray(0, 4096)).Returns(new byte[4096]);
+            A.CallTo(() => t.GetByteArray(0, 72)).Returns(new byte[72]);//заголовок
+            
+            A.CallTo(() => t.GetChildAccessorWithStartShift(0)).Returns(t);
+
+            A.CallTo(() => BlockMock.GetAccessor(Extent.Size + 4096, 4096)).Returns(t);
+            A.CallTo(() => GamMock.GetPageType(1)).Returns<byte>(1);
+            var h = A.Fake<IPageHeaders>();
+            var p = A.Fake<IPageInfo>();
+            var p2 = A.Fake<IPageInfo>();
+            A.CallTo(() => headerFactory.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, null))
+                .Returns(h);
+
+            A.CallTo(() => pageFactory.GetPageInfo(A<BufferedPage>.That.Matches(
                     k => !k.MarkedForRemoval
                          && k.UserCount == 1
                          && k.Accessor == t
                          && k.ContentAccessor == t
                          && k.HeaderConfig == null
                          && k.Headers == h
-                         && k.PageType == 1),Arg.Is(new PageReference(1)), Arg<Action>.Is.NotNull))
-                .Do(new Func<BufferedPage, PageReference, Action, IPageInfo>(
-                    (_, __, a) => {
-                        p.Expect(k => k.Dispose()).Do(a);
-                        return p;
-                    }));
-            pageFactory.Expect(k2 => k2.GetPageInfo(Arg<BufferedPage>.Matches(
+                         && k.PageType == 1),new PageReference(1), A<Action>.That.IsNotNull()))
+                .ReturnsLazily(a=> { A.CallTo(() => p.Dispose()).Invokes(a.Arguments[2] as Action); return p; });
+            A.CallTo(() => pageFactory.GetPageInfo(A<BufferedPage>.That.Matches(
                     k => k.MarkedForRemoval
                          && k.UserCount == 2
                          && k.Accessor == t
                          && k.ContentAccessor == t
                          && k.HeaderConfig == null
                          && k.Headers == h
-                         && k.PageType == 1), Arg.Is(new PageReference(1)), Arg<Action>.Is.NotNull))
-                .Do(new Func<BufferedPage, PageReference, Action, IPageInfo>(
-                    (_, __, a) => {
-                        p2.Expect(k => k.Dispose()).Do(a);
-                        return p2;
-                    }));
-            pageFactory.Replay();
+                         && k.PageType == 1), new PageReference(1), A<Action>.That.IsNotNull()))
+                 .ReturnsLazily(a => { A.CallTo(() => p.Dispose()).Invokes(a.Arguments[2] as Action); return p; });
+
+            
             bool pageRemoved = false;
             using (var manager = GetManager())
             {
@@ -311,7 +298,8 @@ namespace Test.Pager
                 page2.Dispose();
                 Assert.IsTrue(pageRemoved);
             }
-            BlockMock.VerifyAllExpectations();
+            A.CallTo(() => t.Dispose()).MustHaveHappened();           
+           
         }
 
 
@@ -320,23 +308,24 @@ namespace Test.Pager
         public void PageIteration()
         {
 
-            var t = MockRepository.GenerateStrictMock<IPageAccessor>();
+            var t = A.Fake<IPageAccessor>();
 
-            //t.Expect(k => k.PageSize).Repeat.Any().Return(4096);
-            //t.Expect(k => k.GetByteArray(0, 4096)).Return(new byte[4096]);
-            //t.Expect(k => k.GetByteArray(0, 72)).Return(new byte[72]);//заголовок
-            //t.Expect(k => k.Dispose()).Repeat.Any();
-            //t.Expect(k => k.GetChildAccessorWithStartShift(0)).Return(t);
-            //BlockMock.Expect(k => k.GetAccessor(Extent.Size, 4096)).Return(t);
-            GamMock.Expect(k => k.GetPageType(0)).Return(1);
-            GamMock.Expect(k => k.GetPageType(Arg<byte>.Is.NotEqual(0))).Return(0);
+//A.CallTo(()=>            //t.PageSize).Returns(4096);
+//A.CallTo(()=>            //t.GetByteArray(0, 4096)).Returns(new byte[4096]);
+//A.CallTo(()=>            //t.GetByteArray(0, 72)).Returns(new byte[72]);//заголовок
+//A.CallTo(()=>            //t.Dispose());
+//A.CallTo(()=>            //t.GetChildAccessorWithStartShift(0)).Returns(t);
+//A.CallTo(()=>            //BlockMock.GetAccessor(Extent.Size, 4096)).Returns(t);
+            A.CallTo(()=> GamMock.GetPageType(0)).Returns<byte>(1);
+            A.CallTo(() => GamMock.GetPageType(A<int>.That.Not.IsEqualTo<int>(0))).Returns<byte>(0);
             using (var manager = GetManager())
             {
                 var pages = manager.IteratePages(1).ToArray();
                 Assert.AreEqual(1,pages.Length);
                 Assert.AreEqual(new PageReference(0), pages[0]);            
             }
-            BlockMock.VerifyAllExpectations();
+           
         }
     }
 }
+

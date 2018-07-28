@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FakeItEasy;
 using File.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Rhino.Mocks;
 
 namespace Test.Pager.Headers
 {
@@ -49,7 +49,7 @@ namespace Test.Pager.Headers
 
             protected sealed override ushort SetUsed(ushort record, ushort size, byte type)
             {
-               return TestSetUsed(record,size,type);
+                return TestSetUsed(record,size,type);
             }
 
             public abstract void TestSetFree(ushort record);
@@ -59,9 +59,9 @@ namespace Test.Pager.Headers
 
         private TestHeaders CreateHeaders(int maxRecords)
         {
-            var m = new MockRepository();
-            var headers = m.StrictMock<TestHeaders>(maxRecords);
-            headers.Expect(k => k.RecordShift(0)).IgnoreArguments().CallOriginalMethod(Rhino.Mocks.Interfaces.OriginalCallOptions.NoExpectation);
+           
+            var headers = A.Fake<TestHeaders>(o=>o.WithArgumentsForConstructor(new object[] { maxRecords }));
+A.CallTo(()=>            headers.RecordShift(0)).WithAnyArguments().CallsBaseMethod();
             return headers;
         }
 
@@ -69,12 +69,12 @@ namespace Test.Pager.Headers
         public void MainRecordParameters()
         {
             var headers = CreateHeaders(1);
-            headers.Expect(k => k.FillHeadersMock())                  
-                   .Return(new[]
+A.CallTo(()=>            headers.FillHeadersMock())                  
+                   .Returns(new[]
                    {
                        Tuple.Create(10,40,14)
                    });
-            headers.Replay();
+
             headers.FillHeaders();
 
             Assert.AreEqual(1, headers.RecordCount);
@@ -87,12 +87,12 @@ namespace Test.Pager.Headers
         public void CheckNonFreeRecordForFree()
         {
             var headers = CreateHeaders(1);
-            headers.Expect(k => k.FillHeadersMock())
-                   .Return(new[]
+A.CallTo(()=>            headers.FillHeadersMock())
+                   .Returns(new[]
                    {
                        Tuple.Create(10,40,14)
                    });
-            headers.Replay();
+
             headers.FillHeaders();
 
             Assert.IsFalse(headers.IsRecordFree(0));
@@ -102,12 +102,12 @@ namespace Test.Pager.Headers
         public void CheckFreeRecordForFree()
         {
             var headers = CreateHeaders(1);
-            headers.Expect(k => k.FillHeadersMock())
-                   .Return(new[]
+A.CallTo(()=>            headers.FillHeadersMock())
+                   .Returns(new[]
                    {
                        Tuple.Create(0,0,0)
                    });
-            headers.Replay();
+
             headers.FillHeaders();
 
             Assert.IsTrue(headers.IsRecordFree(0));
@@ -117,13 +117,13 @@ namespace Test.Pager.Headers
         public void FreeRecord()
         {
             var headers = CreateHeaders(1);
-            headers.Expect(k => k.FillHeadersMock())
-                   .Return(new[]
+A.CallTo(()=>            headers.FillHeadersMock())
+                   .Returns(new[]
                    {
                        Tuple.Create(10,10,2)
                    });
-            headers.Expect(k => k.TestSetFree(0));
-            headers.Replay();
+A.CallTo(()=>            headers.TestSetFree(0));
+
             headers.FillHeaders();
         
             headers.FreeRecord(0);
@@ -138,13 +138,13 @@ namespace Test.Pager.Headers
         public void UseRecord()
         {
             var headers = CreateHeaders(1);
-            headers.Expect(k => k.FillHeadersMock())
-                   .Return(new[]
+A.CallTo(()=>            headers.FillHeadersMock())
+                   .Returns(new[]
                    {
                        Tuple.Create(0,0,0)
                    });
-            headers.Expect(k => k.TestSetUsed(0, 30, 3)).Return(2);
-            headers.Replay();
+A.CallTo(()=>            headers.TestSetUsed(0, 30, 3)).Returns<ushort>(2);
+
             headers.FillHeaders();
            
             var recordNum = headers.TakeNewRecord(3,30);
@@ -161,12 +161,12 @@ namespace Test.Pager.Headers
         public void UseRecord_WhenThereIsNoFree()
         {
             var headers = CreateHeaders(1);
-            headers.Expect(k => k.FillHeadersMock())
-                   .Return(new[]
+A.CallTo(()=>            headers.FillHeadersMock())
+                   .Returns(new[]
                    {
                        Tuple.Create(10,40,2)
                    });
-            headers.Replay();
+
             headers.FillHeaders();         
             var recordNum = headers.TakeNewRecord(3, 30);
 

@@ -65,14 +65,14 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
             return _pageRecordLockManager.ChangeLockLevel(ref token, _lockMatrix, newLevel);
         }
 
-        public async Task WaitForLockLevelChange(LockToken<PageReference> token, byte newLevel)
+        public async Task<LockToken<PageReference>> WaitForLockLevelChange(LockToken<PageReference> token, byte newLevel)
         {
-            await _pageLockManager.WaitForLockLevelChange(token, _lockMatrix, newLevel);
+            return await _pageLockManager.WaitForLockLevelChange(token, _lockMatrix, newLevel);
         }
 
-        public async Task WaitForLockLevelChange(LockToken<PageRecordReference> token, byte newLevel)
+        public async Task<LockToken<PageRecordReference>> WaitForLockLevelChange(LockToken<PageRecordReference> token, byte newLevel)
         {
-            await _pageRecordLockManager.WaitForLockLevelChange(token, _lockMatrix, newLevel);
+           return await _pageRecordLockManager.WaitForLockLevelChange(token, _lockMatrix, newLevel);
         }
     }
 }

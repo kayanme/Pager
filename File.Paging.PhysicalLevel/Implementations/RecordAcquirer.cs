@@ -24,6 +24,11 @@ namespace File.Paging.PhysicalLevel.Implementations
             _serializer = new SerializationCore<TRecord>(configuration);
         }
 
+        public void Flush()
+        {
+            _accessor.Flush();
+        }
+
         public unsafe TRecord GetRecord(ushort offset, ushort size)
         {
             TRecord r = default(TRecord);
