@@ -22,13 +22,18 @@ namespace TimeArchiver.Classes
         private (long, long) GetUnitedBorders(IndexRecord block1, (long, long) block2)
          => (Math.Min(block1.Start, block2.Item1), Math.Max(block1.End, block2.Item2));
 
+        private (long, long) GetUnitedBorders(IndexRecord block1, IndexRecord block2)
+        => (Math.Min(block1.Start, block2.Start), Math.Max(block1.End, block2.End));
+
+
         private long Range((long , long) b) => b.Item2-b.Item1;
+        private long Range(IndexRecord b) => b.End - b.Start;
 
         private IndexRecord SelectIndexToInsert((long,long) bounds,IndexRecord index1,IndexRecord index2)
         {
-            var (l, u) = GetUnitedBorders(index1,bounds);
-            var (l2, u2) = GetUnitedBorders(index2, bounds);
-            if (u2 - l2 < u - l)
+            var diff1 = Range(GetUnitedBorders(index1,bounds)) - Range(index1);
+            var diff2 = Range(GetUnitedBorders(index2, bounds))-Range(index2);
+            if (diff2<diff1)
                 return index2;
             return index1;
         }
@@ -42,17 +47,20 @@ namespace TimeArchiver.Classes
             Debug.Assert(firstLevelChildren.Length == 2, "firstLevelChildren.Length == 2");
             var indexToInsertBlock = SelectIndexToInsert((lowbound, upbound), firstLevelChildren[0], firstLevelChildren[1]);
             var otherIndex = firstLevelChildren[0].Equals(indexToInsertBlock) ? firstLevelChildren[1] : firstLevelChildren[0];
-            currentRoot = indexInteraction.ResizeIndex(currentRoot, lowbound, upbound);
+            
             indexToInsertBlock = InsertOrProcessNextlevel(block, lowbound, upbound, indexToInsertBlock);
             var secondLevelChildren = indexInteraction.GetChildren(indexToInsertBlock);
             if (secondLevelChildren[0].MaxUnderlyingDepth != secondLevelChildren[1].MaxUnderlyingDepth)
             {
                 var lesserGrandChild = secondLevelChildren[0].MaxUnderlyingDepth > secondLevelChildren[1].MaxUnderlyingDepth ? secondLevelChildren[1] : secondLevelChildren[0];
                 otherIndex = indexInteraction.CreateUnderlayingIndexRecord(otherIndex);
-                indexInteraction.MoveIndex(otherIndex, lesserGrandChild);
-                indexInteraction.ResetTreeDepth(otherIndex);
+                lesserGrandChild = indexInteraction.MoveIndex(otherIndex, lesserGrandChild);
+                var (ln2, un2) = GetUnitedBorders(otherIndex, (lesserGrandChild.Start, lesserGrandChild.End));
+                otherIndex = indexInteraction.ResizeIndex(otherIndex, ln2, un2);
+                otherIndex = indexInteraction.ResetTreeDepth(otherIndex);
             }
-            
+            var (ln, un) = GetUnitedBorders(indexToInsertBlock, otherIndex);
+            currentRoot = indexInteraction.ResizeIndex(currentRoot, ln, un);
             currentRoot = indexInteraction.ResetTreeDepth(currentRoot);
             return currentRoot;
         }

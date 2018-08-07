@@ -88,10 +88,10 @@ namespace Test.TimeArchiver
                        data(1, 2),
                        data(2, 3));
             await addBlock(3, 4);
-            indexDowned(data(2, 3));
-            indexResized(index(2, 3), 2, 4);
+            indexDowned(data(2, 3));            
             dataBlockCreated(index(2, 3));
-            
+            indexResized(index(2, 3), 2, 4);
+
         }
 
         [TestMethod]
@@ -101,10 +101,9 @@ namespace Test.TimeArchiver
                        data(1, 2),
                        data(2, 3));
             await addBlock(1, 3);
-            indexDowned(data(2, 3));
-            indexResized(index(2, 3), 1, 3);
-            dataBlockCreated(index(1, 3));
-
+            indexDowned(data(1, 2));            
+            dataBlockCreated(index(1, 2));
+            indexResized(index(1, 2), 1, 3);
         }
 
         [TestMethod]
@@ -114,9 +113,9 @@ namespace Test.TimeArchiver
                        data(1, 4),
                        data(4, 5));
             await addBlock(2, 5);
-            indexDowned(data(1, 4));
+            indexDowned(data(1, 4));            
+            dataBlockCreated(index(1, 4));
             indexResized(index(1, 4), 1, 5);
-            dataBlockCreated(index(1, 5));
         }
 
         [TestMethod]
@@ -131,23 +130,16 @@ namespace Test.TimeArchiver
                      );
             await addBlock(5, 6);
 
-            indexResized(index(1, 5), 1, 6);
-            indexDowned(data(1, 3));            
-            dataBlockCreated(index(1, 3));
-
-            //indexTree(1, 6,
-            //           index(1, 3,
-            //             data(1,3),
-            //             data(5,6)
-            //             ),
-            //           index(3, 5,
-            //               data(3, 4),
-            //               data(4, 5)
-            //           )
-            //         );
-            indexSwapped(data(5, 6), data(3, 4));
+            
+            
+            indexDowned(data(4, 5));            
+            dataBlockCreated(index(4, 5));
+            indexResized(index(4, 5), 4, 6);
+            indexResized(index(3, 5), 3, 6);
+            indexDowned(data(1, 3)); 
+            indexMoved(index(1, 3), data(3, 4));
             indexResized(index(1,3),1,4);
-            indexResized(index(3, 5), 4, 6);
+            indexResized(index(1, 5), 1, 6);
 
             //indexTree(1, 6,
             //          index(1, 4,
@@ -174,28 +166,17 @@ namespace Test.TimeArchiver
                      );
             await addBlock(2, 6);
 
-            indexResized(index(1, 5), 1, 6);
-            indexDowned(data(1, 3));
-            dataBlockCreated(index(1, 3));
-
-            //indexTree(1, 5,
-            //           index(1, 3,
-            //              data(1,3),
-            //              data(2,6)
-            //           ),
-            //           index(3, 5,
-            //               data(3, 4),
-            //               data(4, 5)
-            //           )
-            //         );
-
-                      
-            indexSwapped(data(2, 6), data(3, 4));
-            indexResized(index(1, 3), 1, 4);
+         
+            indexDowned(index(3, 5));
+            dataBlockCreated(index(3, 5));
             indexResized(index(3, 5), 2, 6);
-
+            indexDowned(data(1, 3));
+            
+            indexMoved(index(1, 3), data(2, 6));
+            indexResized(index(1, 3), 1, 6);            
+            indexResized(index(1, 5), 1, 6);
             //indexTree(1, 5,
-            //           index(1, 3,
+            //           index(1, 6,
             //              data(1, 3),
             //              data(2, 6)
             //           ),

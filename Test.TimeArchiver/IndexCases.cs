@@ -1,23 +1,26 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TimeArchiver.Contracts;
 using FakeItEasy;
-using System.Linq;
 using TimeArchiver.Classes;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+using System.Linq;
 
+[assembly:InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Test.TimeArchiver
 {
+
     [TestClass]
     public partial class IndexTests
     {
 
         public TestContext TestContext { get; set; }
 
-        private IIndexInteraction<double> _indexInteraction
+        private MockIndexInteraction _indexInteraction
         {
             get =>
             
-                TestContext.Properties["ii"] as IIndexInteraction<double>;
+                TestContext.Properties["ii"] as MockIndexInteraction;
             set
             {
                 TestContext.Properties["ii"] = value;
@@ -41,38 +44,37 @@ namespace Test.TimeArchiver
 
         private void CheckResult(params long[] data) { }
 
-        private IndexRecord index(long start, long end,int depth) => new IndexRecord { Start = start, End = end, StoresData = false,MaxUnderlyingDepth = depth };
+        private IndexRecord index(long start, long end) => new IndexRecord { Start = start, End = end, StoresData = false};
 
-        private IndexRecord data(long start, long end) => new IndexRecord { Start = start, End = end, StoresData = true };
+        private IndexRecord data(long start, long end) => new IndexRecord { Start = start, End = end, StoresData = true, TestKey = _indexInteraction.newKey() };
 
         private int TestIndexCapacity => int.Parse(TestContext.Properties.ContainsKey("IndexCapacity") ? (string)TestContext.Properties["IndexCapacity"]:"2");
 
-        private IndexRecord index(long start,long end,params IndexRecord[] chilrden)
+        private IndexRecord index(long start,long end,params IndexRecord[] children)
         {
             var ind = index(start, end);
-            ind.MaxUnderlyingDepth =chilrden.Any()? chilrden.Max(k => k.MaxUnderlyingDepth) + 1:0;
-            A.CallTo(() => _indexInteraction.GetChildren(ind)).Returns(chilrden);
-            A.CallTo(() => _indexInteraction.IsChildrenCapacityFull(ind)).Returns(chilrden.Length == TestIndexCapacity);
+            ind.MaxUnderlyingDepth = (short)(children.Max(k => k.MaxUnderlyingDepth) + 1);
+            ind.TestKey = _indexInteraction.newKey();
+            _indexInteraction.AddChildren(ind,children);
             return ind;
         }
 
         private void indexTree(long start, long end, params IndexRecord[] chilrden)
         {
-            var root = index(start, end, chilrden);
-            A.CallTo(() => _indexInteraction.GetRoot()).Returns(root);
+            var root = index(start, end, chilrden);            
+            _indexInteraction.SetRoot(root);
         }
 
         private void indexTreeDataOnly(long start, long end)
         {
-            var root = data(start, end);
-            A.CallTo(() => _indexInteraction.GetRoot()).Returns(root);
+            var root = data(start, end);            
+            _indexInteraction.SetRoot(root);
         }
 
         private async Task addBlock(long start,long end)
         {
-            var db = dataBlock(start, end);
-            recordAdded = db;
-            A.CallTo(() => _indexInteraction.CreateDataBlock(A<IndexRecord>.Ignored, recordAdded)).Returns(index(start,end));
+            var db = dataBlock(start, end);          
+            recordAdded = db;         
             await _dataInteraction.AddBlock(db);
 
         }
@@ -80,25 +82,8 @@ namespace Test.TimeArchiver
         [TestInitialize]
         public void Initialize()
         {
-            _indexInteraction = A.Fake<IIndexInteraction<double>>();
-            A.CallTo(() => _indexInteraction.CreateUnderlayingIndexRecord(A<IndexRecord>.Ignored))  
-                .Invokes((IndexRecord ind)=>A.CallTo(()=>_indexInteraction.GetChildren(index(ind.Start, ind.End,ind.MaxUnderlyingDepth+1))).Returns(new[] { ind }))
-                .ReturnsLazily((IndexRecord ind) => index(ind.Start, ind.End,ind.MaxUnderlyingDepth+1));
-
-            A.CallTo(() => _indexInteraction.ResizeIndex(A<IndexRecord>.Ignored, A<long>.Ignored, A<long>.Ignored))
-                .Invokes((IndexRecord ind, long l, long b) => A.CallTo(() => _indexInteraction.GetChildren(index(l,b))).Returns(_indexInteraction.GetChildren(ind)))
-                .ReturnsLazily((IndexRecord i,long l,long b) => index(l, b,i.MaxUnderlyingDepth));
-
-            A.CallTo(() => _indexInteraction.MoveIndex(A<IndexRecord>.Ignored, A<IndexRecord>.Ignored))
-                .Invokes((IndexRecord root, IndexRecord moved) =>
-                {
-                   A.CallTo(() => _indexInteraction.GetChildren(root)).Returns( _indexInteraction.GetChildren(root).Concat( new[] { moved }).ToArray());
-                    A.CallTo(() => _indexInteraction.GetChildren(root)).Returns(_indexInteraction.GetChildren(root).Concat(new[] { moved }).ToArray());
-                })
-                .ReturnsLazily((IndexRecord root,IndexRecord moved) => index(moved.Start, moved.End));
-
+            _indexInteraction = A.Fake<MockIndexInteraction>(c=>c.CallsBaseMethods());       
             
-
             _dataInteraction = new DataInteraction<double>(_indexInteraction);
       
         }
