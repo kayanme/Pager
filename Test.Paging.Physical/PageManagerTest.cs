@@ -173,7 +173,7 @@ namespace Test.Pager
             A.CallTo(() => t.PageSize).Returns(4096);
             A.CallTo(() => t.GetByteArray(0, 4096)).Returns(new byte[4096]);
             A.CallTo(() => t.GetByteArray(0, 72)).Returns(new byte[72]);//получаем заголовок
-            A.CallTo(() => t.Dispose());         
+            
             A.CallTo(()=> BlockMock.GetAccessor(Extent.Size, 4096)).Returns(t);
             A.CallTo(() => GamMock.GetPageType(0)).Returns<byte>(3);
             var h = A.Fake<IPageHeaders>();
@@ -196,7 +196,7 @@ namespace Test.Pager
                 var page = manager.GetPageInfo(new PageReference(0));
                 Assert.AreEqual(p, page);                      
             }
-           
+            A.CallTo(() => t.Dispose()).MustHaveHappened();
         }
         
         [TestMethod]

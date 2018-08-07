@@ -55,12 +55,12 @@ namespace Test.Pager.Pages
             A.CallTo(() => Headers.RecordShift(0)).Returns<ushort>(2);
             A.CallTo(() => Headers.RecordSize(0)).Returns<ushort>(4);
             var r = new TestRecord{Value = 2};
-            A.CallTo(() => Access.SetRecord(2,4,r));
+            
            
             var res = page.AddRecord(r);
             Assert.AreEqual(r,res.Data);
             Assert.AreEqual(0, res.Reference.PersistentRecordNum);
-           
+            A.CallTo(() => Access.SetRecord(2, 4, r)).MustHaveHappened();
         }
 
         [TestMethod]

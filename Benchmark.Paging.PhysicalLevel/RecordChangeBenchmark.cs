@@ -94,9 +94,7 @@ namespace Benchmark.Paging.PhysicalLevel
                 _count += _count & Changes.Count;
             }
             else
-            {
-
-              
+            {              
                 var record = page.GetRecord(new PhysicalPositionPersistentPageRecordReference(rf, (ushort)shift));
                 if (record != null)
                 {
@@ -104,7 +102,6 @@ namespace Benchmark.Paging.PhysicalLevel
                     page.StoreRecord(record);
                     _count += _count & Changes.Count;
                 }
-
             }
             if (flush)
                 page.Flush();

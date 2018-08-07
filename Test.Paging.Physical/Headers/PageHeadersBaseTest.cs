@@ -20,7 +20,7 @@ namespace Test.Pager.Headers
                 RecordInfo = new int[maxRecordCount];
             }
 
-            public abstract IEnumerable<Tuple<int, int, int>>  FillHeadersMock();
+            public abstract IEnumerable<Tuple<int, int, int>> FillHeadersMock();
 
             protected sealed override int[] RecordInfo { get; }
 
@@ -29,7 +29,7 @@ namespace Test.Pager.Headers
                 var t = FillHeadersMock();
                 var d = t.Select(k => FormRecordInf((byte)k.Item3, (ushort)k.Item2, (ushort)k.Item1)).ToArray();
                 TotalUsedRecords = (ushort)t.Count(k => k.Item1 != 0);
-                for (int i=0;i<RecordInfo.Length;i++)
+                for (int i = 0; i < RecordInfo.Length; i++)
                 {
                     RecordInfo[i] = d[i];
                 }
@@ -49,7 +49,7 @@ namespace Test.Pager.Headers
 
             protected sealed override ushort SetUsed(ushort record, ushort size, byte type)
             {
-                return TestSetUsed(record,size,type);
+                return TestSetUsed(record, size, type);
             }
 
             public abstract void TestSetFree(ushort record);
@@ -59,9 +59,9 @@ namespace Test.Pager.Headers
 
         private TestHeaders CreateHeaders(int maxRecords)
         {
-           
-            var headers = A.Fake<TestHeaders>(o=>o.WithArgumentsForConstructor(new object[] { maxRecords }));
-A.CallTo(()=>            headers.RecordShift(0)).WithAnyArguments().CallsBaseMethod();
+
+            var headers = A.Fake<TestHeaders>(o => o.WithArgumentsForConstructor(new object[] { maxRecords }));
+            A.CallTo(() => headers.RecordShift(0)).WithAnyArguments().CallsBaseMethod();
             return headers;
         }
 
@@ -69,11 +69,11 @@ A.CallTo(()=>            headers.RecordShift(0)).WithAnyArguments().CallsBaseMet
         public void MainRecordParameters()
         {
             var headers = CreateHeaders(1);
-A.CallTo(()=>            headers.FillHeadersMock())                  
-                   .Returns(new[]
-                   {
+            A.CallTo(() => headers.FillHeadersMock())
+                               .Returns(new[]
+                               {
                        Tuple.Create(10,40,14)
-                   });
+                               });
 
             headers.FillHeaders();
 
@@ -87,11 +87,11 @@ A.CallTo(()=>            headers.FillHeadersMock())
         public void CheckNonFreeRecordForFree()
         {
             var headers = CreateHeaders(1);
-A.CallTo(()=>            headers.FillHeadersMock())
-                   .Returns(new[]
-                   {
+            A.CallTo(() => headers.FillHeadersMock())
+                               .Returns(new[]
+                               {
                        Tuple.Create(10,40,14)
-                   });
+                               });
 
             headers.FillHeaders();
 
@@ -102,11 +102,11 @@ A.CallTo(()=>            headers.FillHeadersMock())
         public void CheckFreeRecordForFree()
         {
             var headers = CreateHeaders(1);
-A.CallTo(()=>            headers.FillHeadersMock())
-                   .Returns(new[]
-                   {
+            A.CallTo(() => headers.FillHeadersMock())
+                               .Returns(new[]
+                               {
                        Tuple.Create(0,0,0)
-                   });
+                               });
 
             headers.FillHeaders();
 
@@ -117,17 +117,17 @@ A.CallTo(()=>            headers.FillHeadersMock())
         public void FreeRecord()
         {
             var headers = CreateHeaders(1);
-A.CallTo(()=>            headers.FillHeadersMock())
-                   .Returns(new[]
-                   {
-                       Tuple.Create(10,10,2)
-                   });
-A.CallTo(()=>            headers.TestSetFree(0));
+            A.CallTo(() => headers.FillHeadersMock())
+                               .Returns(new[]
+                               {
+                                   Tuple.Create(10,10,2)
+                               });
+            
 
             headers.FillHeaders();
-        
-            headers.FreeRecord(0);
 
+            headers.FreeRecord(0);
+            A.CallTo(() => headers.TestSetFree(0)).MustHaveHappened();
             Assert.AreEqual(0, headers.RecordCount);
             Assert.AreEqual(10, headers.RecordShift(0));
             Assert.AreEqual(10, headers.RecordSize(0));
@@ -138,16 +138,16 @@ A.CallTo(()=>            headers.TestSetFree(0));
         public void UseRecord()
         {
             var headers = CreateHeaders(1);
-A.CallTo(()=>            headers.FillHeadersMock())
-                   .Returns(new[]
-                   {
+            A.CallTo(() => headers.FillHeadersMock())
+                               .Returns(new[]
+                               {
                        Tuple.Create(0,0,0)
-                   });
-A.CallTo(()=>            headers.TestSetUsed(0, 30, 3)).Returns<ushort>(2);
+                               });
+            A.CallTo(() => headers.TestSetUsed(0, 30, 3)).Returns<ushort>(2);
 
             headers.FillHeaders();
-           
-            var recordNum = headers.TakeNewRecord(3,30);
+
+            var recordNum = headers.TakeNewRecord(3, 30);
 
             Assert.AreEqual(0, recordNum);
             Assert.AreEqual(1, headers.RecordCount);
@@ -161,13 +161,13 @@ A.CallTo(()=>            headers.TestSetUsed(0, 30, 3)).Returns<ushort>(2);
         public void UseRecord_WhenThereIsNoFree()
         {
             var headers = CreateHeaders(1);
-A.CallTo(()=>            headers.FillHeadersMock())
-                   .Returns(new[]
-                   {
+            A.CallTo(() => headers.FillHeadersMock())
+                               .Returns(new[]
+                               {
                        Tuple.Create(10,40,2)
-                   });
+                               });
 
-            headers.FillHeaders();         
+            headers.FillHeaders();
             var recordNum = headers.TakeNewRecord(3, 30);
 
             Assert.AreEqual(-1, recordNum);

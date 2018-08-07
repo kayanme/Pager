@@ -28,10 +28,10 @@ namespace Test.Pager.Headers
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            A.CallTo(() => Page.SetByteArray(new byte[] { 0 }, 0, 1));
+            
 
             headers.FreeRecord(0);
-
+            A.CallTo(() => Page.SetByteArray(new byte[] { 0 }, 0, 1)).MustHaveHappenedOnceExactly();
         }
 
         [TestMethod]
@@ -53,9 +53,10 @@ namespace Test.Pager.Headers
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            A.CallTo(() => Page.SetByteArray(new byte[] { 0x10, 0x03, 0x0, 0x01 }, 6, 4));
+            
 
             var pos = headers.TakeNewRecord(1, 3);
+            A.CallTo(() => Page.SetByteArray(new byte[] { 0x10, 0x03, 0x0, 0x01 }, 6, 4)).MustHaveHappenedOnceExactly();
             Assert.AreEqual(1, pos);
             Assert.AreEqual(10, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));
@@ -134,12 +135,12 @@ namespace Test.Pager.Headers
             var headers = Create(pageContent);
 
 
-            A.CallTo(() => Page.SetByteArray(new byte[] { 0, 0 }, 2, 2));
-            A.CallTo(() => Page.SetByteArray(new byte[] { 0, 0x01 }, 8, 2));
-
+            
 
             headers.ApplyOrder(new ushort[] { 1, 0 });
 
+            A.CallTo(() => Page.SetByteArray(new byte[] { 0, 0 }, 2, 2)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => Page.SetByteArray(new byte[] { 0, 0x01 }, 8, 2)).MustHaveHappenedOnceExactly();
 
             Assert.AreEqual(10, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));

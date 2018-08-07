@@ -12,12 +12,12 @@ namespace Test.Pager.Headers
 
         private IPageHeaders Create(byte[] page)
         {
-         
-            
+
+
             var m = A.Fake<IPageAccessor>();
-            
-A.CallTo(()=>            m.GetByteArray(0, page.Length)).Returns(page);
-A.CallTo(()=>            m.PageSize).Returns(page.Length);
+
+            A.CallTo(() => m.GetByteArray(0, page.Length)).Returns(page);
+            A.CallTo(() => m.PageSize).Returns(page.Length);
 
             var p = new VariableRecordPageHeaders(m);
             TestContext.Properties.Add("page", m);
@@ -25,17 +25,17 @@ A.CallTo(()=>            m.PageSize).Returns(page.Length);
             return p;
         }
         private IPageAccessor Page => TestContext.Properties["page"] as IPageAccessor;
-        
+
         [TestMethod]
         public void FreePage_ThatNotFree()
         {
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-A.CallTo(()=>            Page.SetByteArray(new byte[] { 0 }, 0, 1));
+
 
             headers.FreeRecord(0);
-
+            A.CallTo(() => Page.SetByteArray(new byte[] { 0 }, 0, 1)).MustHaveHappened();
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ A.CallTo(()=>            Page.SetByteArray(new byte[] { 0 }, 0, 1));
             var pageContent = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-//A.CallTo(()=>         //   page.SetByteArray(new byte[] { 0 }, 0 + shift, 1));
+            //A.CallTo(()=>         //   page.SetByteArray(new byte[] { 0 }, 0 + shift, 1));
 
             headers.FreeRecord(0);
 
@@ -56,10 +56,10 @@ A.CallTo(()=>            Page.SetByteArray(new byte[] { 0 }, 0, 1));
         {
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
+            var pos = headers.TakeNewRecord(1, 3);
 
-A.CallTo(()=>            Page.SetByteArray(new byte[] { 0x10,0x03 }, 4 , 2));
+            A.CallTo(() => Page.SetByteArray(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x10, 0x03 }), 4, 2)).MustHaveHappened();
 
-            var pos = headers.TakeNewRecord(1,3);
             Assert.AreEqual(1, pos);
             Assert.AreEqual(6, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));
@@ -73,7 +73,7 @@ A.CallTo(()=>            Page.SetByteArray(new byte[] { 0x10,0x03 }, 4 , 2));
             var pageContent = new byte[] { 0x10, 0x06, 0, 0, 0, 0, 0, 0, 0x10, 0x06, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            var pos = headers.TakeNewRecord(1,7);
+            var pos = headers.TakeNewRecord(1, 7);
             Assert.AreEqual(-1, pos);
 
         }
@@ -81,7 +81,7 @@ A.CallTo(()=>            Page.SetByteArray(new byte[] { 0x10,0x03 }, 4 , 2));
         [TestMethod]
         public void AcquirePage_WhenSizeIsnotEnough()
         {
-            var pageContent = new byte[] { 0x10, 0x06, 0, 0, 0, 0, 0, 0, 0x10, 0x05, 0, 0, 0, 0, 0, 0,0,0,0 };
+            var pageContent = new byte[] { 0x10, 0x06, 0, 0, 0, 0, 0, 0, 0x10, 0x05, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
             var pos = headers.TakeNewRecord(1, 7);
@@ -116,15 +116,15 @@ A.CallTo(()=>            Page.SetByteArray(new byte[] { 0x10,0x03 }, 4 , 2));
         [TestMethod]
         public void InitialRead()
         {
-            var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0x20, 0x03, 0, 0,0,0 };
+            var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0x20, 0x03, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            
+
 
             Assert.AreEqual(2, headers.RecordShift(0));
             Assert.AreEqual(2, headers.RecordSize(0));
             Assert.AreEqual(1, headers.RecordType(0));
-            Assert.AreEqual(6 , headers.RecordShift(1));
+            Assert.AreEqual(6, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));
             Assert.AreEqual(2, headers.RecordType(1));
 

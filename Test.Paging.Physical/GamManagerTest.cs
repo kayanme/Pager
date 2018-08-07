@@ -40,9 +40,9 @@ namespace Test.Pager
         private IGamAccessor GetManager()
         {
             _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, FileName, Extent.Size);
-            var file = A.Fake<IUnderlyingFileOperator>();
+            var file = A.Fake<IUnderlyingFileOperator>(s=>s.Strict());
             A.CallTo(()=> file.GetMappedFile(Extent.Size)).Returns(_map);
-            A.CallTo(() => file.ReturnMappedFile(_map));           
+            A.CallTo(() => file.ReturnMappedFile(_map)).DoesNothing();           
             return new GamAccessor(file);
         }
         [TestCleanup]
