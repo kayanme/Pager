@@ -19,11 +19,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Paging.PhysicalLevel.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark.Paging.PhysicalLevel.Core", "Benchmark.Paging.PhysicalLevel\Benchmark.Paging.PhysicalLevel.Core.csproj", "{02AF2747-CC15-4024-B4EC-627CFEBD6D52}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeArchiver", "TimeArchiver\TimeArchiver.csproj", "{FDF7E5F6-FF31-44B1-89D1-1B471332BF7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeArchiver", "TimeArchiver\TimeArchiver.csproj", "{FDF7E5F6-FF31-44B1-89D1-1B471332BF7F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "File.Paging.PhysicalLevel.MemoryStubs.Core", "File.Paging.PhysicalLevel.MemoryStubs\File.Paging.PhysicalLevel.MemoryStubs.Core.csproj", "{F6CF3B6F-7F7A-43BA-AEC0-BD233C342AD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.TimeArchiver", "Test.TimeArchiver\Test.TimeArchiver.csproj", "{8CFB2F27-BE41-4B35-A160-B479F2513014}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.TimeArchiver", "Test.TimeArchiver\Test.TimeArchiver.csproj", "{8CFB2F27-BE41-4B35-A160-B479F2513014}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

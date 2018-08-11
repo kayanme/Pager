@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace Test.TimeArchiver
 {
-    internal class MockIndexInteraction : IIndexInteraction<double>
+    internal class MockIndexInteraction : IIndexCorrection,IIndexSearch
     {
 
         private IndexRecord? _root;
@@ -15,9 +15,9 @@ namespace Test.TimeArchiver
         private static byte _key = 1;
         public byte newKey() => _key++;
 
-        public virtual void CreateDataBlock(DataRecord<double>[] records)
+        public virtual void CreateDataBlock(DataPageRef records)
         {
-            _root = new IndexRecord(records.Min(k => k.Stamp), records.Max(k => k.Stamp), true, 0,newKey());
+            _root = new IndexRecord(records.Start, records.End, true, 0,newKey());
             
         }
 
@@ -33,14 +33,16 @@ namespace Test.TimeArchiver
             _hierarchy.Add(r.TestKey, (children[0], children[1]));
         }
 
-        public virtual IndexRecord CreateDataBlock(IndexRecord root, DataRecord<double>[] records)
+        public virtual IndexRecord CreateDataBlock(IndexRecord root, DataPageRef records)
         {
-            var db = new IndexRecord(records.Min(k => k.Stamp), records.Max(k => k.Stamp), true, 0, newKey());
+            if (root.StoresData)
+                root = CreateUnderlayingIndexRecord(root);
+            var db = new IndexRecord(records.Start, records.End, true, 0, newKey());
             _hierarchy[root.TestKey] = (_hierarchy[root.TestKey].Item1, db);
-            return db;
+            return root;
         }
 
-        public virtual IndexRecord CreateUnderlayingIndexRecord(IndexRecord record)
+        private  IndexRecord CreateUnderlayingIndexRecord(IndexRecord record)
         {
             var ind = new IndexRecord(record.Start, record.End, false, (short)(record.MaxUnderlyingDepth + 1), newKey());
             if (_root.Value.TestKey == record.TestKey)
@@ -58,7 +60,7 @@ namespace Test.TimeArchiver
             return ind;
         }
 
-        public void FinalizeIndexChange()
+        public async Task FinalizeIndexChange()
         {
             
         }
@@ -74,13 +76,12 @@ namespace Test.TimeArchiver
             return _root;
         }
 
-        public virtual bool IsChildrenCapacityFull(IndexRecord record)
-        {
-            throw new System.NotImplementedException();
-        }
+        
 
         public virtual IndexRecord MoveIndex(IndexRecord newRoot, IndexRecord recordToMove)
         {
+            if (newRoot.StoresData)
+                newRoot = CreateUnderlayingIndexRecord(newRoot);
             var oldParent = _hierarchy.First(k => k.Value.Item1.TestKey == recordToMove.TestKey || k.Value.Item2.TestKey == recordToMove.TestKey).Key;
             var oldGrandParent = _hierarchy.First(k => k.Value.Item1.TestKey == oldParent || k.Value.Item2.TestKey == oldParent).Key;
             var ogph = _hierarchy[oldGrandParent];
@@ -96,7 +97,7 @@ namespace Test.TimeArchiver
 
         public async Task PrepareIndexChange()
         {
-            return;
+         
         }
 
         public virtual IndexRecord ResetTreeDepth(IndexRecord record)
@@ -134,9 +135,14 @@ namespace Test.TimeArchiver
             }
         }
 
-        public virtual void SwapIndexes(IndexRecord record1, IndexRecord record2)
+        public DataPageRef GetDataRef(IndexRecord record)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
+        }
+
+        public IDisposable ReadBlock()
+        {
+            throw new NotImplementedException();
         }
     }
 }

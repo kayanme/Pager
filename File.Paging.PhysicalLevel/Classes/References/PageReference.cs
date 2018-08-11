@@ -4,6 +4,7 @@ namespace File.Paging.PhysicalLevel.Classes
     {
         internal int PageNum { get; }
 
+        
 
         internal PageReference(int pageNum)
         {
@@ -27,9 +28,7 @@ namespace File.Paging.PhysicalLevel.Classes
 
         public static bool operator ==(PageReference r1, PageReference r2) => r1?.PageNum == r2?.PageNum;
 
-        public static bool operator !=(PageReference r1, PageReference r2) =>ReferenceEquals(r1,null) && !ReferenceEquals(r2, null) 
-                                                                         || ReferenceEquals(r2, null) && !ReferenceEquals(r1, null) 
-                                                                         || r1.PageNum != r2.PageNum;
+        public static bool operator !=(PageReference r1, PageReference r2) => r1?.PageNum != r2?.PageNum;
 
         public PageReference Copy()
         {

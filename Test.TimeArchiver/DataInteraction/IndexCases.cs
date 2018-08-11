@@ -74,7 +74,7 @@ namespace Test.TimeArchiver
         private async Task addBlock(long start,long end)
         {
             var db = dataBlock(start, end);          
-            recordAdded = db;         
+            recordAdded = new DataPageRef { Start = start, End = end };         
             await _dataInteraction.AddBlock(db);
 
         }
@@ -82,9 +82,11 @@ namespace Test.TimeArchiver
         [TestInitialize]
         public void Initialize()
         {
-            _indexInteraction = A.Fake<MockIndexInteraction>(c=>c.CallsBaseMethods());       
-            
-            _dataInteraction = new DataInteraction<double>(_indexInteraction);
+            _indexInteraction = A.Fake<MockIndexInteraction>(c=>c.CallsBaseMethods());
+            var dataInteractor = A.Fake<IDataPageInteractor<double>>();
+            A.CallTo(() => dataInteractor.CreateDataBlock(A<DataRecord<double>[]>.Ignored))
+                .ReturnsLazily((DataRecord<double>[] r)=>new DataPageRef { Start = r.Min(k => k.Stamp), End = r.Max(k => k.Stamp) });
+            _dataInteraction = new DataInteraction<double>(_indexInteraction, _indexInteraction,dataInteractor);
       
         }
 

@@ -10,6 +10,7 @@ namespace TimeArchiver.Contracts
         public short MaxUnderlyingDepth;
 
         internal PageRecordReference _recordNum;
+        internal PageRecordReference _parentNum;
         internal byte TestKey;
 
         public IndexRecord(long start, long end, bool storesData, short maxUnderlyingDepth,byte testKey)
@@ -20,7 +21,7 @@ namespace TimeArchiver.Contracts
             MaxUnderlyingDepth = maxUnderlyingDepth;
             _recordNum = null;
             TestKey = testKey;
-
+            _parentNum = null;
 
        }
 

@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\File.Paging.PhysicalLevel.MemoryStubs\File.Paging.PhysicalLevel.MemoryStubs.Core.csproj" />
     <ProjectReference Include="..\TimeArchiver\TimeArchiver.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace TimeArchiver.Contracts
 {
@@ -6,7 +7,7 @@ namespace TimeArchiver.Contracts
     {
         Task AddBlock(DataRecord<T>[] sortedData);
         void AddValue(DataRecord<T> value);
-        DataRecord<T>[] FindInRange(long start, long end);
+        IAsyncEnumerable<DataRecord<T>[]> FindInRange(long start, long end);
         DataRecord<T> FindBefore(long stamp);
         void Remove(long stamp);
     }

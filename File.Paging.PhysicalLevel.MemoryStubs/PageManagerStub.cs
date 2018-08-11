@@ -16,6 +16,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         private readonly Dictionary<PageReference, byte> _pageTypes = new Dictionary<PageReference, byte>();
         private readonly PageManagerConfiguration _config;
         private readonly int _size;
+
         internal PageManagerStub(PageManagerConfiguration config)
         {
             _config = config;
@@ -92,7 +93,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
 
                     if (!_pages.ContainsKey(r))
                     {
-                        var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), r, pageConfig, _size) as IPageInfo;
+                        var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), r, pageConfig, _size,type) as IPageInfo;
                         _pageTypes.Add(r, type);
                         if (headerConfig == null)
                         {

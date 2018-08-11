@@ -39,10 +39,7 @@ namespace Test.TimeArchiver
             MakeContinuation(A.CallTo(() => _indexInteraction.CreateDataBlock(recordAdded)).MustHaveHappened());
         }
 
-        private void indexDowned(IndexRecord record)
-        {
-            MakeContinuation(A.CallTo(() => _indexInteraction.CreateUnderlayingIndexRecord(record)).MustHaveHappened());
-        }
+      
 
         private void indexResized(IndexRecord record,long newStart,long newEnd)
         {
@@ -54,12 +51,9 @@ namespace Test.TimeArchiver
             MakeContinuation(A.CallTo(() => _indexInteraction.MoveIndex(root, recordToMove)).MustHaveHappened());
         }
 
-        private void indexSwapped(IndexRecord record1, IndexRecord record2)
-        {
-            MakeContinuation(A.CallTo(() => _indexInteraction.SwapIndexes(record1, record2)).MustHaveHappened());
-        }
+      
 
-        private DataRecord<double>[] recordAdded { get => TestContext.Properties["ra"] as DataRecord<double>[]; set { TestContext.Properties["ra"] = value; } }
+        private DataPageRef recordAdded { get => (DataPageRef)TestContext.Properties["ra"]; set { TestContext.Properties["ra"] = value; } }
 
         [TestMethod]
         public async Task InsertIntoEmptyRoot()
@@ -75,8 +69,8 @@ namespace Test.TimeArchiver
         {
             indexTreeDataOnly(1,2);
             await addBlock(1, 3);
-            indexDowned(data(1, 2));
-            dataBlockCreated(index(1, 2));
+            
+            dataBlockCreated(data(1, 2));
             indexResized(index(1, 2), 1, 3);
 
         }
@@ -88,8 +82,8 @@ namespace Test.TimeArchiver
                        data(1, 2),
                        data(2, 3));
             await addBlock(3, 4);
-            indexDowned(data(2, 3));            
-            dataBlockCreated(index(2, 3));
+            
+            dataBlockCreated(data(2, 3));
             indexResized(index(2, 3), 2, 4);
 
         }
@@ -101,8 +95,8 @@ namespace Test.TimeArchiver
                        data(1, 2),
                        data(2, 3));
             await addBlock(1, 3);
-            indexDowned(data(1, 2));            
-            dataBlockCreated(index(1, 2));
+            
+            dataBlockCreated(data(1, 2));
             indexResized(index(1, 2), 1, 3);
         }
 
@@ -113,8 +107,8 @@ namespace Test.TimeArchiver
                        data(1, 4),
                        data(4, 5));
             await addBlock(2, 5);
-            indexDowned(data(1, 4));            
-            dataBlockCreated(index(1, 4));
+            
+            dataBlockCreated(data(1, 4));
             indexResized(index(1, 4), 1, 5);
         }
 
@@ -132,11 +126,11 @@ namespace Test.TimeArchiver
 
             
             
-            indexDowned(data(4, 5));            
+            
             dataBlockCreated(index(4, 5));
             indexResized(index(4, 5), 4, 6);
             indexResized(index(3, 5), 3, 6);
-            indexDowned(data(1, 3)); 
+            
             indexMoved(index(1, 3), data(3, 4));
             indexResized(index(1,3),1,4);
             indexResized(index(1, 5), 1, 6);
@@ -167,10 +161,10 @@ namespace Test.TimeArchiver
             await addBlock(2, 6);
 
          
-            indexDowned(index(3, 5));
+            
             dataBlockCreated(index(3, 5));
             indexResized(index(3, 5), 2, 6);
-            indexDowned(data(1, 3));
+            
             
             indexMoved(index(1, 3), data(2, 6));
             indexResized(index(1, 3), 1, 6);            

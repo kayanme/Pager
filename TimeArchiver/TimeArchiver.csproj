@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FIle.Paging.LogicalLevel\File.Paging.LogicalLevel.Core.csproj" />
     <ProjectReference Include="..\File.Paging.PhysicalLevel\File.Paging.PhysicalLevel.Core.csproj" />
   </ItemGroup>
 
