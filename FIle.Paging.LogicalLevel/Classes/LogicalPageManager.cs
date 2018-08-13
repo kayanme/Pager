@@ -32,7 +32,11 @@ namespace FIle.Paging.LogicalLevel.Classes
 
         public IHeaderedPage<THeader> GetHeaderAccessor<THeader>(PageReference pageNum) where THeader : new()
         {
-            throw new NotImplementedException();
+            if (pageNum is VirtualPageReference)
+            {
+                throw new NotImplementedException();
+            }
+            return _physicalManager.GetHeaderAccessor<THeader>(pageNum);
         }
 
         public IPageInfo GetPageInfo(PageReference pageNum)

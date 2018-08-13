@@ -1,4 +1,5 @@
-﻿using System;
+﻿using File.Paging.PhysicalLevel.Classes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,10 +15,11 @@ namespace TimeArchiver.Contracts
         void CreateDataBlock(DataPageRef records);       
         IndexRecord CreateDataBlock(IndexRecord root, DataPageRef records);        
         Task PrepareIndexChange();        
-        //IndexRecord CreateUnderlayingIndexRecord(IndexRecord record);
+        
         IndexRecord MoveIndex(IndexRecord newRoot, IndexRecord recordToMove);        
         IndexRecord ResizeIndex(IndexRecord record, long start, long end);
         IndexRecord ResetTreeDepth(IndexRecord record);
         Task FinalizeIndexChange();
+        PageRecordReference InitializeRoot();
     }    
 }

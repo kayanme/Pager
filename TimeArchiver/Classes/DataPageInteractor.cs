@@ -1,5 +1,6 @@
 ﻿using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Contracts;
+using FIle.Paging.LogicalLevel.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -37,7 +38,7 @@ namespace TimeArchiver.Classes
             var head = _pageManager.GetHeaderAccessor<DataPageHeader>(page);
             head.ModifyHeader(new DataPageHeader { StampOrigin = minStamp, VersionOrigin = minVersion, HasSameStampValues = hasSameStampValues });
 
-            using (var accessor = _pageManager.GetRecordAccessor<DataPageRecord<T>>(page))
+            using (var accessor = _pageManager.GetRecordAccessor<DataPageRecord<T>>(page) )
             {
                 foreach (var record in records)
                 {
@@ -45,7 +46,7 @@ namespace TimeArchiver.Classes
                     {
                         Value = record.Data,
                         StampShift = (ushort)(record.Stamp - minStamp),
-                        VersionShift = (ushort)(record.Stamp - minVersion)
+                        VersionShift = (ushort)(record.VersionStamp - minVersion)
                     });
                 }
                 accessor.Flush();
@@ -55,7 +56,23 @@ namespace TimeArchiver.Classes
 
         public DataRecord<T> FindClosestLeft(DataPageRef dataPage, long stamp)
         {
-            throw new NotImplementedException();
+            Debug.Assert(dataPage.Start <= stamp && dataPage.End >= stamp, "dataPage.Start <= stamp && dataPage.End >= stamp");
+            if (dataPage.Start > stamp || dataPage.End < stamp)
+                throw new ArgumentException(nameof(stamp));
+            var head = _pageManager.GetHeaderAccessor<DataPageHeader>(dataPage.DataReference).GetHeader();
+            var shift = stamp - head.StampOrigin;
+            DataPageRecord<T> data;
+            using (var accessor = _pageManager.GetRecordAccessor<DataPageRecord<T>>(dataPage.DataReference) as IOrderedPage<DataPageRecord<T>, long>)
+            {
+                data = accessor.FindTheLessGreater(stamp, true).Data;                
+
+            }
+            return new DataRecord<T>
+            {
+                Stamp = data.StampShift + head.StampOrigin,
+                VersionStamp = data.VersionShift + head.VersionOrigin,
+                Data = data.Value
+            };
         }
 
         public DataRecord<T>[] FindRange(DataPageRef dataPage, long start, long end)
@@ -63,56 +80,15 @@ namespace TimeArchiver.Classes
             var head = _pageManager.GetHeaderAccessor<DataPageHeader>(dataPage.DataReference).GetHeader();
             var leftShift = start - head.StampOrigin;
             var rightShift = end - head.StampOrigin;
-
-            PageRecordReference leftKey;
-            using (var accessor = _pageManager.GetBinarySearchForPage<DataPageRecord<T>>(dataPage.DataReference))
+            using (var accessor = _pageManager.GetBinarySearchForPage<DataPageRecord<T>>(dataPage.DataReference) as IOrderedPage<DataPageRecord<T>, long>)
             {
-                bool wasMoved = false;
-                do
-                {
-
-                    if (accessor.Current.Data.StampShift < leftShift)
-                        wasMoved = accessor.MoveRight();
-                    if (accessor.Current.Data.StampShift > leftShift)
-                        wasMoved = accessor.MoveLeft();
-                } while (wasMoved || accessor.Current.Data.StampShift != leftShift);
-
-                if (accessor.Current.Data.StampShift == leftShift || accessor.LeftOfCurrent == null)
-                    leftKey = accessor.Current.Reference;
-                else
-                    leftKey = accessor.LeftOfCurrent.Reference;
-
-            }
-
-            PageRecordReference rightKey;
-            using (var accessor = _pageManager.GetBinarySearchForPage<DataPageRecord<T>>(dataPage.DataReference))
-            {
-                bool wasMoved = false;
-                do
-                {
-
-                    if (accessor.Current.Data.StampShift < rightShift)
-                        wasMoved = accessor.MoveRight();
-                    if (accessor.Current.Data.StampShift > rightShift)
-                        wasMoved = accessor.MoveLeft();
-                } while (wasMoved || accessor.Current.Data.StampShift != rightShift);
-
-                if (accessor.Current.Data.StampShift == rightShift || accessor.RightOfCurrent == null)
-                    rightKey = accessor.Current.Reference;
-                else
-                    rightKey = accessor.LeftOfCurrent.Reference;
-
-            }
-
-            using (var accessor = _pageManager.GetRecordAccessor<DataPageRecord<T>>(dataPage.DataReference))
-            {
-                var data = accessor.GetRecordRange(leftKey, rightKey).Select(k => new DataRecord<T>
+                var data = accessor.FindInKeyRange(start, end).Select(k => new DataRecord<T>
                 {
                     Stamp = k.Data.StampShift + head.StampOrigin,
                     VersionStamp = k.Data.VersionShift + head.VersionOrigin,
                     Data = k.Data.Value
                 });
-
+                                      
 
                 if (head.HasSameStampValues != 0)
                     data = data.GroupBy(k => k.Stamp).Select(k => k.OrderBy(k2 => k2.VersionStamp).Last());

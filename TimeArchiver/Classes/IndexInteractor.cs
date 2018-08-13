@@ -31,6 +31,20 @@ namespace TimeArchiver.Contracts
             _root = root;
         }
 
+        public IndexInteractor(IPage<IndexPageRecord> indexPage1, IPage<IndexPageRecord> indexPage2)
+        {
+            _indexes = new[] { indexPage1, indexPage2 };
+        
+           
+        }
+
+        public PageRecordReference InitializeRoot()
+        {
+            var rec = _workingPage.AddRecord(new IndexPageRecord());
+            _indexAddList.Enqueue(rec.Reference);
+            return rec.Reference;
+        }
+
         public void CreateDataBlock(DataPageRef records)
         {
             var rec = _workingPage.GetRecord(_root);

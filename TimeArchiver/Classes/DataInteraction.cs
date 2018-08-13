@@ -135,6 +135,8 @@ namespace TimeArchiver.Classes
                 var root = _indexSearch.GetRoot();
                 if (!root.HasValue)
                     return AsyncEnumerable.Empty<DataRecord<T>[]>();
+                if (root.Value.Start > end || root.Value.End<start)
+                    return AsyncEnumerable.Empty<DataRecord<T>[]>();
                 var indexQueue = new Queue<IndexRecord>();
                 
                 indexQueue.Enqueue(root.Value);

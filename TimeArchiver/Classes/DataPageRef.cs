@@ -3,7 +3,7 @@ using File.Paging.PhysicalLevel.Classes.Configurations;
 
 namespace TimeArchiver.Contracts
 {
-    public struct DataPageRef
+    internal struct DataPageRef
     {
         public long Start;
         public long End;

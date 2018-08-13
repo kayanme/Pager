@@ -27,7 +27,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         {
             lock (_pages)
             {
-                if (!_headeredPages.ContainsKey(pageNum))
+                if (_headeredPages.ContainsKey(pageNum))
                 {
                     var page = (IHeaderedPage<THeader>)_headeredPages[pageNum];
                     return page;
@@ -60,7 +60,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         {
             lock (_pages)
             {
-                if (!_headeredPages.ContainsKey(pageNum))
+                if (_pages.ContainsKey(pageNum))
                 {
                     var page = _pages[pageNum] as IPage<TRecord>;
                     return page;
@@ -95,18 +95,20 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                     {
                         var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), r, pageConfig, _size,type) as IPageInfo;
                         _pageTypes.Add(r, type);
-                        if (headerConfig == null)
-                        {
-                            _pages.Add(r, page);
+                        
+                        _pages.Add(r, page);
                            
-                            return r;
-                        }
-                        else
+                         
+                        if (headerConfig != null)
                         {
-                            var hp = Activator.CreateInstance(typeof(HeaderedPageStub<,>).MakeGenericType(headerConfig.GetType().GetGenericArguments()), page, r, pageConfig);
+                            var pageType = typeof(HeaderedPageStub<,>).MakeGenericType(
+                                new[] { headerConfig.InnerPageMap.RecordType }.Concat(headerConfig.GetType().GetGenericArguments()).ToArray()
+                                );
+                            var hp = Activator.CreateInstance(pageType, page, r, headerConfig);
                             _headeredPages.Add(r, hp);
-                            return r;
+                            
                         }
+                        return r;
                     }
                 }
                 throw new InvalidOperationException();
@@ -145,11 +147,8 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
                 var headerConfig = _config.HeaderConfig.ContainsKey(type) ? _config.HeaderConfig[type] : null;
                 var pageConfig = _config.PageMap[type];
                 var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), pageNum, pageConfig, _size) as IPageInfo;            
-                if (headerConfig == null)
-                {
-                    _pages[pageNum]  = page;                   
-                }
-                else
+                
+                if (headerConfig != null)
                 {
                     var hp = Activator.CreateInstance(typeof(HeaderedPageStub<,>).MakeGenericType(headerConfig.GetType().GetGenericArguments()), page, pageNum, pageConfig);
                     _headeredPages[pageNum] = hp;                 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace TimeArchiver.Classes.Paging
@@ -10,5 +11,7 @@ namespace TimeArchiver.Classes.Paging
         public T Value;
         public ushort StampShift;
         public ushort VersionShift;
+
+        public static readonly int MaxRecordsOnPage = 4096/Marshal.SizeOf<T>() + sizeof(ushort) * 2;
     }
 }

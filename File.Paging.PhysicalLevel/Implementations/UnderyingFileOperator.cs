@@ -16,12 +16,13 @@ namespace File.Paging.PhysicalLevel.Implementations
         private MemoryMappedFile _map;
 
         private readonly ConcurrentDictionary<MemoryMappedFile,int> _oldMaps = new ConcurrentDictionary<MemoryMappedFile,int>();
-
+        private string _mapName;
         [ImportingConstructor]
         internal UnderyingFileOperator(FileStream file)
         {
             _file = file;
-            _map = MemoryMappedFile.CreateFromFile(_file, "PageMap"+Guid.NewGuid() , _file.Length!=0?_file.Length:Extent.Size , MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
+            _mapName = "PageMap" + Guid.NewGuid();
+            _map = MemoryMappedFile.CreateFromFile(_file, _mapName, _file.Length!=0?_file.Length:Extent.Size , MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
             _oldMaps.TryAdd(_map, 0);
         }
 
@@ -118,7 +119,10 @@ namespace File.Paging.PhysicalLevel.Implementations
             {
 
                 _lock.EnterWriteLock();
-                var map = MemoryMappedFile.CreateFromFile(_file, "PageMap" + _file.Length + Extent.Size * extentCount, _file.Length + Extent.Size * extentCount, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
+                //_file.SetLength(_file.Length + Extent.Size * extentCount);
+                //_file.Flush();
+              //  var map = MemoryMappedFile.OpenExisting(_mapName, MemoryMappedFileRights.FullControl, HandleInheritability.None);
+                var map = MemoryMappedFile.CreateFromFile(_file,_mapName + _file.Length + Extent.Size * extentCount, _file.Length + Extent.Size * extentCount, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None,false);
                 _oldMaps.TryAdd(map, 0);
                 oldMap = _map;
                 _map = map;

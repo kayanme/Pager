@@ -1,7 +1,9 @@
 ﻿using File.Paging.PhysicalLevel.Classes;
+using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
 using FIle.Paging.LogicalLevel.Classes.Configurations;
 using TimeArchiver.Classes.Paging;
+
 
 namespace TimeArchiver.Contracts
 {
@@ -52,8 +54,10 @@ namespace TimeArchiver.Contracts
 
         public DataPageConfiguration() : base(PageSize.Kb4)
         {
-            DefinePageType(1).AsPageWithRecordType<DataPageRecord<int>>()
-                .UsingRecordDefinition(new DataPageGetter()).WithHeader(new DataPageHeaderGetter())
+            DefinePageType(1).AsPageWithRecordType<DataPageRecord<int>>()                
+                .UsingRecordDefinition(new DataPageGetter())
+                .ApplyLogicalSortIndex()
+                .WithHeader(new DataPageHeaderGetter())               
                 .ApplyRecordOrdering(k=>k.StampShift);
         }
     }

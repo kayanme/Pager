@@ -34,7 +34,8 @@ namespace FIle.Paging.LogicalLevel.Classes
         {
             _physicalPage = manager.GetRecordAccessor<TRecord>(reference);
             _manipulation = manager.GetSorter<TRecord>(reference);
-
+            if (_manipulation == null)
+                throw new InvalidOperationException("This page type should have ordering applied");
             _reference = reference;
             _manager = manager;
             _keySelector = keySelector;

@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 [assembly: InternalsVisibleTo("Test.TimeArchiver")]
+[assembly: InternalsVisibleTo("Test.Integration.TimeArchiver")]
+[assembly: InternalsVisibleTo("Durability.TimeArchiver")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace TimeArchiver

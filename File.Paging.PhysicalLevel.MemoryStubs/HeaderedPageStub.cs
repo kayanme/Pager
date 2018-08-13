@@ -20,7 +20,7 @@ namespace File.Paging.PhysicalLevel.MemoryStubs
         public byte RegisteredPageType => Content.RegisteredPageType;
 
         private PageHeadersConfiguration<THeader> _config;
-        internal HeaderedPageStub(IPageInfo childPage, PageReference reference, PageHeadersConfiguration< THeader> config)
+        public HeaderedPageStub(IPageInfo childPage, PageReference reference, PageHeadersConfiguration< THeader> config)
         {
            
             Content = childPage;

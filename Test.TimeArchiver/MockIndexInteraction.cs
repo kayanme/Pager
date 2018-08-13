@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using File.Paging.PhysicalLevel.Classes;
 
 namespace Test.TimeArchiver
 {
@@ -141,6 +142,11 @@ namespace Test.TimeArchiver
         }
 
         public IDisposable ReadBlock()
+        {
+            throw new NotImplementedException();
+        }
+
+        public PageRecordReference InitializeRoot()
         {
             throw new NotImplementedException();
         }
