@@ -118,7 +118,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             {
                 if (disposing)
                 {
-                    Debug.Assert(_mapToReturn != null, "_mapToReturn != null");
+                    //Debug.Assert(_mapToReturn != null, "_mapToReturn != null");
                     _fileOperator.ReturnMappedFile(_mapToReturn);
                     foreach(var acc in _accessors)
                        acc.Dispose();
