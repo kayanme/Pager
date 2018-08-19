@@ -19,7 +19,8 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         internal UnderyingFileOperator(FileStream file)
         {
             _file = file;
-            _mapName = "PageMap" + Guid.NewGuid();
+            //_mapName = "PageMap" + Guid.NewGuid();
+            _mapName = null;
             _map = MemoryMappedFile.CreateFromFile(_file, _mapName, _file.Length!=0?_file.Length:Extent.Size , MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
             Debug.Assert(_map != null, "_map!=null");
             if (_map == null)
