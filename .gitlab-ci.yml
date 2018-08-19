@@ -2,11 +2,20 @@ image: microsoft/aspnetcore-build:latest
 stages:
  - build
  - test 
+ - deploy
 
 #build_all:  
 #  stage: build
 #  script: dotnet build Test.Pager.Core.sln
 
+test_run_debug: 
+  stage: test
+  script: dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug
+
 test_run: 
   stage: test
-  script: dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj
+  script: dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release
+
+packages:
+  stage: deploy
+  script: ~/package-build.sh
