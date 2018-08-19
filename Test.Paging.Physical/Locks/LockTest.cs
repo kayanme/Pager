@@ -218,13 +218,13 @@ namespace Test.Paging.PhysicalLevel.Locks
         {
             var manager = CreateLock(true);
             manager.AcqureLock(1, 0, matrix, out var token);
-            token.Release();
+            
             var acquired = false;
             var t = manager.WaitLock(1, 1, matrix);
-            var t2 = t.ContinueWith(_ => acquired = true);
-
-            Assert.IsFalse(acquired);
             
+            var t2 = t.ContinueWith(_ => acquired = true);
+            Assert.IsFalse(acquired);
+            token.Release();
             t2.Wait(1000);
             Assert.IsTrue(acquired);
         }
