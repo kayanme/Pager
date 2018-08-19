@@ -1,9 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading;
 using BenchmarkDotNet.Attributes;
-using File.Paging.PhysicalLevel.Classes;
-using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
-using File.Paging.PhysicalLevel.Implementations;
+using System.IO.Paging.PhysicalLevel.Classes;
+using System.IO.Paging.PhysicalLevel.Configuration.Builder;
+using System.IO.Paging.PhysicalLevel.Implementations;
 
 namespace Benchmark.Paging.PhysicalLevel
 {

@@ -1,5 +1,6 @@
 ﻿using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using System.IO.Paging.PhysicalLevel.Classes.References;
+using System.IO.Paging.PhysicalLevel.Configuration;
 
 namespace System.IO.Paging.PhysicalLevel.MemoryStubs
 {

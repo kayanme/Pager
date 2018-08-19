@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
-using File.Paging.PhysicalLevel.Classes.Configurations;
-using File.Paging.PhysicalLevel.Classes.Pages;
-using File.Paging.PhysicalLevel.Contracts;
-using FIle.Paging.LogicalLevel.Classes;
-using FIle.Paging.LogicalLevel.Classes.Configurations;
-using FIle.Paging.LogicalLevel.Contracts;
+using System.IO.Paging.PhysicalLevel.Configuration;
+using System.IO.Paging.PhysicalLevel.Classes.Pages;
+using System.IO.Paging.PhysicalLevel.Contracts;
+using System.IO.Paging.LogicalLevel.Classes;
+using System.IO.Paging.LogicalLevel.Configuration;
+using System.IO.Paging.LogicalLevel.Contracts;
+using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using System.IO.Paging.LogicalLevel;
 
 namespace Benchmark.Paging.LogicalLevel
 {

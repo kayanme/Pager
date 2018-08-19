@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
 using FakeItEasy;
-using File.Paging.PhysicalLevel.Contracts;
-using File.Paging.PhysicalLevel.Implementations.Headers;
+using System.IO.Paging.PhysicalLevel.Contracts;
+using System.IO.Paging.PhysicalLevel.Implementations.Headers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO.Paging.PhysicalLevel.Contracts.Internal;
 
 namespace Test.Paging.PhysicalLevel.Headers
 {

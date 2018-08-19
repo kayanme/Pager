@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
-using File.Paging.PhysicalLevel.Classes;
-using File.Paging.PhysicalLevel.Classes.Configurations;
-using File.Paging.PhysicalLevel.Classes.References;
-using File.Paging.PhysicalLevel.Contracts;
-using File.Paging.PhysicalLevel.Implementations;
+using System.IO.Paging.PhysicalLevel.Classes;
+using System.IO.Paging.PhysicalLevel.Configuration;
+using System.IO.Paging.PhysicalLevel.Classes.References;
+using System.IO.Paging.PhysicalLevel.Contracts;
+using System.IO.Paging.PhysicalLevel.Implementations;
+using System.IO.Paging.PhysicalLevel;
 
 namespace Benchmark.Paging.PhysicalLevel
 {

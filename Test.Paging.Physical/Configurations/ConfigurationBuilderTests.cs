@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using FakeItEasy;
-using File.Paging.PhysicalLevel.Classes.Configurations;
-using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
+using System.IO.Paging.PhysicalLevel.Configuration;
+using System.IO.Paging.PhysicalLevel.Configuration.Builder;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO.Paging.PhysicalLevel.Configuration.Builder.BuildingElements;
 
 namespace Test.Paging.PhysicalLevel.Configurations
 {

@@ -1,4 +1,4 @@
-﻿using File.Paging.PhysicalLevel.Classes.Configurations;
+﻿using System.IO.Paging.PhysicalLevel.Configuration;
 
 namespace Durability.Paging.PhysicalLevel
 {

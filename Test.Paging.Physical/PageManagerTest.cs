@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Linq;
 using FakeItEasy;
-using File.Paging.PhysicalLevel;
-using File.Paging.PhysicalLevel.Classes;
-using File.Paging.PhysicalLevel.Classes.Configurations;
-using File.Paging.PhysicalLevel.Classes.PageFactories;
-using File.Paging.PhysicalLevel.Classes.Pages;
-using File.Paging.PhysicalLevel.Contracts;
-using File.Paging.PhysicalLevel.Implementations;
+using System.IO.Paging.PhysicalLevel;
+using System.IO.Paging.PhysicalLevel.Classes;
+using System.IO.Paging.PhysicalLevel.Configuration;
+using System.IO.Paging.PhysicalLevel.Classes.PageFactories;
+using System.IO.Paging.PhysicalLevel.Classes.Pages;
+using System.IO.Paging.PhysicalLevel.Contracts;
+using System.IO.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO.Paging.PhysicalLevel.Contracts.Internal;
+using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using System.IO.Paging.PhysicalLevel.Classes.References;
 
 //using Rhino.Mocks;
 

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Paging.PhysicalLevel.Implementations.Headers;
 using System.Linq;
 using FakeItEasy;
-using File.Paging.PhysicalLevel.Implementations;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test.Paging.PhysicalLevel.Headers

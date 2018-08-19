@@ -1,7 +1,8 @@
 ﻿using System.IO;
-using File.Paging.PhysicalLevel;
-using File.Paging.PhysicalLevel.Contracts;
-using File.Paging.PhysicalLevel.Implementations;
+using System.IO.Paging.PhysicalLevel;
+using System.IO.Paging.PhysicalLevel.Contracts;
+using System.IO.Paging.PhysicalLevel.Contracts.Internal;
+using System.IO.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test.Paging.PhysicalLevel

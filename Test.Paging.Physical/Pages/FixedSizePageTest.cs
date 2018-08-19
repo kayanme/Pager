@@ -1,11 +1,13 @@
 ﻿using System;
 using FakeItEasy;
-using File.Paging.PhysicalLevel.Classes;
-using File.Paging.PhysicalLevel.Classes.Configurations;
-using File.Paging.PhysicalLevel.Classes.Pages;
-using File.Paging.PhysicalLevel.Contracts;
-using File.Paging.PhysicalLevel.Contracts.Internal;
+using System.IO.Paging.PhysicalLevel.Classes;
+using System.IO.Paging.PhysicalLevel.Configuration;
+using System.IO.Paging.PhysicalLevel.Classes.Pages;
+using System.IO.Paging.PhysicalLevel.Contracts;
+using System.IO.Paging.PhysicalLevel.Contracts.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using System.IO.Paging.PhysicalLevel.Classes.References;
 
 namespace Test.Paging.PhysicalLevel.Pages
 {

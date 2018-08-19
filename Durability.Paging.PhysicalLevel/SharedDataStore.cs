@@ -3,7 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using File.Paging.PhysicalLevel.Classes;
+using System.IO.Paging.PhysicalLevel.Classes;
+using System.IO.Paging.PhysicalLevel.Classes.References;
 
 namespace Durability.Paging.PhysicalLevel
 {

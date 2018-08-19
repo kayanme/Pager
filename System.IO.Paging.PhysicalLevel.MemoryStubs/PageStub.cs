@@ -2,6 +2,7 @@
 using System.IO.Paging.PhysicalLevel.Classes;
 using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using System.IO.Paging.PhysicalLevel.Classes.References;
+using System.IO.Paging.PhysicalLevel.Configuration;
 using System.IO.Paging.PhysicalLevel.Exceptions;
 using System.Linq;
 

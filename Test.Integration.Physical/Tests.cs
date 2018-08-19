@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using File.Paging.PhysicalLevel.Classes;
-using File.Paging.PhysicalLevel.Classes.Pages;
+using System.IO.Paging.PhysicalLevel.Classes;
+using System.IO.Paging.PhysicalLevel.Classes.Pages;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using File.Paging.PhysicalLevel.Contracts;
-using File.Paging.PhysicalLevel.Implementations;
+using System.IO.Paging.PhysicalLevel.Contracts;
+using System.IO.Paging.PhysicalLevel.Implementations;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Threading;
+using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using System.IO.Paging.PhysicalLevel;
+using System.IO.Paging.PhysicalLevel.Classes.References;
 
 namespace Test.Integration.Physical
 {

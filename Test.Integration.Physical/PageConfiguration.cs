@@ -1,5 +1,5 @@
-﻿using File.Paging.PhysicalLevel.Classes.Configurations;
-using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
+﻿using System.IO.Paging.PhysicalLevel.Configuration;
+using System.IO.Paging.PhysicalLevel.Configuration.Builder;
 
 namespace Test.Integration.Physical
 {

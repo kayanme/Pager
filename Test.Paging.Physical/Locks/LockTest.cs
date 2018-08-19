@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using FakeItEasy;
-using File.Paging.PhysicalLevel.Classes;
-using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
-using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
-using File.Paging.PhysicalLevel.Implementations;
+using System.IO.Paging.PhysicalLevel.Classes;
+using System.IO.Paging.PhysicalLevel.Configuration.Builder;
+using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using System.IO.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test.Paging.PhysicalLevel.Locks

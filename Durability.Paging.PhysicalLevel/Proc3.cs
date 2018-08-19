@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
+using System.IO.Paging.PhysicalLevel.Configuration.Builder;
 
 namespace Durability.Paging.PhysicalLevel
 {
