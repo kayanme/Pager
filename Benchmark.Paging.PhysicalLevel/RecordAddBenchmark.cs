@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using BenchmarkDotNet.Attributes;
 using File.Paging.PhysicalLevel.Classes.Configurations;

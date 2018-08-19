@@ -4,7 +4,7 @@ using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Test.Pager.Locks
+namespace Test.Paging.PhysicalLevel.Locks
 {
     [TestClass]
     public class MatrixBuild

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using FakeItEasy;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using File.Paging.PhysicalLevel;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
@@ -9,9 +8,11 @@ using File.Paging.PhysicalLevel.Classes.PageFactories;
 using File.Paging.PhysicalLevel.Classes.Pages;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 //using Rhino.Mocks;
 
-namespace Test.Pager
+namespace Test.Paging.PhysicalLevel
 {
     [TestClass]
     public class PageManagerTest

@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using File.Paging.PhysicalLevel.Classes.Configurations;
+﻿using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
 
 namespace Test.Integration.Physical
 {
-    
+
 
     internal class PageConfiguration:PageManagerConfiguration
     {

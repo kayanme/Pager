@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using Benchmark.Paging.PhysicalLevel;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.InProcess;
 
 

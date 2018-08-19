@@ -1,7 +1,7 @@
 ﻿using File.Paging.PhysicalLevel.Implementations.Headers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Test.Pager.Headers
+namespace Test.Paging.PhysicalLevel.Headers
 {
     [TestClass]
     public class FixedRecordHeadersCalculatorTest

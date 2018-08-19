@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Test.Pager
+namespace Test.Paging.PhysicalLevel
 {
     internal struct TestRecord
     {

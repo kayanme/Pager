@@ -5,7 +5,7 @@ using FakeItEasy;
 using File.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Test.Pager.Headers
+namespace Test.Paging.PhysicalLevel.Headers
 {
 
 

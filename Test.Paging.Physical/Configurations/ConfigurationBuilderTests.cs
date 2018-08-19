@@ -5,8 +5,7 @@ using File.Paging.PhysicalLevel.Classes.Configurations;
 using File.Paging.PhysicalLevel.Classes.Configurations.Builder;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-
-namespace Test.Pager.Configurations
+namespace Test.Paging.PhysicalLevel.Configurations
 {
     public class TestingConfig : PageManagerConfiguration
     {

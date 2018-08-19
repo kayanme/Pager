@@ -1,10 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
+﻿using System.IO;
 using File.Paging.PhysicalLevel;
 using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Test.Pager
+namespace Test.Paging.PhysicalLevel
 {
     /// <summary>
     /// Summary description for UnderlyingFileOperatorTest

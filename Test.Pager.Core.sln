@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "File.Paging.PhysicalLevel.Core", "File.Paging.PhysicalLevel\File.Paging.PhysicalLevel.Core.csproj", "{5F26AAD7-289E-444F-9BCA-30CCC1D263F3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "File.Paging.LogicalLevel.Core", "FIle.Paging.LogicalLevel\File.Paging.LogicalLevel.Core.csproj", "{5BE264B9-826F-441E-8208-7144156262F7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark.Paging.LogicalLevel.Core", "Benchmark.Paging.LogicalLevel\Benchmark.Paging.LogicalLevel.Core.csproj", "{451784AC-5A66-48B2-8ED4-6BAF71894ED1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Durability.Paging.PhysicalLevel.Core", "Durability.Paging.PhysicalLevel\Durability.Paging.PhysicalLevel.Core.csproj", "{4CB634AE-B4D2-491D-BB60-7626B322F184}"
@@ -19,19 +15,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Paging.PhysicalLevel.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark.Paging.PhysicalLevel.Core", "Benchmark.Paging.PhysicalLevel\Benchmark.Paging.PhysicalLevel.Core.csproj", "{02AF2747-CC15-4024-B4EC-627CFEBD6D52}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeArchiver", "TimeArchiver\TimeArchiver.csproj", "{FDF7E5F6-FF31-44B1-89D1-1B471332BF7F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "File.Paging.PhysicalLevel.MemoryStubs.Core", "File.Paging.PhysicalLevel.MemoryStubs\File.Paging.PhysicalLevel.MemoryStubs.Core.csproj", "{F6CF3B6F-7F7A-43BA-AEC0-BD233C342AD3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.TimeArchiver", "Test.TimeArchiver\Test.TimeArchiver.csproj", "{8CFB2F27-BE41-4B35-A160-B479F2513014}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Durability.TimeArchiver", "Durability.TimeArchiver\Durability.TimeArchiver.csproj", "{676B854B-170A-419B-A24A-5F00CA50E4BA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Integration.TimeArchiver", "Test.Integration.TimeArchiver\Test.Integration.TimeArchiver.csproj", "{7A7986E9-E053-4476-9C1E-27A57961B650}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5FF54D7D-6A85-4FDC-A9FC-E8EAE60FC120}"
+	ProjectSection(SolutionItems) = preProject
+		.gitlab-ci.yml = .gitlab-ci.yml
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark.TimeArchiver", "Benchmark.TimeArchiver\Benchmark.TimeArchiver.csproj", "{EE60F0D8-0F2A-49C0-A8B5-1BE7240460F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.PhysicalLevel.Core", "System.IO.Paging.PhysicalLevel\System.IO.Paging.PhysicalLevel.Core.csproj", "{545172B0-A5D0-4A0F-A4A7-847273EA404E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.LogicalLevel.Core", "System.IO.Paging.LogicalLevel\System.IO.Paging.LogicalLevel.Core.csproj", "{050A89FA-EA3B-44FE-99B7-D3465D0993EE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.PhysicalLevel.MemoryStubs.Core", "System.IO.Paging.PhysicalLevel.MemoryStubs\System.IO.Paging.PhysicalLevel.MemoryStubs.Core.csproj", "{41D022BF-3E36-43EF-ABBD-1B19BD9CAD55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,14 +32,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5F26AAD7-289E-444F-9BCA-30CCC1D263F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F26AAD7-289E-444F-9BCA-30CCC1D263F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5F26AAD7-289E-444F-9BCA-30CCC1D263F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5F26AAD7-289E-444F-9BCA-30CCC1D263F3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5BE264B9-826F-441E-8208-7144156262F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5BE264B9-826F-441E-8208-7144156262F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5BE264B9-826F-441E-8208-7144156262F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5BE264B9-826F-441E-8208-7144156262F7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{451784AC-5A66-48B2-8ED4-6BAF71894ED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{451784AC-5A66-48B2-8ED4-6BAF71894ED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{451784AC-5A66-48B2-8ED4-6BAF71894ED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -71,30 +56,18 @@ Global
 		{02AF2747-CC15-4024-B4EC-627CFEBD6D52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02AF2747-CC15-4024-B4EC-627CFEBD6D52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02AF2747-CC15-4024-B4EC-627CFEBD6D52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FDF7E5F6-FF31-44B1-89D1-1B471332BF7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FDF7E5F6-FF31-44B1-89D1-1B471332BF7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FDF7E5F6-FF31-44B1-89D1-1B471332BF7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FDF7E5F6-FF31-44B1-89D1-1B471332BF7F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F6CF3B6F-7F7A-43BA-AEC0-BD233C342AD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F6CF3B6F-7F7A-43BA-AEC0-BD233C342AD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F6CF3B6F-7F7A-43BA-AEC0-BD233C342AD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F6CF3B6F-7F7A-43BA-AEC0-BD233C342AD3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8CFB2F27-BE41-4B35-A160-B479F2513014}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8CFB2F27-BE41-4B35-A160-B479F2513014}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8CFB2F27-BE41-4B35-A160-B479F2513014}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8CFB2F27-BE41-4B35-A160-B479F2513014}.Release|Any CPU.Build.0 = Release|Any CPU
-		{676B854B-170A-419B-A24A-5F00CA50E4BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{676B854B-170A-419B-A24A-5F00CA50E4BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{676B854B-170A-419B-A24A-5F00CA50E4BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{676B854B-170A-419B-A24A-5F00CA50E4BA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7A7986E9-E053-4476-9C1E-27A57961B650}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7A7986E9-E053-4476-9C1E-27A57961B650}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7A7986E9-E053-4476-9C1E-27A57961B650}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7A7986E9-E053-4476-9C1E-27A57961B650}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EE60F0D8-0F2A-49C0-A8B5-1BE7240460F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EE60F0D8-0F2A-49C0-A8B5-1BE7240460F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EE60F0D8-0F2A-49C0-A8B5-1BE7240460F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EE60F0D8-0F2A-49C0-A8B5-1BE7240460F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{545172B0-A5D0-4A0F-A4A7-847273EA404E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{545172B0-A5D0-4A0F-A4A7-847273EA404E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{545172B0-A5D0-4A0F-A4A7-847273EA404E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{545172B0-A5D0-4A0F-A4A7-847273EA404E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{050A89FA-EA3B-44FE-99B7-D3465D0993EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{050A89FA-EA3B-44FE-99B7-D3465D0993EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{050A89FA-EA3B-44FE-99B7-D3465D0993EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{050A89FA-EA3B-44FE-99B7-D3465D0993EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41D022BF-3E36-43EF-ABBD-1B19BD9CAD55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41D022BF-3E36-43EF-ABBD-1B19BD9CAD55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41D022BF-3E36-43EF-ABBD-1B19BD9CAD55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41D022BF-3E36-43EF-ABBD-1B19BD9CAD55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,10 @@
+stages:
+ - build
+ - test 
+job:
+  image: microsoft/aspnetcore:latest
+  stage: build
+  script: dotnet build
+job: 
+  stage: test
+  script: dotnet test

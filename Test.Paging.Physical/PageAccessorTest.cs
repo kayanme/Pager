@@ -6,8 +6,7 @@ using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Implementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-
-namespace Test.Pager
+namespace Test.Paging.PhysicalLevel
 {
     [TestClass]
     public class PageAccessorTest

@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>System.IO.Paging.PhysicalLevel.MemoryStubs</AssemblyName>
+    <RootNamespace>System.IO.Paging.PhysicalLevel.MemoryStubs</RootNamespace>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>System.IO.Paging.PhysicalLevel.MemoryStubs</PackageId>
+    <Description>Memory-mapped file paging subsystem. Testing stubs.</Description>
+    <Version>0.0.1</Version>
+    <Authors>kayan</Authors>
+    <Company>-</Company>
+    <Product>-</Product>
+    <RepositoryUrl>https://github.com/kayanme/Pager</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>first beta</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ComponentModel" Version="4.3.0" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0" />
+    <PackageReference Include="System.IO.MemoryMappedFiles" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\System.IO.Paging.PhysicalLevel\System.IO.Paging.PhysicalLevel.Core.csproj" />
+  </ItemGroup>
+
+</Project>

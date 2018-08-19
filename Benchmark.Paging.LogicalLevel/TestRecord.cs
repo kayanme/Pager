@@ -1,5 +1,4 @@
 ﻿using System;
-using File.Paging.PhysicalLevel.Classes;
 
 namespace Benchmark.Paging.LogicalLevel
 {

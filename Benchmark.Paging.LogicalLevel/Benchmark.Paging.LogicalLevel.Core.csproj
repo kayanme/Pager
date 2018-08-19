@@ -14,7 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FIle.Paging.LogicalLevel\File.Paging.LogicalLevel.Core.csproj" />
+    <ProjectReference Include="..\System.IO.Paging.LogicalLevel\System.IO.Paging.LogicalLevel.Core.csproj" />
+    <ProjectReference Include="..\System.IO.Paging.PhysicalLevel\System.IO.Paging.PhysicalLevel.Core.csproj" />
   </ItemGroup>
 
 </Project>

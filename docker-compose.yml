@@ -1,8 +1,0 @@
-version: '3.4'
-
-services:
-  test.timearchiver:
-    image: ${DOCKER_REGISTRY}testtimearchiver
-    build:
-      context: .
-      dockerfile: Test.TimeArchiver\Dockerfile

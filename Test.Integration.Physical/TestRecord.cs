@@ -1,10 +1,4 @@
-﻿using File.Paging.PhysicalLevel.Classes;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Test.Integration.Physical
+﻿namespace Test.Integration.Physical
 {
     public struct TestRecord
     {

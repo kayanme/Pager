@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using File.Paging.PhysicalLevel.Classes;
 using File.Paging.PhysicalLevel.Classes.Configurations;
@@ -12,7 +9,7 @@ using File.Paging.PhysicalLevel.Implementations;
 
 namespace Benchmark.Paging.PhysicalLevel
 {
-    
+
     public class Physical_RecordSearchBenchmark
     {
         private IPageManager _manager;

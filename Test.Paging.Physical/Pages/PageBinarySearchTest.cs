@@ -6,8 +6,7 @@ using File.Paging.PhysicalLevel.Contracts;
 using File.Paging.PhysicalLevel.Contracts.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-
-namespace Test.Pager.Pages
+namespace Test.Paging.PhysicalLevel.Pages
 {
     [TestClass]
     public class PageBinarySearchTest
