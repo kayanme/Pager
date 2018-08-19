@@ -2,6 +2,7 @@ image: microsoft/aspnetcore-build:latest
 stages:
  - build
  - test 
+
 job:  
   stage: build
   script: dotnet build Test.Pager.Core.sln
