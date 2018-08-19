@@ -19,7 +19,7 @@ stages:
 packages:
   stage: deploy
   script: 
-   - dotnet build System.IO.Paging.PhysicalLevel -c Release 
+   - dotnet build System.IO.Paging.PhysicalLevel/System.IO.Paging.PhysicalLevel.Core.csproj -c Release 
    - dotnet nuget push System.IO.Paging.PhysicalLevel/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu
-   - dotnet build System.IO.Paging.LogicalLevel -c Release 
+   - dotnet build System.IO.Paging.LogicalLevel/System.IO.Paging.LogicalLevel.Core.csproj -c Release 
    - dotnet nuget push System.IO.Paging.LogicalLevel/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu
