@@ -1,8 +1,8 @@
+image: microsoft/aspnetcore:latest
 stages:
  - build
  - test 
-job:
-  image: microsoft/aspnetcore:latest
+job:  
   stage: build
   script: dotnet build
 job: 
