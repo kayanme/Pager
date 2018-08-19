@@ -52,7 +52,7 @@ namespace Test.Paging.PhysicalLevel
                 .ReturnsLazily((long l)=>
                 { _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, FileName, l);Debug.Assert(_map!=null,"_map!=null"); return _map; });
 
-            A.CallTo(() => file.ReturnMappedFile(A<MemoryMappedFile>.Ignored)).Invokes((MemoryMappedFile m)=> { Debug.Assert(m != null, "m!=null"); m.Dispose();});           
+            A.CallTo(() => file.ReturnMappedFile(A<MemoryMappedFile>.Ignored)).Invokes((MemoryMappedFile m)=> { if (m!=null) m.Dispose();});           
             var g = new GamAccessor(file);
             g.InitializeGam(0);
             return g;
