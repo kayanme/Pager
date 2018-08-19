@@ -91,6 +91,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             {
                 if (disposing)
                 {
+                    Debug.Assert(_map != null, "_map!=null");
+                    if (_map == null)
+                        throw new ArgumentException("_map");
                     _map.Dispose();
                     _file.Dispose();
                     _lock.Dispose();

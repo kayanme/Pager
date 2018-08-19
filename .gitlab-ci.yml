@@ -3,10 +3,10 @@ stages:
  - build
  - test 
 
-job:  
+build_all:  
   stage: build
   script: dotnet build Test.Pager.Core.sln
 
-job: 
+test_run: 
   stage: test
   script: dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj
