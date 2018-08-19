@@ -8,4 +8,4 @@ job:
 
 job: 
   stage: test
-  script: dotnet test Test.Paging.Physical
+  script: dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj
