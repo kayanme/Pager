@@ -90,13 +90,27 @@ namespace File.Paging.PhysicalLevel.Classes.Pages
           
         }
 
+        private IEnumerable<T> InRange<T>(IEnumerable<T> source,Func<T,bool> start,Func<T,bool> end)
+        {
+            bool started = false;
+            foreach(var s in source)
+            {
+                if (!started && start(s))
+                {
+                    started = true;
+                }
+                if (started)
+                    yield return s;
+                if (end(s))
+                    yield break;
+            }
+        }
+
         public IEnumerable<TypedRecord<TRecordType>> GetRecordRange(PageRecordReference start, PageRecordReference end)
         {
             CheckReferenceToPageAffinity(start);
             CheckReferenceToPageAffinity(end);
-            var nonFreeHeaders = Headers.NonFreeRecords()
-                .SkipWhile(k=>k <start.PersistentRecordNum)
-                .TakeWhile(k=>k<=end.PersistentRecordNum).ToArray();
+            var nonFreeHeaders = InRange(Headers.NonFreeRecords(),k=>k ==start.PersistentRecordNum,k=>k==end.PersistentRecordNum).ToArray();
             foreach (var nonFreeRecord in nonFreeHeaders)
             {
                 var shift = Headers.RecordShift(nonFreeRecord);

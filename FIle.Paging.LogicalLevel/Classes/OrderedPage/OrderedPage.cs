@@ -160,9 +160,13 @@ namespace FIle.Paging.LogicalLevel.Classes
         }
 
         public TypedRecord<TRecord>[] FindInKeyRange(TKey start, TKey end)
-        {           
-            var startPosition = FindTheMostLesser(end,true)?.Reference;
-            var endPosition = FindTheLessGreater(start, true)?.Reference;
+        {
+            var startPosition = FindTheLessGreater(start, true)?.Reference;
+            var endPosition = FindTheMostLesser(end,true)?.Reference;            
+            if (startPosition == null)
+                return new TypedRecord<TRecord>[0];
+            if (endPosition == null)
+                return new TypedRecord<TRecord>[0];
             using (var p = _manager.GetRecordAccessor<TRecord>(_reference))
             {
                 return p.GetRecordRange(startPosition, endPosition).ToArray();

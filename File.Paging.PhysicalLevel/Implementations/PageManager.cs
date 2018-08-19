@@ -40,6 +40,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             _config = config;
             
             _pageSize = config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? 4096 : 8192;
+            accessor.InitializeGam((ushort)_pageSize);
             _operatorForDisposal = operatorForDisposal;
             _pageFactory = pageFactory;
             _headerFactory = headerFactory;
@@ -173,7 +174,7 @@ namespace File.Paging.PhysicalLevel.Implementations
             {
                 page = _bufferedPages.GetOrAdd(pageNum.PageNum, i =>
                 {
-                    var block = _blockFactory.GetAccessor(Extent.Size + i * _pageSize, _pageSize);
+                    var block = _blockFactory.GetAccessor(_accessor.GamShift(pageNum.PageNum) + i * _pageSize, _pageSize);
                     var pageType = _accessor.GetPageType(pageNum.PageNum);
                     var headerType = _config.HeaderConfig.ContainsKey(pageType) ? _config.HeaderConfig[pageType] : null;
                   

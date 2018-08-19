@@ -32,10 +32,8 @@ namespace Test.Pager.Headers
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-
-
             headers.FreeRecord(0);
-            A.CallTo(() => Page.SetByteArray(new byte[] { 0 }, 0, 1)).MustHaveHappened();
+            A.CallTo(() => Page.SetByteArray(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0 }), 0, 1)).MustHaveHappened();
         }
 
         [TestMethod]
@@ -98,7 +96,7 @@ namespace Test.Pager.Headers
 
             var isFree = headers.IsRecordFree(0);
 
-            Assert.AreEqual(isFree, false);
+            Assert.IsFalse(isFree);
         }
 
         [TestMethod]

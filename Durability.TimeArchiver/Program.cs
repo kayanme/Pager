@@ -19,7 +19,7 @@ namespace Test.Integration.TimeArchiver
             Task.WaitAll(Enumerable.Range(0, _tagNum).Select(k=> searcher.CreateTag(k, TagType.Int)).ToArray());
 
             var writers =  new[] { WriteDataFull(searcher) };
-            var readers = Enumerable.Range(0, 0).Select(_ => ReadDataFull(searcher)).ToArray();
+            var readers = Enumerable.Range(0, 10).Select(_ => ReadDataFull(searcher)).ToArray();
 
             Task.WaitAll(writers.Concat(readers).ToArray());
 
@@ -45,7 +45,7 @@ namespace Test.Integration.TimeArchiver
 
         private static async Task ReadDataFull(IDataSearch ds)
         {
-            foreach (var _ in Enumerable.Range(0, 5000))
+            foreach (var _ in Enumerable.Range(0, 50000))
             {
                 await ReadData(ds);
             }

@@ -22,7 +22,7 @@ namespace File.Paging.PhysicalLevel.Implementations
         {
             _file = file;
             _mapName = "PageMap" + Guid.NewGuid();
-            _map = MemoryMappedFile.CreateFromFile(_file, _mapName, _file.Length!=0?_file.Length:Extent.Size , MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
+            _map = MemoryMappedFile.CreateFromFile(_file, _mapName, _file.Length!=0?_file.Length:Extent.Size , MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
             _oldMaps.TryAdd(_map, 0);
         }
 
@@ -35,9 +35,9 @@ namespace File.Paging.PhysicalLevel.Implementations
 
             if (_file.Length < desiredFileLength)
             {
-                AddExtent(1);
+                AddExtent((int)(desiredFileLength-_file.Length)/Extent.Size+((desiredFileLength - _file.Length) % Extent.Size == 0?0:1));
             }
-            
+            Debug.Assert(_file.Length >= desiredFileLength, "_file.Length >= desiredFileLength");
             try
             {
                 _lock.EnterReadLock();

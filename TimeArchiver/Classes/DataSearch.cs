@@ -20,6 +20,9 @@ namespace TimeArchiver.Contracts
         private readonly IPage<IndexPageRecord> _indexPage2;
         private IDataPageInteractor<int> _intDataPages;
         private ConcurrentDictionary<long, IDataInteraction<int>> _intTagCache;
+
+        private List<IDisposable> _disposablesToClear = new List<IDisposable>();
+
         public DataSearch(string indexRootFilename, string indexFile1, string indexFile2, string dataFile, ILogicalPageManagerFactory pageManagerFactory)
         {
 
@@ -35,6 +38,7 @@ namespace TimeArchiver.Contracts
         private IPage<T> CreateVirtualPage<T, C>(ILogicalPageManagerFactory pageManagerFactory, string filename) where C : LogicalPageManagerConfiguration, new() where T : struct
         {
             var rootManager = pageManagerFactory.CreateManager(filename, new C(), true);
+            _disposablesToClear.Add(rootManager);
             return rootManager.GetRecordAccessor<T>(rootManager.CreatePage(1));
         }
 
@@ -45,11 +49,12 @@ namespace TimeArchiver.Contracts
             var rootReference = indexInteractor.InitializeRoot();
             await indexInteractor.FinalizeIndexChange();
             var rootRec = new IndexRoot { TageType = (byte)type, TagNum = num, Root = rootReference };
-            _indexRootPage.AddRecord(rootRec);
+            var rec = _indexRootPage.AddRecord(rootRec);
             switch (type)
             {
                 case TagType.Int:
-                    _intTagCache.TryAdd(rootRec.TagNum, CreateIntInteractor(rootReference));
+                    if (!_intTagCache.TryAdd(rootRec.TagNum, CreateIntInteractor(rootReference)))
+                        _indexRootPage.FreeRecord(rec);
                     break;
                 default: throw new NotSupportedException();
             }
@@ -77,6 +82,29 @@ namespace TimeArchiver.Contracts
 
             await dataSearch.AddBlock(block);
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false;
+
+
+        public void Dispose()
+        {
+            if (!disposedValue)
+            {
+
+                _indexPage1.Dispose();
+                _indexPage2.Dispose();
+                _indexRootPage.Dispose();
+                _intDataPages.Dispose();
+                foreach(var d in _disposablesToClear)
+                {
+                    d.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+        #endregion
 
     }
 

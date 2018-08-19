@@ -119,12 +119,15 @@ namespace Test.TimeArchiver.IndexInteraction
             var dataRef = testRef(1, 3);
             _indexInteraction.CreateDataBlock(dataRef);
             await _indexInteraction.FinalizeIndexChange();
-            var root = _indexInteraction.GetRoot();
-            var insertedRef = _indexSearch.GetDataRef(root.Value);
-            Assert.IsNotNull(root);
-            Assert.AreEqual(insertedRef.Start, dataRef.Start);
-            Assert.AreEqual(insertedRef.End, dataRef.End);
-            Assert.AreEqual(insertedRef.DataReference, dataRef.DataReference);
+           
+                var root = _indexInteraction.GetRoot();
+                var insertedRef = _indexSearch.GetDataRef(root.Value, null);
+                Assert.IsNotNull(root);
+                Assert.AreEqual(insertedRef.Start, dataRef.Start);
+                Assert.AreEqual(insertedRef.End, dataRef.End);
+                Assert.AreEqual(insertedRef.DataReference, dataRef.DataReference);
+            
+          
         }
 
         [TestMethod]

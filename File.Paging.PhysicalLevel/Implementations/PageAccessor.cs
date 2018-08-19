@@ -100,8 +100,12 @@ namespace File.Paging.PhysicalLevel.Implementations
             {
                 if (disposing)
                 {
-                    Flush();
-                    _disposer?.ReturnAccessor(_map);
+                    try
+                    {
+                        Flush();
+                        _disposer?.ReturnAccessor(_map);
+                    }
+                    catch { }
                 }
 
                 _disposedValue = true;

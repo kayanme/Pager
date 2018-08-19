@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using File.Paging.PhysicalLevel.Contracts;
 
@@ -10,18 +11,20 @@ namespace File.Paging.PhysicalLevel.Implementations
     internal class ExtentAccessorFactory : IExtentAccessorFactory
     {
         readonly IUnderlyingFileOperator _file;
-
+        
         private readonly ConcurrentDictionary<MemoryMappedViewAccessor, MemoryMappedFile> _accessorsLent = new ConcurrentDictionary<MemoryMappedViewAccessor, MemoryMappedFile>();
 
         [ImportingConstructor]
         internal ExtentAccessorFactory(IUnderlyingFileOperator file)
         {
             _file = file;
+            
         }
 
         public IPageAccessor GetAccessor(long pageOffset, int pageLength)
         {
             var extentNumber = pageOffset / Extent.Size;
+         
             var extentBorder = extentNumber * Extent.Size;
             var map = _file.GetMappedFile(pageOffset + pageLength+Extent.Size);
          

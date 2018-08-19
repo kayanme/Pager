@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Linq;
 using FakeItEasy;
 using File.Paging.PhysicalLevel;
 using File.Paging.PhysicalLevel.Contracts;
@@ -23,6 +24,8 @@ namespace Test.Pager
             gam[pageNum] = type;
         }
 
+
+
         private static void MarkInGamEmpty(byte[] gam, int pageNum)
         {
           
@@ -35,15 +38,23 @@ namespace Test.Pager
             var file = System.IO.File.ReadAllBytes(FileName);
             CollectionAssert.AreEqual(gam, file);
         }
+
         private string FileName=>TestContext.TestName;
         private MemoryMappedFile _map;
         private IGamAccessor GetManager()
         {
-            _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, FileName, Extent.Size);
+          //  _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, FileName, Extent.Size);
             var file = A.Fake<IUnderlyingFileOperator>(s=>s.Strict());
-            A.CallTo(()=> file.GetMappedFile(Extent.Size)).Returns(_map);
-            A.CallTo(() => file.ReturnMappedFile(_map)).DoesNothing();           
-            return new GamAccessor(file);
+          //  A.CallTo(()=> file.GetMappedFile(Extent.Size)).Returns(_map);
+            A.CallTo(() => file.FileSize).Returns(Extent.Size);
+            A.CallTo(() => file.GetMappedFile(A<long>.Ignored))
+                .ReturnsLazily((long l)=>
+                { _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, FileName, l); return _map; });
+
+            A.CallTo(() => file.ReturnMappedFile(A<MemoryMappedFile>.Ignored)).Invokes((MemoryMappedFile m)=> { m.Dispose();});           
+            var g = new GamAccessor(file);
+            g.InitializeGam(0);
+            return g;
         }
         [TestCleanup]
         public void Clean()
@@ -68,6 +79,27 @@ namespace Test.Pager
             var gam = CreateEmptyGam();
             MarkInGamFilled(gam, 0, 1);
             CheckFile(gam);
+        }
+
+        [TestMethod]
+        public void MarkUsedWhenGamFull()
+        {
+            using (var file = System.IO.File.Create(FileName))
+            {
+                var bytes = Enumerable.Repeat((byte)1, Extent.Size).ToArray();
+                file.Write(bytes, 0, Extent.Size);
+            }
+            using (var manager = GetManager())
+            {
+                var pageNum = manager.MarkPageUsed(1);
+                Assert.AreEqual(Extent.Size, pageNum);
+            }
+
+            var gam = CreateEmptyGam();
+            var gam2 = CreateEmptyGam();
+            for(int i = 0;i<Extent.Size;i++) MarkInGamFilled(gam, i, 1);
+            MarkInGamFilled(gam2, 0, 1);
+            CheckFile(gam.Concat(gam2).ToArray());
         }
 
         [TestMethod]

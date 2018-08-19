@@ -65,6 +65,7 @@ namespace Test.Pager
             TestContext.Properties.Add("hconfig", hconfig);
             TestContext.Properties.Add("headerFact", headerFact);
             TestContext.Properties.Add("pageFact", pageFact);
+            A.CallTo(() => GamMock.GamShift(A<int>.Ignored)).Returns(Extent.Size);
         }
 
         private IPageManager GetManager()
@@ -96,7 +97,8 @@ namespace Test.Pager
             A.CallTo(() => t.GetChildAccessorWithStartShift(0)).Returns(t);
             A.CallTo(() => BlockMock.GetAccessor(Extent.Size, 4096)).Returns(t);
             A.CallTo(()=> GamMock.MarkPageUsed(1)).Returns(0);
-          
+            A.CallTo(() => GamMock.GamShift(1)).Returns(Extent.Size);
+
             var manager = GetManager();
             var page = manager.CreatePage(Fconfig);
             manager.Dispose();
@@ -129,9 +131,9 @@ namespace Test.Pager
             A.CallTo(()=> t.PageSize).Returns(4096);
             A.CallTo(() => t.GetByteArray(0, 4096)).Returns(new byte[4096]);
             A.CallTo(() => t.GetByteArray(0, 72)).Returns(new byte[72]);//заголовок
-          
-//A.CallTo(()=>        //    t.GetChildAccessorWithStartShift(0)).Returns(t);
-           A.CallTo(() => headerFactory.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t,null))
+
+            A.CallTo(() => GamMock.GamShift(0)).Returns(Extent.Size);
+            A.CallTo(() => headerFactory.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t,null))
                 .Returns(h);
             var p = A.Fake<IPageInfo>();
      
@@ -176,6 +178,7 @@ namespace Test.Pager
             
             A.CallTo(()=> BlockMock.GetAccessor(Extent.Size, 4096)).Returns(t);
             A.CallTo(() => GamMock.GetPageType(0)).Returns<byte>(3);
+            A.CallTo(() => GamMock.GamShift(0)).Returns(Extent.Size);
             var h = A.Fake<IPageHeaders>();
             var p = A.Fake<IPageInfo>();
             A.CallTo(() => headerFactory.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, TestContext.Properties["hconfig"] as PageHeadersConfiguration))
@@ -212,6 +215,7 @@ namespace Test.Pager
             
             A.CallTo(() => BlockMock.GetAccessor(Extent.Size+4096, 4096)).Returns(t).Once();
             A.CallTo(() => GamMock.GetPageType(1)).Returns<byte>(1);
+            A.CallTo(() => GamMock.GamShift(1)).Returns(Extent.Size);
             var h = A.Fake<IPageHeaders>();
             var p = A.Fake<IPageInfo>();
             A.CallTo(() => headerFactory.CreateHeaders(TestContext.Properties["fconfig"] as PageContentConfiguration, t, null))

@@ -136,17 +136,29 @@ namespace Test.TimeArchiver
             }
         }
 
-        public DataPageRef GetDataRef(IndexRecord record)
+      
+
+        public IndexRecord? GetRoot(IDisposable readToken)
         {
             throw new NotImplementedException();
         }
 
-        public IDisposable ReadBlock()
+        public IndexRecord[] GetChildren(IndexRecord parent, IDisposable readToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public DataPageRef GetDataRef(IndexRecord record, IDisposable readToken)
         {
             throw new NotImplementedException();
         }
 
         public PageRecordReference InitializeRoot()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDisposable ReadBlock()
         {
             throw new NotImplementedException();
         }

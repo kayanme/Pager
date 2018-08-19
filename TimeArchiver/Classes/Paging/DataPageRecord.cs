@@ -12,6 +12,7 @@ namespace TimeArchiver.Classes.Paging
         public ushort StampShift;
         public ushort VersionShift;
 
-        public static readonly int MaxRecordsOnPage = 4096/Marshal.SizeOf<T>() + sizeof(ushort) * 2;
+        //  public static readonly int MaxRecordsOnPage = 4096/Marshal.SizeOf<T>() + sizeof(ushort) * 2;
+        public const int MaxRecordsOnPage = 407;
     }
 }

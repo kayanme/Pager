@@ -130,9 +130,9 @@ namespace TimeArchiver.Classes
             if (start > end)
                 return AsyncEnumerable.Empty<DataRecord<T>[]>();
             var pageQueue = new Queue<DataPageRef>();
-            using (_indexSearch.ReadBlock())
+            using (var token = _indexSearch.ReadBlock())
             {
-                var root = _indexSearch.GetRoot();
+                var root = _indexSearch.GetRoot(token);
                 if (!root.HasValue)
                     return AsyncEnumerable.Empty<DataRecord<T>[]>();
                 if (root.Value.Start > end || root.Value.End<start)
@@ -143,19 +143,26 @@ namespace TimeArchiver.Classes
                 do
                 {
                     var curRec = indexQueue.Dequeue();
-                    if (curRec.StoresData)
-                        pageQueue.Enqueue(_indexSearch.GetDataRef(curRec));
-                    else if (curRec.End >= start && curRec.Start <= end)
+                    if (curRec.End >= start && curRec.Start <= end)
                     {
-                        var t = _indexSearch.GetChildren(curRec);
-                        indexQueue.Enqueue(t[0]);
-                        indexQueue.Enqueue(t[1]);
+                        if (curRec.StoresData)
+                            pageQueue.Enqueue(_indexSearch.GetDataRef(curRec, token));
+                        else 
+                        {
+                            var t = _indexSearch.GetChildren(curRec, token);
+                            indexQueue.Enqueue(t[0]);
+                            indexQueue.Enqueue(t[1]);
+                        }
                     }
                 }
                 while (indexQueue.Any());                
             }
             //в перечислении ниже индексы уже не используются
-            return pageQueue.Select(k => _pageInteractor.FindRange(k, start, end)).ToAsyncEnumerable();
+            return pageQueue.Select(k => {
+                var res = _pageInteractor.FindRange(k, start, end);
+                Debug.Assert(res.Any());
+                return res;
+            }).ToAsyncEnumerable();
         }
 
         public void Remove(long stamp)

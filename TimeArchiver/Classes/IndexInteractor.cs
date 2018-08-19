@@ -16,11 +16,11 @@ namespace TimeArchiver.Contracts
         private readonly PageRecordReference _root;
 
         private IPage<IndexPageRecord> _workingPage=>_indexes[_writePath];
-        private IPage<IndexPageRecord> _readingPage => _indexes[_readPath];
+    
         private int[] _reads = new int[2];
 
-        private int _readPath=0;
-        private int _writePath = 1;
+        private volatile int _readPath=0;
+        private volatile int _writePath = 1;
 
         private List<PageRecordReference> _restorationList = new List<PageRecordReference>();
         private Queue<PageRecordReference> _indexAddList = new Queue<PageRecordReference>();
@@ -80,7 +80,15 @@ namespace TimeArchiver.Contracts
             rec.Data.ChildrenTwo = index.Reference;
             _workingPage.StoreRecord(rec);
             _restorationList.Add(rec.Reference);
-            return new IndexRecord { Start = dataRec.Start, End = dataRec.End, MaxUnderlyingDepth = 0, StoresData = true, _recordNum = index.Reference, _parentNum = rec.Reference };
+            return new IndexRecord
+            {
+                Start = rec.Data.Start,
+                End = rec.Data.End,
+                MaxUnderlyingDepth = 1,
+                StoresData = false,
+                _recordNum = rec.Reference,
+                _parentNum = root._parentNum
+            };
 
         }
 
@@ -127,9 +135,9 @@ namespace TimeArchiver.Contracts
 
         }
 
-        IndexRecord[] IIndexSearch.GetChildren(IndexRecord parent)
+        IndexRecord[] IIndexSearch.GetChildren(IndexRecord parent,IDisposable readToken)
         {
-            return GetChildren(_readingPage, parent);
+            return GetChildren(_indexes[((P)readToken).Path], parent);
         }
 
         private IndexRecord FromFileRecord(TypedRecord<IndexPageRecord> fileRecord, PageRecordReference parent) =>
@@ -143,10 +151,10 @@ namespace TimeArchiver.Contracts
                 _parentNum = parent
             };
 
-        public DataPageRef GetDataRef(IndexRecord record)
+        public DataPageRef GetDataRef(IndexRecord record, IDisposable readToken)
         {
 
-            var rec = _workingPage.GetRecord(record._recordNum);
+            var rec = _indexes[((P)readToken).Path].GetRecord(record._recordNum);
             if (rec.Data.MaxUnderlyingDepth != 0)
                 throw new ArgumentException("record is not a data reference");
             return new DataPageRef { Start = rec.Data.Start, End = rec.Data.End, DataReference = rec.Data.Data };
@@ -158,6 +166,17 @@ namespace TimeArchiver.Contracts
 
             var rootRec = _workingPage.GetRecord(_root);
             if (rootRec.Data.Data == null && rootRec.Data.ChildrenOne == null)
+                return null;
+            return FromFileRecord(rootRec, null);
+
+        }
+
+        IndexRecord? IIndexSearch.GetRoot(IDisposable readToken)
+        {
+
+            var rootRec = _indexes[((P)readToken).Path].GetRecord(_root);
+            if
+                (rootRec.Data.Data == null && rootRec.Data.ChildrenOne == null)
                 return null;
             return FromFileRecord(rootRec, null);
 
@@ -222,18 +241,18 @@ namespace TimeArchiver.Contracts
 
         private struct P : IDisposable
         {
-            private readonly int i;
+            public int Path { get; }
             private readonly IndexInteractor ii;
 
             public P(int i,IndexInteractor ii)
             {
-                this.i = i;
+                this.Path = i;
                 this.ii = ii;
                 Interlocked.Increment(ref ii._reads[i]);
             }
             public void Dispose()
             {
-                if (Interlocked.Decrement(ref ii._reads[i]) == 1)
+                if (Interlocked.Decrement(ref ii._reads[Path]) == 1)
                 {
 
                 }
@@ -253,12 +272,12 @@ namespace TimeArchiver.Contracts
             while (_reads[_writePath] >0) await Task.Delay(10);
             foreach (var addedIndex in _indexAddList)
             {
-                var sourceRec = _readingPage.GetRecord(addedIndex);
-                _workingPage.AddRecord(sourceRec.Data);
+                var sourceRec = _indexes[_readPath].GetRecord(addedIndex);
+                if (_workingPage.AddRecord(sourceRec.Data) == null) Debug.Fail("Unknown index fail");
             }
             foreach (var changedIndex in _restorationList)
             {
-                var sourceRec = _readingPage.GetRecord(changedIndex);
+                var sourceRec = _indexes[_readPath].GetRecord(changedIndex);
                 var recToRestore = _workingPage.GetRecord(changedIndex);
                 recToRestore.Data = sourceRec.Data;
                 _workingPage.StoreRecord(recToRestore);

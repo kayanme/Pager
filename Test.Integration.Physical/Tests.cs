@@ -75,6 +75,20 @@ namespace Test.Integration.Physical
         }
 
         [TestMethod]
+        public void CreatingLargeFile()
+        {
+            var sw = Stopwatch.StartNew();
+            for(var i = 0; i < 1E5; i++)
+            {
+               var page = _pageManager.GetRecordAccessor<TestRecord>(_pageManager.CreatePage(1));
+                page.AddRecord(new TestRecord());
+                page.Dispose();
+            }
+            sw.Stop();
+            Debug.Print(sw.Elapsed.ToString("g"));
+        }
+
+        [TestMethod]
         public void WorkingWithPage()
         {
             var sw = Stopwatch.StartNew();            
