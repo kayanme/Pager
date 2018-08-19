@@ -6,14 +6,14 @@
     <RootNamespace>System.IO.Paging.PhysicalLevel</RootNamespace>
     <Version>0.0.1-beta</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>System.IO.Paging.PhysicalLevel</PackageId>
-    <Authors>System.IO.Paging.PhysicalLevel</Authors>
-    <Company>System.IO.Paging.PhysicalLevel</Company>
+    <PackageId>Addiction.System.IO.Paging.PhysicalLevel</PackageId>
+    <Authors>Kayan</Authors>
+    <Company>-</Company>
     <Product>System.IO.Paging.PhysicalLevel</Product>
     <Description>Memory-mapped file paging subsystem. Physical pages.</Description>
     <PackageProjectUrl>https://github.com/kayanme/Pager</PackageProjectUrl>
-    <RepositoryType>https://github.com/kayanme/Pager</RepositoryType>
-    <PackageReleaseNotes>first beta</PackageReleaseNotes>
+    <RepositoryType>https://github.com/kayanme/System.IO.Paging</RepositoryType>
+    <PackageReleaseNotes>First beta. Not for public usage.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
