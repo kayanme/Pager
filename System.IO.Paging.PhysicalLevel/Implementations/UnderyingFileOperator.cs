@@ -126,8 +126,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                 _lock.EnterWriteLock();
                 //_file.SetLength(_file.Length + Extent.Size * extentCount);
                 //_file.Flush();
-              //  var map = MemoryMappedFile.OpenExisting(_mapName, MemoryMappedFileRights.FullControl, HandleInheritability.None);
-                var map = MemoryMappedFile.CreateFromFile(_file,_mapName + _file.Length + Extent.Size * extentCount, _file.Length + Extent.Size * extentCount, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None,false);
+                //  var map = MemoryMappedFile.OpenExisting(_mapName, MemoryMappedFileRights.FullControl, HandleInheritability.None);
+                //+ _file.Length + Extent.Size * extentCount
+                var map = MemoryMappedFile.CreateFromFile(_file,_mapName , _file.Length + Extent.Size * extentCount, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None,false);
                 _oldMaps.TryAdd(map, 0);
                 oldMap = _map;
                 _map = map;

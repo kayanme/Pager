@@ -15,7 +15,7 @@ namespace Test.Paging.PhysicalLevel
         public TestContext TestContext { get; set; }
         private IPageAccessor Create()
         {
-            var m = MemoryMappedFile.CreateFromFile(TestContext.TestName,FileMode.OpenOrCreate,TestContext.TestName,8192);
+            var m = MemoryMappedFile.CreateFromFile(TestContext.TestName,FileMode.OpenOrCreate,null,8192);
             var acc = m.CreateViewAccessor(0, 8192);
             var p = A.Fake<IExtentAccessorFactory>();
             A.CallTo(()=> p.ReturnAccessor(null)).WithAnyArguments().Invokes((k => (k.Arguments[0] as MemoryMappedViewAccessor).Dispose()));
