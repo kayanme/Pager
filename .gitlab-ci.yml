@@ -4,7 +4,8 @@ stages:
  - test 
 job:  
   stage: build
-  script: dotnet build
+  script: dotnet build Test.Pager.Core.sln
+
 job: 
   stage: test
-  script: dotnet test
+  script: dotnet test Test.Pager.Core.sln
