@@ -1,21 +1,23 @@
 image: microsoft/aspnetcore-build:latest
 stages:
- - build
- - test 
+ #- build
+ #- test 
  - deploy
 
 #build_all:  
 #  stage: build
 #  script: dotnet build Test.Pager.Core.sln
 
-test_run_debug: 
-  stage: test
-  script: dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug
+#test_run_debug: 
+#  stage: test
+#  script: dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug
 
-test_run: 
-  stage: test
-  script: dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release
+#test_run: 
+#  stage: test
+#  script: dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release
 
 packages:
   stage: deploy
-  script: /builds/kayanme/package-build.sh
+  script: 
+   - dotnet build System.IO.Paging.PhysicalLevel.Core -c Release 
+   - dotnet nuget push System.IO.Paging.PhysicalLevel.Core/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu
