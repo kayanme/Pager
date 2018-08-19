@@ -8,4 +8,4 @@ job:
 
 job: 
   stage: test
-  script: dotnet test Test.Paging.PhysicalLevel.Core
+  script: dotnet test Test.Paging.Physical
