@@ -18,4 +18,4 @@ test_run:
 
 packages:
   stage: deploy
-  script: package-build.sh
+  script: /builds/kayanme/package-build.sh
