@@ -6,15 +6,16 @@
     <RootNamespace>System.IO.Paging.PhysicalLevel.MemoryStubs</RootNamespace>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>System.IO.Paging.PhysicalLevel.MemoryStubs</PackageId>
+    <PackageId>Addiction.System.IO.Paging.PhysicalLevel.MemoryStubs</PackageId>
     <Description>Memory-mapped file paging subsystem. Testing stubs.</Description>
-    <Version>0.0.1</Version>
+    <Version>0.0.2-beta</Version>
     <Authors>kayan</Authors>
     <Company>-</Company>
     <Product>-</Product>
-    <RepositoryUrl>https://github.com/kayanme/Pager</RepositoryUrl>
+    <RepositoryUrl>https://github.com/kayanme/System.IO.Paging</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>first beta</PackageReleaseNotes>
+    <PackageReleaseNotes>First beta. Not for public usage.</PackageReleaseNotes>
+    <PackageProjectUrl>https://gitlab.com/kayanme/System.IO.Paging</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
