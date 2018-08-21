@@ -2,6 +2,7 @@ image: microsoft/aspnetcore-build:latest
 stages:
  #- build
  - test 
+ - benchmark
  - deploy
 
 #build_all:  
@@ -10,15 +11,37 @@ stages:
 
 test_run_debug: 
   stage: test
+  artifacts:
+     name: "debug test result"
+     reports:
+       paths:
+         - testResult/
   script: 
-     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug
-     - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Debug
+     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug -r testResult/
+     - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Debug -r testResult/
 
 test_run: 
   stage: test
+  artifacts:
+     name: "release test result"
+     reports:
+       paths:
+         - testResult/
   script: 
-    - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release
-    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release
+    - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release -r testResult/
+    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release -r testResult/
+
+benchmark_physical:
+   stage: benchmark
+   artifacts:
+     name: "release test result"
+     reports:
+       paths:
+         - /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts 
+   script:
+    - dotnet run Benchmark.Paging.PhysicalLevel\Benchmark.Paging.PhysicalLevel.Core.csproj -c Release
+   # - /builds/kayanme/System.IO.Paging/merge.sh /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts /builds/kayanme/System.IO.Paging/Benchmarks
+
 
 packages:
   stage: deploy

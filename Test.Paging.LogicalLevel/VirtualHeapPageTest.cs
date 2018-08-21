@@ -68,8 +68,7 @@ namespace Test.Paging.LogicalLevel
                     A.CallTo(() => physManager.GetRecordAccessor<HeapHeader>(new PageReference(1))).MustHaveHappened())
                 .Then(
                     A.CallTo(() => heapHeaders.IterateRecords()).MustHaveHappened());
-                //.Then(
-                //    A.CallTo(() => heapHeaders.GetRecord(A<PageRecordReference>.That.Matches(k=>k.Page.PageNum == 1 && k.PersistentRecordNum == 0))).MustHaveHappened());
+              
             var tr = new TestRecord();
             var realPage = A.Fake<IPage<TestRecord>>();
             var realPage2 = A.Fake<IPage<TestRecord>>();
