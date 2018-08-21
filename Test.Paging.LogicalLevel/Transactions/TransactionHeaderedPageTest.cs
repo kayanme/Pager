@@ -44,7 +44,8 @@ namespace Test.Paging.LogicalLevel.Transactions
         }
 
         [TestProperty("Isolation", "ReadCommitted")]
-        [TestProperty("LockCapable", "false")]
+        [TestProperty("LockCapable", "false")]        
+        [TestProperty("Versioning", "false")]
         [TestMethod]
         public void GetHeader_RC_NL()
         {
@@ -59,6 +60,7 @@ namespace Test.Paging.LogicalLevel.Transactions
 
         [TestProperty("Isolation", "ReadCommitted")]
         [TestProperty("LockCapable", "false")]
+        [TestProperty("Versioning", "false")]
         [TestMethod]
         public void GetAfterModifyHeader_RC_NL()
         {
@@ -73,6 +75,7 @@ namespace Test.Paging.LogicalLevel.Transactions
 
         [TestProperty("Isolation", "ReadCommitted")]
         [TestProperty("LockCapable", "false")]
+        [TestProperty("Versioning", "false")]
         [TestMethod]
         public void ModifyHeader_RC_NL()
         {
@@ -85,6 +88,7 @@ namespace Test.Paging.LogicalLevel.Transactions
 
         [TestProperty("Isolation", "RepeatableRead")]
         [TestProperty("LockCapable", "false")]
+        [TestProperty("Versioning", "false")]
         [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void GetHeader_RR_NL()
@@ -95,6 +99,7 @@ namespace Test.Paging.LogicalLevel.Transactions
 
         [TestProperty("Isolation", "RepeatableRead")]
         [TestProperty("LockCapable", "false")]
+        [TestProperty("Versioning", "false")]
         [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void ModifyHeader_RR_NL()
@@ -107,6 +112,7 @@ namespace Test.Paging.LogicalLevel.Transactions
 
         [TestProperty("Isolation", "RepeatableRead")]
         [TestProperty("LockCapable", "false")]
+        [TestProperty("Versioning", "false")]
         [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void GetHeader_S_NL()
@@ -117,6 +123,7 @@ namespace Test.Paging.LogicalLevel.Transactions
 
         [TestProperty("Isolation", "RepeatableRead")]
         [TestProperty("LockCapable", "false")]
+        [TestProperty("Versioning", "false")]
         [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void ModifyHeader_S_NL()
@@ -131,6 +138,7 @@ namespace Test.Paging.LogicalLevel.Transactions
         [TestProperty("LockCapable", "false")]
         [TestProperty("Versioning", "true")]
         [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
         public void GetHeader_SS_NL()
         {
             var res = new TestRecord();
@@ -146,6 +154,7 @@ namespace Test.Paging.LogicalLevel.Transactions
         [TestProperty("LockCapable", "false")]
         [TestProperty("Versioning", "true")]
         [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
         public void GetAfterModifyHeader_SS_NL()
         {
             var res = new TestRecord();
@@ -160,6 +169,7 @@ namespace Test.Paging.LogicalLevel.Transactions
         [TestProperty("Isolation", "Snapshot")]
         [TestProperty("LockCapable", "false")]
         [TestProperty("Versioning", "true")]
+        [ExpectedException(typeof(InvalidOperationException))]
         [TestMethod]
         public void ModifyHeader_SS_NL()
         {
