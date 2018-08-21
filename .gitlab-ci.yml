@@ -36,9 +36,7 @@ test_run:
 benchmark_physical:
    stage: benchmark
    artifacts:
-     name: "release test result"
-     reports:
-        benchmark: /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts/*
+     name: "release test result"   
      paths:
        - /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts 
    script:
