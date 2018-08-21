@@ -11,13 +11,13 @@ build_all:
 test_run_debug: 
   stage: test
   script: 
-    - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug
+    #- dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug
     - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Debug
 
 test_run: 
   stage: test
   script: 
-   - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release
+   #- dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release
    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release
 
 packages:
