@@ -13,8 +13,7 @@ test_run_debug:
   stage: test
   artifacts:
      name: "debug test result"
-     reports:
-       junit: testResult/*
+     
      paths:
          - testResult/
   script: 
@@ -25,8 +24,7 @@ test_run:
   stage: test
   artifacts:
      name: "release test result"
-     reports:
-       junit: testResult/*
+     
      paths:
          - testResult/
   script: 
