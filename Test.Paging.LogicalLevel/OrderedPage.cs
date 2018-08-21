@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using File.Paging.PhysicalLevel.Classes;
-using File.Paging.PhysicalLevel.Classes.Pages;
-using File.Paging.PhysicalLevel.Classes.Pages.Contracts;
-using File.Paging.PhysicalLevel.Contracts;
-using FIle.Paging.LogicalLevel.Classes;
-using FIle.Paging.LogicalLevel.Classes.OrderedPage;
-using FIle.Paging.LogicalLevel.Contracts;
+using System.IO.Paging.PhysicalLevel.Classes;
+using System.IO.Paging.PhysicalLevel.Classes.Pages;
+using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using System.IO.Paging.PhysicalLevel.Contracts;
+using System.IO.Paging.LogicalLevel.Classes;
+using System.IO.Paging.LogicalLevel.Classes.OrderedPage;
+using System.IO.Paging.LogicalLevel.Contracts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Rhino.Mocks;
+
+using System.IO.Paging.PhysicalLevel.Classes.References;
+using FakeItEasy;
 
 namespace Test.Paging.LogicalLevel
 {
@@ -20,26 +22,22 @@ namespace Test.Paging.LogicalLevel
 
         private IOrderedPage<TestRecord,int> Create(params TypedRecord<TestRecord>[] initialState)
         {
-            var rep = new MockRepository();
-            var physPage = rep.StrictMultiMock<IPage<TestRecord>>(typeof(ILogicalRecordOrderManipulation));
+            
+            var physPage = A.Fake<IPage<TestRecord>>(c=>c.Implements<ILogicalRecordOrderManipulation>());
 
-            var t = rep.StrictMock<IPageManager>();
+            var t = A.Fake<IPageManager>();
             var pageNum = new PageReference(0);
-            t.Expect(k => k.GetRecordAccessor<TestRecord>(pageNum)).Return(physPage);
-            t.Expect(k => k.GetSorter<TestRecord>(pageNum)).Return(physPage as ILogicalRecordOrderManipulation);
-            physPage.Expect(k => k.IterateRecords()).Return(initialState.ToArray());
-            physPage.Expect(k => k.GetRecord(null))
-                .IgnoreArguments()
-                .Do(new Func<PageRecordReference, TypedRecord<TestRecord>>
-                    (r => initialState.FirstOrDefault(k2 => k2.Reference == r))).Repeat.Any();
-            rep.ReplayAll();
+            A.CallTo(()=>t.GetRecordAccessor<TestRecord>(pageNum)).Returns(physPage);
+            A.CallTo(()=>t.GetSorter<TestRecord>(pageNum)).Returns(physPage as ILogicalRecordOrderManipulation);
+            A.CallTo(()=>physPage.IterateRecords()).Returns(initialState.ToArray());
+            A.CallTo(()=>physPage.GetRecord(A<PageRecordReference>.Ignored))                
+                .Invokes((PageRecordReference r) => initialState.FirstOrDefault(k2 => k2.Reference == r));
+            
             var page = new OrderedPage<TestRecord, int>(pageNum,t, k => k.Order,new SortStateContoller{IsSorted = true});
-            rep.BackToRecordAll();
-         
-
+            
             TestContext.Properties.Add("page", physPage);
             TestContext.Properties.Add("manager", t);
-            TestContext.Properties.Add("mocks", rep);
+            
 
             return page;
         }
@@ -48,7 +46,7 @@ namespace Test.Paging.LogicalLevel
         private ILogicalRecordOrderManipulation ManPage => TestContext.Properties["page"] as ILogicalRecordOrderManipulation;
 
         private IPageManager Manager => TestContext.Properties["manager"] as IPageManager;
-        private MockRepository mocks => TestContext.Properties["mocks"] as MockRepository;
+        
 
         [TestMethod]
         public void InsertInEmpty()
@@ -56,8 +54,8 @@ namespace Test.Paging.LogicalLevel
             var page = Create();
             var newRec = new TestRecord { Order = 0 };
 
-            PhysPage.Expect(k => k.AddRecord(newRec))
-                    .Do(new Func<TestRecord, TypedRecord<TestRecord>>(k =>
+            A.CallTo(()=>PhysPage.AddRecord(newRec))
+                    .ReturnsLazily((TestRecord k) =>
                 {
                     var t = new TypedRecord<TestRecord>
                     {
@@ -65,12 +63,12 @@ namespace Test.Paging.LogicalLevel
                         Data = k
                     };
                   return t;
-                }));
+                });
           
-            PhysPage.Replay();
+            
             page.AddRecord(new TestRecord { Order = 0 });
 
-            PhysPage.VerifyAllExpectations();
+            A.CallTo(() => PhysPage.AddRecord(newRec)).MustHaveHappened();
         }
 
         [TestMethod]
@@ -85,18 +83,15 @@ namespace Test.Paging.LogicalLevel
             };
 
             var page = Create(newRec);
-            PhysPage.Expect(k => k.GetRecord(null)).IgnoreArguments().Return(newRec);
-            PhysPage.Replay();
+            A.CallTo(()=>PhysPage.GetRecord(A<PageRecordReference>.Ignored)).Returns(newRec);
+            
             newRec = page.GetRecord(newRec.Reference);
-            newRec.Data.Order = 1;
-            PhysPage.BackToRecord();
-            PhysPage.Expect(k => k.StoreRecord(newRec));
-            ManPage.Expect(k => k.DropOrder(newRec.Reference));
-          
-            PhysPage.Replay();
+            newRec.Data.Order = 1;                                    
             page.StoreRecord(newRec);
 
-            PhysPage.VerifyAllExpectations();
+            A.CallTo(() => PhysPage.StoreRecord(newRec)).MustHaveHappened();
+            A.CallTo(() => ManPage.DropOrder(newRec.Reference)).MustHaveHappened();
+
         }
 
         [TestMethod]
@@ -111,23 +106,22 @@ namespace Test.Paging.LogicalLevel
             var exRec3 = new TypedRecord<TestRecord> { Data = new TestRecord(3), Reference = new RowKeyPersistentPageRecordReference(0, 2) };
 
             var page = Create(exRec1,exRec2,exRec3);
-            PhysPage.Expect(k => k.GetRecord(null)).IgnoreArguments()
-                .Do(new Func<PageRecordReference, TypedRecord<TestRecord>>(r=>
-                new TypedRecord<TestRecord> { Data = new  TestRecord(r.PersistentRecordNum),Reference = r }))
-                .Repeat.Any();
-            PhysPage.Replay();
+            A.CallTo(()=>PhysPage.GetRecord(A<PageRecordReference>.Ignored))
+                .ReturnsLazily((PageRecordReference r)=>
+                new TypedRecord<TestRecord> { Data = new  TestRecord(r.PersistentRecordNum),Reference = r });
+            
             var newRec = page.GetRecord(exRec3.Reference);
             newRec.Data.Order = 0;
-            PhysPage.BackToRecord(BackToRecordOptions.None);
-            PhysPage.Expect(k => k.StoreRecord(newRec));
-            ManPage.Expect(k => k.DropOrder(newRec.Reference));
-            PhysPage.Replay();
+            
+            
             page.StoreRecord(newRec);
 
             //Assert.AreEqual(0, page.First().Order);
             //Assert.AreEqual(2, page.Last().Order);
 
-            PhysPage.VerifyAllExpectations();
+            A.CallTo(()=>PhysPage.StoreRecord(newRec)).MustHaveHappened();
+            A.CallTo(()=>ManPage.DropOrder(newRec.Reference)).MustHaveHappened();
+
         }
 
         [TestMethod]
@@ -136,17 +130,13 @@ namespace Test.Paging.LogicalLevel
             var newRec = new TypedRecord<TestRecord> { Data = new TestRecord(0), Reference = new RowKeyPersistentPageRecordReference(0, 0) };
 
             var page = Create(newRec);
-            PhysPage.Expect(k => k.GetRecord(null)).IgnoreArguments().Return(newRec);
-            PhysPage.Replay();
+            A.CallTo(() => PhysPage.GetRecord(A<PageRecordReference>.Ignored)).Returns(newRec);
+
             newRec = page.GetRecord(newRec.Reference);
-            newRec.Data.Order = 1;
-            PhysPage.BackToRecord();
-            PhysPage.Expect(k => k.FreeRecord(newRec));
-      
-            PhysPage.Replay();
+            newRec.Data.Order = 1;                                         
             page.FreeRecord(newRec);
 
-            PhysPage.VerifyAllExpectations();
+            A.CallTo(() => PhysPage.FreeRecord(newRec)).MustHaveHappened();
         }
 
         [TestMethod]
@@ -158,22 +148,13 @@ namespace Test.Paging.LogicalLevel
             var exRec2 = new TypedRecord<TestRecord> { Data = new TestRecord(1), Reference = r2 };
             
             var page = Create(exRec1,exRec2);
-            PhysPage.Expect(k => k.GetRecord(r1)).IgnoreArguments().Return(exRec1);
-            
-            
-            PhysPage.Replay();
-            
+            A.CallTo(()=>PhysPage.GetRecord(A<PageRecordReference>.Ignored)).Returns(exRec1);
+                                                
             var newRec = page.GetRecord(exRec1.Reference);
             
-            PhysPage.BackToRecord(BackToRecordOptions.All);
-        
-            PhysPage.Expect(k => k.FreeRecord(newRec));
+            page.FreeRecord(newRec);
 
-        
-            PhysPage.Replay();
-            page.FreeRecord(newRec);                       
-
-            PhysPage.VerifyAllExpectations();
+            A.CallTo(() => PhysPage.FreeRecord(newRec)).MustHaveHappened();
         }
 
         [TestMethod]
@@ -185,16 +166,16 @@ namespace Test.Paging.LogicalLevel
             var page = Create(exRec);
             var newRec = new TestRecord { Order = 0 };
             var r2 = new RowKeyPersistentPageRecordReference(0,1);
-            PhysPage.Expect(k => k.AddRecord(newRec))
-                    .Do(new Func<TestRecord, TypedRecord<TestRecord>>(k =>
-                    {var t = new TypedRecord<TestRecord>{ Reference = r2,Data = k}; return t; }));
+            A.CallTo(()=>PhysPage.AddRecord(newRec))
+                    .ReturnsLazily((TestRecord k) =>
+                    {var t = new TypedRecord<TestRecord>{ Reference = r2,Data = k}; return t; });
 
 
            
-            PhysPage.Replay();
+            
             page.AddRecord(newRec);
 
-            PhysPage.VerifyAllExpectations();
+            
         }
 
         [TestMethod]
@@ -209,26 +190,25 @@ namespace Test.Paging.LogicalLevel
             {
                 var newRec = new TestRecord { Order = t };
                 var r = new RowKeyPersistentPageRecordReference(0, i++);
-                PhysPage.Expect(k => k.AddRecord(newRec))
-                        .Do(new Func<TestRecord, TypedRecord<TestRecord>>(k =>
-                        { var t2 = new TypedRecord<TestRecord> { Reference = r, Data = k }; return t2; }));
+                A.CallTo(()=>PhysPage.AddRecord(newRec))
+                        .ReturnsLazily((TestRecord k) =>
+                        { var t2 = new TypedRecord<TestRecord> { Reference = r, Data = k }; return t2; });
                 records.Add(newRec);
             }
-            PhysPage.Expect(k => k.Flush()).Repeat.Any();
-            PhysPage.Replay();
+            
+            
 
             foreach(var p in records)
             {
                 page.AddRecord(p);
             }
-            PhysPage.VerifyAllExpectations();
-            PhysPage.BackToRecord(BackToRecordOptions.None);
+            A.CallTo(() => PhysPage.Flush()).MustHaveHappened();
             
-            PhysPage.Expect(k => k.GetRecord(null)).IgnoreArguments()
-                .Do(new Func<PageRecordReference, TypedRecord<TestRecord>>(r =>
-                new TypedRecord<TestRecord> { Data = new TestRecord(r.PersistentRecordNum),Reference = r}))
-                .Repeat.Any();
-            PhysPage.Replay();
+            
+            A.CallTo(()=>PhysPage.GetRecord(A<PageRecordReference>.Ignored))
+                .ReturnsLazily((PageRecordReference r) =>
+                new TypedRecord<TestRecord> { Data = new TestRecord(r.PersistentRecordNum),Reference = r});
+            
           
             //Assert.AreEqual(0, page.First().Order);
             //Assert.AreEqual(9, page.Last().Order);
@@ -248,24 +228,31 @@ namespace Test.Paging.LogicalLevel
             var r1 = CreateRecord(1);
             var r2 = CreateRecord(2);
             var r3 = CreateRecord(3);
-            var page = Create(r1,r2,r3);
+            var page = Create(r1, r2, r3);
 
-            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
-            using (mocks.Record())
-            {
-                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                    .Return(searcher);
-                searcher.Expect(k => k.Current).Return(r2);
-                searcher.Expect(k => k.MoveRight()).Return(true);
-                searcher.Expect(k => k.Current).Return(r3);
-                searcher.Expect(k => k.Dispose());
-            }
+            var searcher = A.Fake<IBinarySearcher<TestRecord>>();
 
-            using (mocks.Playback())
-            {
-                var rec = page.FindByKey(3);
-                Assert.AreEqual(r3.Data.Order,rec.Data.Order);
-            }
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                  .Returns(searcher);
+            A.CallTo(() => searcher.Current).Returns(r2);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);
+            A.CallTo(() => searcher.Current).Returns(r3);
+
+
+
+            var rec = page.FindByKey(3);
+            Assert.AreEqual(r3.Data.Order, rec.Data.Order);
+
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0))).MustHaveHappened()
+                .Then(                                
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                 .Then(
+                    A.CallTo(() => searcher.MoveRight()).MustHaveHappened())
+                 .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                 .Then(
+                    A.CallTo(() => searcher.Dispose()).MustHaveHappened());
+
         }
 
         [TestMethod]
@@ -277,23 +264,34 @@ namespace Test.Paging.LogicalLevel
             var r3 = CreateRecord(3);
             var page = Create(r1, r2, r3);
 
-            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
-            using (mocks.Record())
-            {
-                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                    .Return(searcher);
-                searcher.Expect(k => k.Current).Return(r2);
-                searcher.Expect(k => k.MoveRight()).Return(true);
-                searcher.Expect(k => k.Current).Return(r3);
-                searcher.Expect(k => k.MoveRight()).Return(false);
-                searcher.Expect(k => k.Dispose());
-            }
+            var searcher = A.Fake<IBinarySearcher<TestRecord>>();
 
-            using (mocks.Playback())
-            {
-                var rec = page.FindByKey(4);
-                Assert.IsNull(rec);
-            }
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                .Returns(searcher);
+            A.CallTo(() => searcher.Current).Returns(r2);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);
+            A.CallTo(() => searcher.Current).Returns(r3);
+            A.CallTo(() => searcher.MoveRight()).Returns(false);
+
+
+
+
+            var rec = page.FindByKey(4);
+            Assert.IsNull(rec);
+
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0))).MustHaveHappened()
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.MoveRight()).MustHaveHappened())
+                .Then(                    
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.MoveRight()).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Dispose()).MustHaveHappened());
+
+
         }
 
         [TestMethod]
@@ -305,23 +303,31 @@ namespace Test.Paging.LogicalLevel
             var r3 = CreateRecord(3);
             var page = Create(r1, r2, r3);
 
-            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
-            using (mocks.Record())
-            {
-                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                    .Return(searcher);
-                searcher.Expect(k => k.Current).Return(r2);
-                searcher.Expect(k => k.MoveLeft()).Return(true);
-                searcher.Expect(k => k.Current).Return(r1);
-                searcher.Expect(k => k.MoveLeft()).Return(false);
-                searcher.Expect(k => k.Dispose());
-            }
+            var searcher = A.Fake<IBinarySearcher<TestRecord>>();
+         
+                A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                    .Returns(searcher);
+                A.CallTo(() => searcher.Current).Returns(r2);
+                A.CallTo(() => searcher.MoveLeft()).Returns(true);
+                A.CallTo(() => searcher.Current).Returns(r1);
+                A.CallTo(() => searcher.MoveLeft()).Returns(false);
+                
+            
 
-            using (mocks.Playback())
-            {
+            
                 var rec = page.FindByKey(0);
                 Assert.IsNull(rec);
-            }
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0))).MustHaveHappened()
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.MoveLeft()).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.MoveLeft()).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Dispose()).MustHaveHappened());
         }
 
         [TestMethod]
@@ -333,23 +339,31 @@ namespace Test.Paging.LogicalLevel
             var r3 = CreateRecord(4);
             var page = Create(r1, r2, r3);
 
-            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
-            using (mocks.Record())
-            {
-                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                    .Return(searcher);
-                searcher.Expect(k => k.Current).Return(r2);
-                searcher.Expect(k => k.MoveRight()).Return(true);
-                searcher.Expect(k => k.Current).Return(r3);
-                searcher.Expect(k => k.MoveLeft()).Return(false);
-                searcher.Expect(k => k.Dispose());
-            }
+            var searcher = A.Fake<IBinarySearcher<TestRecord>>();
 
-            using (mocks.Playback())
-            {
-                var rec = page.FindTheMostLesser(3,true);
-                Assert.AreEqual(2,rec.Data.Order);
-            }
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                .Returns(searcher);
+            A.CallTo(() => searcher.Current).Returns(r2);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);
+            A.CallTo(() => searcher.Current).Returns(r3);
+            A.CallTo(() => searcher.MoveLeft()).Returns(false);
+            
+
+            var rec = page.FindTheMostLesser(3, true);
+            Assert.AreEqual(2, rec.Data.Order);
+
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                             .MustHaveHappened()
+                   .Then(
+                        A.CallTo(() => searcher.Current).MustHaveHappened())
+                    .Then(
+                        A.CallTo(() => searcher.MoveRight()).MustHaveHappened())
+                    .Then(
+                        A.CallTo(() => searcher.Current).MustHaveHappened())
+                    .Then(
+                        A.CallTo(() => searcher.MoveLeft()).MustHaveHappened())
+                    .Then(
+                        A.CallTo(() => searcher.Dispose()).MustHaveHappened());
         }
 
         [TestMethod]
@@ -361,21 +375,27 @@ namespace Test.Paging.LogicalLevel
             var r3 = CreateRecord(3);
             var page = Create(r1, r2, r3);
 
-            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
-            using (mocks.Record())
-            {
-                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                    .Return(searcher);
-                searcher.Expect(k => k.Current).Return(r2);
-                searcher.Expect(k => k.LeftOfCurrent).Return(r1);                           
-                searcher.Expect(k => k.Dispose());
-            }
+            var searcher = A.Fake<IBinarySearcher<TestRecord>>();
 
-            using (mocks.Playback())
-            {
-                var rec = page.FindTheMostLesser(2, false);
-                Assert.AreEqual(1, rec.Data.Order);
-            }
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                .Returns(searcher);
+            A.CallTo(() => searcher.Current).Returns(r2);
+            A.CallTo(() => searcher.LeftOfCurrent).Returns(r1);
+            
+
+
+
+            var rec = page.FindTheMostLesser(2, false);
+            Assert.AreEqual(1, rec.Data.Order);
+
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                .MustHaveHappened()
+                  .Then(
+                        A.CallTo(() => searcher.Current).MustHaveHappened())
+                  .Then(
+                        A.CallTo(() => searcher.LeftOfCurrent).MustHaveHappened())
+                   .Then(
+                        A.CallTo(() => searcher.Dispose()).MustHaveHappened());
         }
 
         [TestMethod]
@@ -387,22 +407,27 @@ namespace Test.Paging.LogicalLevel
             var r3 = CreateRecord(3);
             var page = Create(r1, r2, r3);
 
-            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
-            using (mocks.Record())
-            {
-                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                    .Return(searcher);
-                searcher.Expect(k => k.Current).Return(r2);
-                searcher.Expect(k => k.MoveRight()).Return(true);
-                searcher.Expect(k => k.Current).Return(r3);
-                searcher.Expect(k => k.Dispose());
-            }
+            var searcher = A.Fake<IBinarySearcher<TestRecord>>();
 
-            using (mocks.Playback())
-            {
-                var rec = page.FindTheMostLesser(3, true);
-                Assert.AreEqual(3, rec.Data.Order);
-            }
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                .Returns(searcher);
+            A.CallTo(() => searcher.Current).Returns(r2);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);
+            A.CallTo(() => searcher.Current).Returns(r3);
+            
+
+            var rec = page.FindTheMostLesser(3, true);
+            Assert.AreEqual(3, rec.Data.Order);
+
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0))).MustHaveHappened()
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.MoveRight()).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Dispose()).MustHaveHappened());
         }
 
 
@@ -417,23 +442,32 @@ namespace Test.Paging.LogicalLevel
             var r3 = CreateRecord(4);
             var page = Create(r1, r2, r3);
 
-            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
-            using (mocks.Record())
-            {
-                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                    .Return(searcher);
-                searcher.Expect(k => k.Current).Return(r2);
-                searcher.Expect(k => k.MoveRight()).Return(true);
-                searcher.Expect(k => k.Current).Return(r3);
-                searcher.Expect(k => k.MoveLeft()).Return(false);
-                searcher.Expect(k => k.Dispose());
-            }
+            var searcher = A.Fake<IBinarySearcher<TestRecord>>();
 
-            using (mocks.Playback())
-            {
-                var rec = page.FindTheLessGreater(3, true);
-                Assert.AreEqual(4, rec.Data.Order);
-            }
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                .Returns(searcher);
+            A.CallTo(() => searcher.Current).Returns(r2);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);
+            A.CallTo(() => searcher.Current).Returns(r3);
+            A.CallTo(() => searcher.MoveLeft()).Returns(false);
+            
+
+
+
+            var rec = page.FindTheLessGreater(3, true);
+            Assert.AreEqual(4, rec.Data.Order);
+
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0))).MustHaveHappened()
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.MoveRight()).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.MoveLeft()).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Dispose()).MustHaveHappened());
         }
 
         [TestMethod]
@@ -445,22 +479,25 @@ namespace Test.Paging.LogicalLevel
             var r3 = CreateRecord(4);
             var page = Create(r1, r2, r3);
 
-            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
-            using (mocks.Record())
-            {
-                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                    .Return(searcher);
-                searcher.Expect(k => k.Current).Return(r2);              
-                searcher.Expect(k => k.RightOfCurrent).Return(r3);
-    
-                searcher.Expect(k => k.Dispose());
-            }
+            var searcher = A.Fake<IBinarySearcher<TestRecord>>();
 
-            using (mocks.Playback())
-            {
-                var rec = page.FindTheLessGreater(3, false);
-                Assert.AreEqual(4, rec.Data.Order);
-            }
+
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                .Returns(searcher);
+            A.CallTo(() => searcher.Current).Returns(r2);
+            A.CallTo(() => searcher.RightOfCurrent).Returns(r3);
+            
+
+            var rec = page.FindTheLessGreater(3, false);
+            Assert.AreEqual(4, rec.Data.Order);
+
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0))).MustHaveHappened()
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.RightOfCurrent).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Dispose()).MustHaveHappened());
         }
 
         [TestMethod]
@@ -472,22 +509,27 @@ namespace Test.Paging.LogicalLevel
             var r3 = CreateRecord(3);
             var page = Create(r1, r2, r3);
 
-            var searcher = mocks.StrictMock<IBinarySearcher<TestRecord>>();
-            using (mocks.Record())
-            {
-                Manager.Expect(k => k.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                    .Return(searcher);
-                searcher.Expect(k => k.Current).Return(r2);
-                searcher.Expect(k => k.MoveRight()).Return(true);
-                searcher.Expect(k => k.Current).Return(r3);
-                searcher.Expect(k => k.Dispose());
-            }
+            var searcher = A.Fake<IBinarySearcher<TestRecord>>();
 
-            using (mocks.Playback())
-            {
-                var rec = page.FindTheLessGreater(3, true);
-                Assert.AreEqual(3, rec.Data.Order);
-            }
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
+                                .Returns(searcher);
+            A.CallTo(() => searcher.Current).Returns(r2);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);
+            A.CallTo(() => searcher.Current).Returns(r3);
+            
+
+            var rec = page.FindTheLessGreater(3, true);
+            Assert.AreEqual(3, rec.Data.Order);
+
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0))).MustHaveHappened()
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.MoveRight()).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Current).MustHaveHappened())
+                .Then(
+                    A.CallTo(() => searcher.Dispose()).MustHaveHappened());
         }
     }
 }
