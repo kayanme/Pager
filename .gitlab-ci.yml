@@ -14,7 +14,7 @@ test_run_debug:
   artifacts:
      name: "debug test result"
      reports:
-       juint: testResult/*
+       junit: testResult/*
      paths:
          - testResult/
   script: 
@@ -26,7 +26,7 @@ test_run:
   artifacts:
      name: "release test result"
      reports:
-       juint: testResult/*
+       junit: testResult/*
      paths:
          - testResult/
   script: 
