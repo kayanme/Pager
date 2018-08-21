@@ -14,7 +14,8 @@ test_run_debug:
   artifacts:
      name: "debug test result"
      reports:
-       paths:
+       juint: testResult/*
+     paths:
          - testResult/
   script: 
      - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug -r testResult/
