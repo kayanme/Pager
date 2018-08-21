@@ -9,27 +9,17 @@ stages:
 #  stage: build
 #  script: dotnet build Test.Pager.Core.sln
 
-test_run_debug: 
-  stage: test
-  artifacts:
-     name: "debug test result"
-     
-     paths:
-         - testResult/
-  script: 
-     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug -r testResult/
-     - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Debug -r testResult/
+#test_run_debug: 
+#  stage: test  
+#  script: 
+#     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug -r testResult/
+#     - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Debug -r testResult/
 
-test_run: 
-  stage: test
-  artifacts:
-     name: "release test result"
-     
-     paths:
-         - testResult/
-  script: 
-    - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release -r testResult/
-    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release -r testResult/
+#test_run: 
+#  stage: test  
+#  script: 
+#    - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release -r testResult/
+#    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release -r testResult/
 
 benchmark_physical:
    stage: benchmark
@@ -38,7 +28,7 @@ benchmark_physical:
      paths:
        - /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts 
    script:
-    - dotnet run Benchmark.Paging.PhysicalLevel\Benchmark.Paging.PhysicalLevel.Core.csproj -c Release
+    - dotnet run Benchmark.Paging.PhysicalLevel/Benchmark.Paging.PhysicalLevel.Core.csproj -c Release
    # - /builds/kayanme/System.IO.Paging/merge.sh /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts /builds/kayanme/System.IO.Paging/Benchmarks
 
 
