@@ -28,7 +28,7 @@ benchmark_physical:
      paths:
        - /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts 
    script:
-    - dotnet run Benchmark.Paging.PhysicalLevel/Benchmark.Paging.PhysicalLevel.Core.csproj -c Release
+    - dotnet run --project Benchmark.Paging.PhysicalLevel/Benchmark.Paging.PhysicalLevel.Core.csproj -c Release
    # - /builds/kayanme/System.IO.Paging/merge.sh /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts /builds/kayanme/System.IO.Paging/Benchmarks
 
 
