@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>Test.Paging.LogicalLevel</AssemblyName>
+	  <OutputType>Library</OutputType>
+	  <TargetFramework>netcoreapp2.0</TargetFramework>
+	  <AssemblyName>Test.Paging.LogicalLevel</AssemblyName>
     <RootNamespace>Test.Paging.LogicalLevel</RootNamespace>
   </PropertyGroup>
 
