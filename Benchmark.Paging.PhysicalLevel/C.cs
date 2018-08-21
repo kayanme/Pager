@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
@@ -18,7 +19,9 @@ namespace Benchmark.Paging.PhysicalLevel
             var exp = new BenchmarkDotNet.Exporters.Csv.CsvExporter(BenchmarkDotNet.Exporters.Csv.CsvSeparator.Semicolon);
             Add(Job.Core.WithInvocationCount(96 * 2).WithLaunchCount(3).WithAnalyzeLaunchVariance(true));
             Add(exp);
+            Add(MarkdownExporter.GitHub);
             Add(DefaultConfig.Instance.GetLoggers().ToArray());
+            Add(BenchmarkDotNet.Columns.TargetMethodColumn.Method);
             Add(DefaultColumnProviders.Params);
             var ass = AppDomain.CurrentDomain.GetAssemblies().First(k => k.FullName.Contains("IO.Paging.PhysicalLevel"));
             var version = ass.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;

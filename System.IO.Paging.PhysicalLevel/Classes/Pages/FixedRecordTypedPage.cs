@@ -81,7 +81,7 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
             if (record.Reference.Page != Reference)
                 throw new ArgumentException();
           
-                Debug.Assert(record.Reference is PhysicalPositionPersistentPageRecordReference, "record.Reference is PhysicalPositionPersistentPageRecordReference");
+                //Debug.Assert(record.Reference is PhysicalPositionPersistentPageRecordReference, "record.Reference is PhysicalPositionPersistentPageRecordReference");
                 SetRecord(record.Reference.PersistentRecordNum, record.Data);
           
         }

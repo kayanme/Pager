@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.InProcess;
+using System;
 
 namespace Benchmark.Paging.LogicalLevel
 {
@@ -24,11 +25,12 @@ namespace Benchmark.Paging.LogicalLevel
             ////t.AddRecordWithOrder();
             //t.DeleteFile();
             var br = BenchmarkConverter.TypeToBenchmarks(typeof(RecordAddBenchmark),new C());
+            BenchmarkDotNet.Running.BenchmarkRunnerCore.Run(br, _ => new InProcessToolchain(true));
             var lr = BenchmarkConverter.TypeToBenchmarks(typeof(Logical_RecordSearch), new C());
             BenchmarkDotNet.Running.BenchmarkRunnerCore.Run(lr, _ => new InProcessToolchain(true));
             //        BenchmarkDotNet.Running.BenchmarkRunner.Run<RecordAddBenchmark>(new C());
 
-            //    Console.ReadKey();
+            
         }
     }
 }

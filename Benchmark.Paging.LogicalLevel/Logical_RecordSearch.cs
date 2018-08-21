@@ -59,6 +59,11 @@ namespace Benchmark.Paging.LogicalLevel
 
             _data = Enumerable.Range(0, 1000).Select(_ => _rnd.Next(100)).ToArray();
         }
+        [GlobalCleanup]
+        public void Clean()
+        {
+            _manager.Dispose();
+        }
 
         [Benchmark]
         public void Search()

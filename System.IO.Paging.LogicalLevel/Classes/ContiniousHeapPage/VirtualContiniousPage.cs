@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO.Paging.PhysicalLevel.Classes;
 using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using System.IO.Paging.PhysicalLevel.Classes.References;
@@ -12,28 +13,30 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
          
     {
         private readonly IPageManager _physicalPageManager;
-        private PageReference _headersPage;
+        private readonly byte _headerPageTypeNum;
+        private ConcurrentBag<PageReference> _headersPage;
         private TypedRecord<HeapHeader> _theBestCandidate;
         public VirtualContiniousPage(IPageManager physicalPageManager,  byte pageType, byte headerPageTypeNum)
         {
             _physicalPageManager = physicalPageManager;
             RegisteredPageType = pageType;
+            _headerPageTypeNum = headerPageTypeNum;
             Reference = new VirtualPageReference(0,pageType);
             PageFullness = 0;
 
-            _headersPage = (_physicalPageManager.IteratePages(headerPageTypeNum).FirstOrDefault()??
-                                _physicalPageManager.CreatePage(headerPageTypeNum));
-            
-            FindOrCreateNewCandidate();
+            _headersPage = new ConcurrentBag<PageReference>(_physicalPageManager.IteratePages(headerPageTypeNum));
+             if (!_headersPage.Any()) _headersPage.Add(_physicalPageManager.CreatePage(headerPageTypeNum));
+
+
+            FindOrCreateNewCandidate();                    
         }
 
         private void FindOrCreateNewCandidate()
         {
-            using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(_headersPage))
-            {
+          
                 var theBestCandidate =
-                    headersPage
-                        .IterateRecords()                       
+                    _headersPage.Select(_physicalPageManager.GetRecordAccessor<HeapHeader>)
+                        .SelectMany(k=>k.IterateRecords())
                         .Where(k => k != null)
                         .FirstOrDefault(k => k.Data.Fullness < .95);
 
@@ -45,17 +48,18 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
                         Fullness = 0,
                         LogicalPageNum = (uint) newPage.PageNum
                     };
-                    theBestCandidate = headersPage.AddRecord(candidate);
+                    theBestCandidate = _headersPage.Select(_physicalPageManager.GetRecordAccessor<HeapHeader>).Select(k=>k.AddRecord(candidate)).FirstOrDefault(k=>k!=null);
                     if (theBestCandidate == null)
-                    {
-                        _physicalPageManager.DeletePage(newPage, false);
-                        throw new InvalidOperationException("No more records allowed");
-                    }
-                   
-                
-                }
-                _theBestCandidate = theBestCandidate;
+                    {                        
+                         var newHeaderPage =_physicalPageManager.CreatePage(_headerPageTypeNum);
+                        _headersPage.Add(newHeaderPage);
+                        using(var acc = _physicalPageManager.GetRecordAccessor<HeapHeader>(newHeaderPage))
+                            theBestCandidate = acc.AddRecord(candidate);
+                                    
+                    }                                                   
+             
             }
+            _theBestCandidate = theBestCandidate;
         }
 
         public void Dispose()
@@ -66,45 +70,48 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
         public byte RegisteredPageType { get; }
         public PageReference Reference { get; }
         public double PageFullness { get; }
-      
+
+        private object _lockCreation = new object();
+
         public TypedRecord<TRecord> AddRecord(TRecord type)
         {
             TypedRecord<TRecord> recordAdded = null;
-            using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(_headersPage))
+            while (recordAdded == null)
             {
-                while (recordAdded==null)
+                var currentCandidate = _theBestCandidate;
+                using (var page =
+                    _physicalPageManager.GetRecordAccessor<TRecord>(
+                        new PageReference((int)currentCandidate.Data.LogicalPageNum)))
                 {
-                    var currentCandidate = _theBestCandidate;
-                    using (var page =
-                        _physicalPageManager.GetRecordAccessor<TRecord>(
-                            new PageReference((int) currentCandidate.Data.LogicalPageNum)))
+                    recordAdded = page.AddRecord(type);
+                    if (recordAdded != null)
                     {
-                        recordAdded = page.AddRecord(type);
-                        if (recordAdded != null)
-                        {
-                            currentCandidate.Data.Fullness = _physicalPageManager
-                                .GetPageInfo(new PageReference((int) currentCandidate.Data.LogicalPageNum))
-                                .PageFullness;
+                        currentCandidate.Data.Fullness = _physicalPageManager
+                            .GetPageInfo(new PageReference((int)currentCandidate.Data.LogicalPageNum))
+                            .PageFullness;
+                        using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(currentCandidate.Reference.Page))
                             headersPage.StoreRecord(currentCandidate);
-                        }
                     }
-                    if (recordAdded==null)
-                    {
-                        currentCandidate.Data.Fullness = 1;
+                }
+                if (recordAdded == null)
+                {
+                    currentCandidate.Data.Fullness = 1;
+                    using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(currentCandidate.Reference.Page))
                         headersPage.StoreRecord(currentCandidate);
-                        try
-                        {
-                            FindOrCreateNewCandidate();
+                    try
+                    {
+                        FindOrCreateNewCandidate();
+                       
 
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            return null;
-                        }
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        return null;
                     }
                 }
             }
-         
+
+
             return recordAdded;
         }
 
@@ -112,19 +119,28 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
         {
             using (var pageInfo = _physicalPageManager.GetPageInfo(record.Reference.Page))
             using (var page = _physicalPageManager.GetRecordAccessor<TRecord>(record.Reference.Page))
-            using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(_headersPage))
             {
-                
+
                 if (page == null)
                     return;
                 if (pageInfo.RegisteredPageType != RegisteredPageType)
                     throw new InvalidOperationException($"The record does not belong to this page");
                 page.FreeRecord(record);
-                var curHeader = headersPage
-                    .IterateRecords()                    
-                    .First(k => k.Data.LogicalPageNum == pageInfo.Reference.PageNum);
-                curHeader.Data.Fullness = pageInfo.PageFullness;
-                headersPage.StoreRecord(curHeader);
+                foreach (var headerPageRef in _headersPage)
+                {
+                    using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(headerPageRef))
+                    {
+                        var curHeader = headersPage
+                            .IterateRecords()
+                            .FirstOrDefault(k => k.Data.LogicalPageNum == pageInfo.Reference.PageNum);
+                        if (curHeader != null)
+                        {
+                            curHeader.Data.Fullness = pageInfo.PageFullness;
+                            headersPage.StoreRecord(curHeader);
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -161,7 +177,8 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
 
         public IEnumerable<TypedRecord<TRecord>> IterateRecords()
         {
-            using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(_headersPage))
+            foreach(var headerPageRef in _headersPage)
+            using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(headerPageRef))
             {
                 foreach (var header in headersPage.IterateRecords())
                 {

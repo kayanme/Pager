@@ -57,9 +57,11 @@ namespace Test.Paging.LogicalLevel
             A.CallTo(() => physManager.IteratePages(_headerType)).Returns(new[] { new PageReference(1) });
             A.CallTo(() => physManager.GetRecordAccessor<HeapHeader>(new PageReference(1))).Returns(heapHeaders);
             A.CallTo(() => heapHeaders.IterateRecords())
-                                .Returns(new[] { new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 } } });
+                                .Returns(new[] { new TypedRecord<HeapHeader> { Reference = new LogicalPositionPersistentPageRecordReference(1, 0) ,
+                                                                               Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 } } });
             A.CallTo(() => heapHeaders.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0)))
-                                .Returns(new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 } });
+                                .Returns(new TypedRecord<HeapHeader> { Reference = new LogicalPositionPersistentPageRecordReference(1, 0) ,
+                                                                       Data = new HeapHeader { Fullness = .9, LogicalPageNum = 5 } });
 
             var page = CreatePage();
 
@@ -81,11 +83,14 @@ namespace Test.Paging.LogicalLevel
             A.CallTo(() => heapHeaders.IterateRecords())
                                 .Returns(new[] { new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = 1, LogicalPageNum = 5 } } });
             A.CallTo(() => heapHeaders.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0)))
-                                .Returns(new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = 1, LogicalPageNum = 5 } });
+                                .Returns(new TypedRecord<HeapHeader> {
+                                    Reference = new LogicalPositionPersistentPageRecordReference(1, 0),
+                                    Data = new HeapHeader { Fullness = 1, LogicalPageNum = 5 } });
             A.CallTo(() => physManager.CreatePage(_pageType)).Returns(new PageReference(6));
 
             A.CallTo(() => heapHeaders.AddRecord(new HeapHeader { Fullness = 0, LogicalPageNum = 6 }))
-                                .Returns(new TypedRecord<HeapHeader> {Data = new HeapHeader { Fullness = 0, LogicalPageNum = 6 } });
+                                .Returns(new TypedRecord<HeapHeader> { Reference = new LogicalPositionPersistentPageRecordReference(1, 0) ,
+                                                                       Data = new HeapHeader { Fullness = 0, LogicalPageNum = 6 } });
 
             A.CallTo(() => physManager.GetRecordAccessor<TestRecord>(new PageReference(6))).Returns(realPage2);
             A.CallTo(() => realPage2.AddRecord(tr)).Returns(new TypedRecord<TestRecord> {Data = tr });
@@ -101,9 +106,7 @@ namespace Test.Paging.LogicalLevel
                 .Then(
                     A.CallTo(() => heapHeaders.StoreRecord(A<TypedRecord<HeapHeader>>.That.Matches(k=>k.Data.LogicalPageNum == 5 && k.Data.Fullness == 1))).MustHaveHappened())
                 .Then(
-                    A.CallTo(() => heapHeaders.IterateRecords()).MustHaveHappened())
-                //.Then(
-                //    A.CallTo(() => heapHeaders.GetRecord(A<PageRecordReference>.That.Matches(k=>k.Page.PageNum == 1 && k.PersistentRecordNum == 0))).MustHaveHappened())
+                    A.CallTo(() => heapHeaders.IterateRecords()).MustHaveHappened())                
                 .Then(
                     A.CallTo(() => physManager.CreatePage(_pageType)).MustHaveHappened())
                 .Then(
@@ -122,6 +125,30 @@ namespace Test.Paging.LogicalLevel
         }
 
         [TestMethod]
+        public void AddOneMoreHeaderPage()
+        {
+            var realPage = A.Fake<IPage<TestRecord>>();
+            var pageInfo = A.Fake<IPageInfo>();
+            var headers2 = A.Fake<IPage<HeapHeader>>(c => c.Implements<IPhysicalRecordManipulation>());
+            A.CallTo(() => physManager.IteratePages(_headerType)).Returns(new[] { new PageReference(1) });
+            A.CallTo(() => physManager.GetRecordAccessor<HeapHeader>(new PageReference(1))).Returns(heapHeaders);
+            A.CallTo(() => heapHeaders.IterateRecords()).Returns(new[] { new TypedRecord<HeapHeader> {
+                Reference = new LogicalPositionPersistentPageRecordReference(1,0),
+                Data = new HeapHeader { Fullness = 1,LogicalPageNum = 1} } });
+            A.CallTo(() => physManager.CreatePage(_pageType)).Returns(new PageReference(5));
+            A.CallTo(() => heapHeaders.AddRecord(A<HeapHeader>.That.Matches(k2 => k2.Fullness == 0 && k2.LogicalPageNum == 5))).Returns(null);
+            A.CallTo(() => physManager.CreatePage(_headerType)).Returns(new PageReference(6));
+            A.CallTo(() => physManager.GetRecordAccessor<HeapHeader>(new PageReference(6))).Returns(headers2);
+            A.CallTo(() => headers2.AddRecord(A<HeapHeader>.That.Matches(k2 => k2.Fullness == 0 && k2.LogicalPageNum == 5)))
+                .Returns(new TypedRecord<HeapHeader> { Reference = new LogicalPositionPersistentPageRecordReference(1, 0) ,
+                                                       Data = new HeapHeader {Fullness =0,LogicalPageNum = 5 } });
+
+            var page = CreatePage();
+            var tr = new TestRecord();
+            Assert.IsNotNull(page.AddRecord(tr));
+        }
+
+        [TestMethod]
         public void AddInEmpty()
         {
             var realPage = A.Fake<IPage<TestRecord>>();
@@ -132,7 +159,7 @@ namespace Test.Paging.LogicalLevel
             A.CallTo(() => heapHeaders.IterateRecords()).Returns(new TypedRecord<HeapHeader>[0]);
             A.CallTo(() => physManager.CreatePage(_pageType)).Returns(new PageReference(5));
             A.CallTo(() => heapHeaders.AddRecord(A<HeapHeader>.That.Matches(k2 => k2.Fullness == 0 && k2.LogicalPageNum == 5)))
-                                .Returns(new TypedRecord<HeapHeader> { Data = new HeapHeader { LogicalPageNum = 5, Fullness = 0 } });
+                                .Returns(new TypedRecord<HeapHeader> {Reference = new LogicalPositionPersistentPageRecordReference(1,0) , Data = new HeapHeader { LogicalPageNum = 5, Fullness = 0 } });
 
 
             var page = CreatePage();
