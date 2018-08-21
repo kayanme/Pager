@@ -67,9 +67,9 @@ namespace Test.Paging.LogicalLevel
                 .Then(
                     A.CallTo(() => physManager.GetRecordAccessor<HeapHeader>(new PageReference(1))).MustHaveHappened())
                 .Then(
-                    A.CallTo(() => heapHeaders.IterateRecords()).MustHaveHappened())
-                .Then(
-                    A.CallTo(() => heapHeaders.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0))).MustHaveHappened());
+                    A.CallTo(() => heapHeaders.IterateRecords()).MustHaveHappened());
+                //.Then(
+                //    A.CallTo(() => heapHeaders.GetRecord(A<PageRecordReference>.That.Matches(k=>k.Page.PageNum == 1 && k.PersistentRecordNum == 0))).MustHaveHappened());
             var tr = new TestRecord();
             var realPage = A.Fake<IPage<TestRecord>>();
             var realPage2 = A.Fake<IPage<TestRecord>>();
@@ -86,10 +86,10 @@ namespace Test.Paging.LogicalLevel
             A.CallTo(() => physManager.CreatePage(_pageType)).Returns(new PageReference(6));
 
             A.CallTo(() => heapHeaders.AddRecord(new HeapHeader { Fullness = 0, LogicalPageNum = 6 }))
-                                .Returns(new TypedRecord<HeapHeader>());
+                                .Returns(new TypedRecord<HeapHeader> {Data = new HeapHeader { Fullness = 0, LogicalPageNum = 6 } });
 
             A.CallTo(() => physManager.GetRecordAccessor<TestRecord>(new PageReference(6))).Returns(realPage2);
-            A.CallTo(() => realPage2.AddRecord(tr)).Returns(new TypedRecord<TestRecord>());
+            A.CallTo(() => realPage2.AddRecord(tr)).Returns(new TypedRecord<TestRecord> {Data = tr });
             A.CallTo(() => physManager.GetPageInfo(new PageReference(6))).Returns(pageInfo);
             A.CallTo(() => pageInfo.PageFullness).Returns(.1);
            
@@ -100,11 +100,11 @@ namespace Test.Paging.LogicalLevel
                 .Then(
                     A.CallTo(() => realPage.AddRecord(tr)).MustHaveHappened())
                 .Then(
-                    A.CallTo(() => heapHeaders.StoreRecord(new TypedRecord<HeapHeader> { Data = new HeapHeader { LogicalPageNum = 5, Fullness = 1 } })).MustHaveHappened())
+                    A.CallTo(() => heapHeaders.StoreRecord(A<TypedRecord<HeapHeader>>.That.Matches(k=>k.Data.LogicalPageNum == 5 && k.Data.Fullness == 1))).MustHaveHappened())
                 .Then(
                     A.CallTo(() => heapHeaders.IterateRecords()).MustHaveHappened())
-                .Then(
-                    A.CallTo(() => heapHeaders.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0))).MustHaveHappened())
+                //.Then(
+                //    A.CallTo(() => heapHeaders.GetRecord(A<PageRecordReference>.That.Matches(k=>k.Page.PageNum == 1 && k.PersistentRecordNum == 0))).MustHaveHappened())
                 .Then(
                     A.CallTo(() => physManager.CreatePage(_pageType)).MustHaveHappened())
                 .Then(
@@ -118,7 +118,7 @@ namespace Test.Paging.LogicalLevel
                 .Then(
                     A.CallTo(() => pageInfo.PageFullness).MustHaveHappened())
                  .Then(
-                    A.CallTo(() => heapHeaders.StoreRecord(new TypedRecord<HeapHeader> { Data = new HeapHeader { LogicalPageNum = 6, Fullness = .1 } })).MustHaveHappened());
+                    A.CallTo(() => heapHeaders.StoreRecord(A<TypedRecord<HeapHeader>>.That.Matches(k=>k.Data.LogicalPageNum == 6 && k.Data.Fullness == .1 ))).MustHaveHappened());
 
         }
 
@@ -130,11 +130,10 @@ namespace Test.Paging.LogicalLevel
 
             A.CallTo(() => physManager.IteratePages(_headerType)).Returns(new[] { new PageReference(1) });
             A.CallTo(() => physManager.GetRecordAccessor<HeapHeader>(new PageReference(1))).Returns(heapHeaders);
-            A.CallTo(() => heapHeaders.IterateRecords())
-                                .Returns(new TypedRecord<HeapHeader>[0]);
+            A.CallTo(() => heapHeaders.IterateRecords()).Returns(new TypedRecord<HeapHeader>[0]);
             A.CallTo(() => physManager.CreatePage(_pageType)).Returns(new PageReference(5));
             A.CallTo(() => heapHeaders.AddRecord(A<HeapHeader>.That.Matches(k2 => k2.Fullness == 0 && k2.LogicalPageNum == 5)))
-                                .Returns(new TypedRecord<HeapHeader>());
+                                .Returns(new TypedRecord<HeapHeader> { Data = new HeapHeader { LogicalPageNum = 5, Fullness = 0 } });
 
 
             var page = CreatePage();
@@ -151,14 +150,15 @@ namespace Test.Paging.LogicalLevel
             Assert.IsNotNull(page.AddRecord(tr));
 
             A.CallTo(() => physManager.GetRecordAccessor<TestRecord>(new PageReference(5))).MustHaveHappened()
-                .Then(
-                   A.CallTo(() => physManager.GetPageInfo(new PageReference(5))).MustHaveHappened())
+          
                 .Then(
                    A.CallTo(() => realPage.AddRecord(tr)).MustHaveHappened())
+                         .Then(
+                   A.CallTo(() => physManager.GetPageInfo(new PageReference(5))).MustHaveHappened())
                 .Then(
                    A.CallTo(() => pageInfo.PageFullness).MustHaveHappened())
                 .Then(
-                    A.CallTo(() => heapHeaders.StoreRecord(new TypedRecord<HeapHeader> { Data = new HeapHeader { LogicalPageNum = 5, Fullness = .1 } })).MustHaveHappened())
+                    A.CallTo(() => heapHeaders.StoreRecord(A<TypedRecord<HeapHeader>>.That.Matches(k=> k.Data.LogicalPageNum == 5 && k.Data.Fullness == .1 ))).MustHaveHappened())
                 .Then(
                     A.CallTo(() => realPage.Dispose()).MustHaveHappened()
                 );
@@ -235,10 +235,10 @@ namespace Test.Paging.LogicalLevel
             A.CallTo(() => realPage.FreeRecord(tr)).MustHaveHappened();
             A.CallTo(() => pageInfo.Reference).MustHaveHappenedOnceOrMore();
             A.CallTo(() => heapHeaders.IterateRecords()).MustHaveHappened();
-            A.CallTo(() => heapHeaders.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0))).MustHaveHappened();
+      //      A.CallTo(() => heapHeaders.GetRecord(new LogicalPositionPersistentPageRecordReference(1, 0))).MustHaveHappened();
 
             A.CallTo(() => pageInfo.PageFullness).MustHaveHappened();
-            A.CallTo(() => heapHeaders.StoreRecord(new TypedRecord<HeapHeader> { Data = new HeapHeader { Fullness = .2, LogicalPageNum = 5 } })).MustHaveHappened();
+            A.CallTo(() => heapHeaders.StoreRecord(A<TypedRecord<HeapHeader>>.That.Matches(k=>k.Data.Fullness == .2 && k.Data.LogicalPageNum == 5) )).MustHaveHappened();
         }
 
         [TestMethod]

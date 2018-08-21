@@ -195,16 +195,12 @@ namespace Test.Paging.LogicalLevel
                         { var t2 = new TypedRecord<TestRecord> { Reference = r, Data = k }; return t2; });
                 records.Add(newRec);
             }
-            
-            
-
+                        
             foreach(var p in records)
             {
                 page.AddRecord(p);
             }
-            A.CallTo(() => PhysPage.Flush()).MustHaveHappened();
-            
-            
+            //A.CallTo(() => PhysPage.Flush()).MustHaveHappened();                        
             A.CallTo(()=>PhysPage.GetRecord(A<PageRecordReference>.Ignored))
                 .ReturnsLazily((PageRecordReference r) =>
                 new TypedRecord<TestRecord> { Data = new TestRecord(r.PersistentRecordNum),Reference = r});
@@ -234,9 +230,8 @@ namespace Test.Paging.LogicalLevel
 
             A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
                                   .Returns(searcher);
-            A.CallTo(() => searcher.Current).Returns(r2);
-            A.CallTo(() => searcher.MoveRight()).Returns(true);
-            A.CallTo(() => searcher.Current).Returns(r3);
+            A.CallTo(() => searcher.Current).ReturnsNextFromSequence(r2,r3);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);            
 
 
 
@@ -268,10 +263,8 @@ namespace Test.Paging.LogicalLevel
 
             A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
                                 .Returns(searcher);
-            A.CallTo(() => searcher.Current).Returns(r2);
-            A.CallTo(() => searcher.MoveRight()).Returns(true);
-            A.CallTo(() => searcher.Current).Returns(r3);
-            A.CallTo(() => searcher.MoveRight()).Returns(false);
+            A.CallTo(() => searcher.Current).ReturnsNextFromSequence(r2,r3);
+            A.CallTo(() => searcher.MoveRight()).ReturnsNextFromSequence(true,false);            
 
 
 
@@ -307,10 +300,8 @@ namespace Test.Paging.LogicalLevel
          
                 A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
                                     .Returns(searcher);
-                A.CallTo(() => searcher.Current).Returns(r2);
-                A.CallTo(() => searcher.MoveLeft()).Returns(true);
-                A.CallTo(() => searcher.Current).Returns(r1);
-                A.CallTo(() => searcher.MoveLeft()).Returns(false);
+                A.CallTo(() => searcher.Current).ReturnsNextFromSequence(r2,r1);
+                A.CallTo(() => searcher.MoveLeft()).ReturnsNextFromSequence(true,false);
                 
             
 
@@ -343,17 +334,15 @@ namespace Test.Paging.LogicalLevel
 
             A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
                                 .Returns(searcher);
-            A.CallTo(() => searcher.Current).Returns(r2);
-            A.CallTo(() => searcher.MoveRight()).Returns(true);
-            A.CallTo(() => searcher.Current).Returns(r3);
+            A.CallTo(() => searcher.Current).ReturnsNextFromSequence(r2,r3);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);            
             A.CallTo(() => searcher.MoveLeft()).Returns(false);
             
 
             var rec = page.FindTheMostLesser(3, true);
             Assert.AreEqual(2, rec.Data.Order);
 
-            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
-                             .MustHaveHappened()
+            A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0))).MustHaveHappened()
                    .Then(
                         A.CallTo(() => searcher.Current).MustHaveHappened())
                     .Then(
@@ -411,10 +400,8 @@ namespace Test.Paging.LogicalLevel
 
             A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
                                 .Returns(searcher);
-            A.CallTo(() => searcher.Current).Returns(r2);
-            A.CallTo(() => searcher.MoveRight()).Returns(true);
-            A.CallTo(() => searcher.Current).Returns(r3);
-            
+            A.CallTo(() => searcher.Current).ReturnsNextFromSequence(r2,r3);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);                       
 
             var rec = page.FindTheMostLesser(3, true);
             Assert.AreEqual(3, rec.Data.Order);
@@ -446,13 +433,8 @@ namespace Test.Paging.LogicalLevel
 
             A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
                                 .Returns(searcher);
-            A.CallTo(() => searcher.Current).Returns(r2);
-            A.CallTo(() => searcher.MoveRight()).Returns(true);
-            A.CallTo(() => searcher.Current).Returns(r3);
-            A.CallTo(() => searcher.MoveLeft()).Returns(false);
-            
-
-
+            A.CallTo(() => searcher.Current).ReturnsNextFromSequence(r2,r3);
+            A.CallTo(() => searcher.MoveRight()).ReturnsNextFromSequence(true,false);                                   
 
             var rec = page.FindTheLessGreater(3, true);
             Assert.AreEqual(4, rec.Data.Order);
@@ -513,9 +495,8 @@ namespace Test.Paging.LogicalLevel
 
             A.CallTo(() => Manager.GetBinarySearchForPage<TestRecord>(new PageReference(0)))
                                 .Returns(searcher);
-            A.CallTo(() => searcher.Current).Returns(r2);
-            A.CallTo(() => searcher.MoveRight()).Returns(true);
-            A.CallTo(() => searcher.Current).Returns(r3);
+            A.CallTo(() => searcher.Current).ReturnsNextFromSequence(r2,r3);
+            A.CallTo(() => searcher.MoveRight()).Returns(true);            
             
 
             var rec = page.FindTheLessGreater(3, true);
