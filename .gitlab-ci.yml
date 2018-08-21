@@ -25,7 +25,8 @@ test_run:
   artifacts:
      name: "release test result"
      reports:
-       paths:
+       juint: testResult/*
+     paths:
          - testResult/
   script: 
     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release -r testResult/
