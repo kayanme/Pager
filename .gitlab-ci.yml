@@ -38,7 +38,7 @@ benchmark_physical:
    artifacts:
      name: "release test result"
      reports:
-       - /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts/*
+        benchmark: /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts/*
      paths:
        - /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts 
    script:
