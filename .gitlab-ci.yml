@@ -4,9 +4,9 @@ stages:
  - test 
  - deploy
 
-build_all:  
-  stage: build
-  script: dotnet build Test.Pager.Core.sln
+#build_all:  
+#  stage: build
+#  script: dotnet build Test.Pager.Core.sln
 
 test_run_debug: 
   stage: test
