@@ -31,13 +31,15 @@ namespace Durability.Paging.PhysicalLevel
                  return data;
 
              });
-            _inUse.Remove(reference);
+            lock (_inUse)
+                _inUse.Remove(reference);
         }
 
         public void Delete(PageRecordReference reference,TestRecord old)
         {            
             if (!_store.TryRemove(reference, out var rec) || rec.Data != old.Data)
                 Debugger.Break();
+            lock(_inUse)
             _inUse.Remove(reference);
         }
 
@@ -47,13 +49,25 @@ namespace Durability.Paging.PhysicalLevel
                 return null;
             try
             {
-                PageRecordReference key;
+                PageRecordReference key = null;
+                bool inUse = false ;
+                int count = 1000;
                 do
                 {
                     var keyNum = _rnd.Next(_store.Count);
-                    key = _store.Keys.ToArray()[keyNum];
+                    try
+                    {
+                        key = _store.Keys.ToArray()[keyNum];
+                        lock (_inUse)
+                            inUse = _inUse.Add(key);
+                        if (count <0 && !inUse)
+                            lock (_inUse)
+                                _inUse.Remove(key);
+                    }
+                    catch (IndexOutOfRangeException) { }
+                    count--;
                 }
-                while (!_inUse.Add(key));                        
+                while (!inUse);                        
                 return Tuple.Create(key,_store[key]);
             }
             catch

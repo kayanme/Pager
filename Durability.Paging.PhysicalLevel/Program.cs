@@ -9,6 +9,7 @@ using System.IO.Paging.PhysicalLevel.Contracts;
 using System.IO.Paging.PhysicalLevel.Implementations;
 using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using System.IO.Paging.PhysicalLevel;
+using System.Threading.Tasks;
 
 namespace Durability.Paging.PhysicalLevel
 {
@@ -25,29 +26,29 @@ namespace Durability.Paging.PhysicalLevel
           
             var f = new PageManagerFactory();
             _pageManager = f.CreateManager("teststress", config, true);
-            _lastunempty = _pageManager.CreatePage(2) as IPage<TestRecord>;
+            _lastunempty =_pageManager.GetRecordAccessor<TestRecord>( _pageManager.CreatePage(2));
             _store = new SharedDataStore();
             var d = new CompositeDisposable(CreateWorker(),
             CreateWorker(), CreateWorker());
-            Console.ReadKey();
+            Task.Delay(20000).Wait();
             _stop = true;
-            Console.ReadKey();
+         //   Console.ReadKey();
          
             d.Dispose();
             _pageManager.Dispose();
             System.IO.File.Delete("teststress");
             GC.Collect();
 
-            Console.ReadKey();
+            //Console.ReadKey();
             _store = null;
             GC.Collect();
-            Console.ReadKey();
+           // Console.ReadKey();
         }
         private static volatile bool _stop;
         private static IDisposable CreateWorker()
         {
             var rnd = new Random();
-            var queue = Observable.Timer(TimeSpan.FromSeconds(0), TimeSpan.FromMilliseconds(.1)).Where(k=> !_stop).Select(_ => rnd.Next(3)).ObserveOn(NewThreadScheduler.Default).Publish();
+            var queue = Observable.Timer(TimeSpan.FromSeconds(0), TimeSpan.FromMilliseconds(1)).Where(k=> !_stop).Select(_ => rnd.Next(3)).ObserveOn(NewThreadScheduler.Default).Publish();
           
             //      var queue = new[] { 0, 1 }.ToObservable().ObserveOn(ImmediateScheduler.Instance);
             var d = new CompositeDisposable(
@@ -67,7 +68,7 @@ namespace Durability.Paging.PhysicalLevel
             TestRecord rec = new TestRecord { Data = Guid.NewGuid() };
             _log($"Adding {rec.Data}");
             TypedRecord<TestRecord> trec;
-            while ((trec = _lastunempty.AddRecord(rec))!=null)
+            while ((trec = _lastunempty.AddRecord(rec))==null)
                 _lastunempty = _pageManager.GetRecordAccessor<TestRecord>( _pageManager.CreatePage(2));
             _log($"Added {rec.Data}");
             _store.Add(trec.Reference, rec);
@@ -76,7 +77,7 @@ namespace Durability.Paging.PhysicalLevel
         private static void ProcessUpdate()
         {
             var rec = _store.SelectRandom();
-            if (rec.Item2.Data == default(Guid))
+            if (rec == null || rec.Item2.Data == default(Guid))
                 return;
             var newData = Guid.NewGuid();
             var old = new TestRecord { Data = rec.Item2.Data };
@@ -107,6 +108,7 @@ namespace Durability.Paging.PhysicalLevel
             var page = _pageManager.GetRecordAccessor<TestRecord>(rec.Item1.Page);
             var old = rec.Item1.Copy();
             var t = page.GetRecord(old);
+            if (t!=null)
             page.FreeRecord(t);
             _log($"deleted {rec.Item2.Data}");
             _store.Delete(rec.Item1, rec.Item2);

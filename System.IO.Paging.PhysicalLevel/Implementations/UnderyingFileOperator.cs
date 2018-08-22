@@ -34,10 +34,12 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 
         public MemoryMappedFile GetMappedFile(long desiredFileLength)
         {
-
-            if (_file.Length < desiredFileLength)
+            if (_disposedValue)
+                throw new ObjectDisposedException("fileOperator");
+            var extentChange = (int)(desiredFileLength - _file.Length) / Extent.Size + ((desiredFileLength - _file.Length) % Extent.Size == 0 ? 0 : 1);
+            if (extentChange>0)
             {
-                AddExtent((int)(desiredFileLength-_file.Length)/Extent.Size+((desiredFileLength - _file.Length) % Extent.Size == 0?0:1));
+                AddExtent(extentChange);
             }
             Debug.Assert(_file.Length >= desiredFileLength, "_file.Length >= desiredFileLength");
             try
@@ -128,7 +130,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                 //_file.Flush();
                 //  var map = MemoryMappedFile.OpenExisting(_mapName, MemoryMappedFileRights.FullControl, HandleInheritability.None);
                 //+ _file.Length + Extent.Size * extentCount
-                var map = MemoryMappedFile.CreateFromFile(_file,_mapName , _file.Length + Extent.Size * extentCount, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None,false);
+                var map = MemoryMappedFile.CreateFromFile(_file,_mapName , _file.Length + Extent.Size * extentCount, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None,true);
                 _oldMaps.TryAdd(map, 0);
                 oldMap = _map;
                 _map = map;

@@ -22,10 +22,10 @@ test_run:
     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release -r testResult/
     - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release -r testResult/
 
-durability_physical:
-   stage: durability
-   script:
-     - dotnet run --project Durabilty.Paging.PhysicalLevel/Durabilty.Paging.PhysicalLevel.Core.csproj -c Release
+#durability_physical:
+#   stage: durability
+#   script:
+#     - dotnet run --project Durability.Paging.PhysicalLevel/Durability.Paging.PhysicalLevel.Core.csproj -c Release
 
 benchmark_physical:
    stage: benchmark
