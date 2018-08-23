@@ -37,19 +37,22 @@ namespace Benchmark.Paging.PhysicalLevel
             var result = BenchmarkRunnerCore.Run(r, _ => new InProcessToolchain(false));
             foreach (var c in MarkdownExporter.GitHub.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
-                File.Move(c, $".\\Benchmarks\\Physical\\{name}_{version}.md");
-                ConsoleLogger.Default.WriteLine($"results at {Path.GetFullPath($".\\Benchmarks\\{name}_{version}.md")}");
+                var path = Path.GetFullPath($"Benchmarks//Physical//{name}_{version}.md");
+                File.Move(c, path);
+                ConsoleLogger.Default.WriteLine($"results at {path}");
             }
             foreach (var c in HtmlExporter.Default.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
-                File.Move(c, $".\\Benchmarks\\Physical\\{name}_{version}.html");
-                ConsoleLogger.Default.WriteLine($"results at {Path.GetFullPath($".\\Benchmarks\\{name}_{version}.html")}");
+                var path = Path.GetFullPath($"Benchmarks//Physical//{name}_{version}.html");
+                File.Move(c, path);
+                ConsoleLogger.Default.WriteLine($"results at {path}");
             }
             var exp = new BenchmarkDotNet.Exporters.Csv.CsvExporter(BenchmarkDotNet.Exporters.Csv.CsvSeparator.Semicolon);
             foreach (var c in exp.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
-                File.Move(c, $".\\Benchmarks\\Physical\\{name}_{version}.csv");
-                ConsoleLogger.Default.WriteLine($"results at {Path.GetFullPath($"Benchmarks\\{name}_{version}.csv")}");
+                var path = Path.GetFullPath($"Benchmarks//Physical//{name}_{version}.csv");
+                File.Move(c, path);
+                ConsoleLogger.Default.WriteLine($"results at {path}");
             }
           
 
