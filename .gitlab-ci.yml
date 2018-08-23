@@ -11,17 +11,25 @@ stages:
 #  stage: build
 #  script: dotnet build Test.Pager.Core.sln
 
-#test_run_debug: 
-#  stage: test  
-#  script: 
-#     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug -r testResult/
- #    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Debug -r testResult/
+test_physical_debug: 
+  stage: test  
+  script: 
+     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug -r testResult/ 
 
-#test_run: 
-#  stage: test  
-#  script: 
-#    - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release -r testResult/
-#    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release -r testResult/
+test_physical_release: 
+  stage: test  
+  script: 
+    - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release -r testResult/
+
+test_logical_debug: 
+  stage: test  
+  script: 
+    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Debug -r testResult/
+
+test_logical_release: 
+  stage: test  
+  script: 
+    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release -r testResult/
 
 #durability_physical:
 #   stage: durability
