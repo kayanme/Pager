@@ -37,10 +37,7 @@ test_logical_release:
 #     - dotnet run --project Durability.Paging.PhysicalLevel/Durability.Paging.PhysicalLevel.Core.csproj -c Release
 
 benchmark_physical:
-  stage: benchmark
-  cache:
-     paths: 
-      - Benchmarks/
+  stage: benchmark  
   artifacts:
      paths:
      - Benchmarks
@@ -49,10 +46,7 @@ benchmark_physical:
 
 
 benchmark_logical:
-  stage: benchmark
-  cache:
-     paths: 
-       - Benchmarks/
+  stage: benchmark  
   artifacts:
      paths:
       - Benchmarks
@@ -62,10 +56,9 @@ benchmark_logical:
 
 pages:
    stage: publish
-   cache:
-       paths: 
-         - Benchmarks/
-      #   - Benchmark.Paging.LogicalLevel/bin/Release/Benchmarks
+   dependencies:
+       - benchmark_logical
+       - benchmark_physical      
    artifacts:
      paths: 
        - public
