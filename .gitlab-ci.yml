@@ -56,7 +56,7 @@ pages:
      paths: 
        - public
    script: 
-    - cp -r Benchmarks/* public/benchmarks    
+    - cp -r Benchmarks public  
   #  - cp -r Benchmark.Paging.LogicalLevel/bin/Release/Benchmarks/* public/benchmarks/logical
     
 
