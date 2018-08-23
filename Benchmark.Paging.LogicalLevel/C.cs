@@ -16,8 +16,9 @@ namespace Benchmark.Paging.LogicalLevel
             Add(Job.Core.WithInvocationCount(96).WithLaunchCount(3).WithAnalyzeLaunchVariance(true));
             var exp = new BenchmarkDotNet.Exporters.Csv.CsvExporter(BenchmarkDotNet.Exporters.Csv.CsvSeparator.Semicolon);
             
-            Add(exp);
-            Add(MarkdownExporter.GitHub);
+            //Add(exp,RPlotExporter.Default);
+            //Add(MarkdownExporter.GitHub);
+            //Add(HtmlExporter.Default);
             Add(DefaultConfig.Instance.GetLoggers().ToArray());
             Add(DefaultColumnProviders.Params);
             Add(BenchmarkDotNet.Columns.TargetMethodColumn.Method);
@@ -29,7 +30,6 @@ namespace Benchmark.Paging.LogicalLevel
         }
 
     
-
 
         private class DataColumn : IColumn
         {

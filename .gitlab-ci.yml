@@ -27,25 +27,17 @@ test_run:
 #   script:
 #     - dotnet run --project Durability.Paging.PhysicalLevel/Durability.Paging.PhysicalLevel.Core.csproj -c Release
 
-benchmark_physical:
+pages:
    stage: benchmark
    artifacts:
-     name: "benchmark result"   
-     paths:
-       - Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts/
+     paths: 
+       - public
    script:
     - dotnet run --project Benchmark.Paging.PhysicalLevel/Benchmark.Paging.PhysicalLevel.Core.csproj -c Release
-   # - /builds/kayanme/System.IO.Paging/merge.sh /builds/kayanme/System.IO.Paging/Benchmark.Paging.PhysicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts /builds/kayanme/System.IO.Paging/Benchmarks
-
-benchmark_logical:
-   stage: benchmark
-   artifacts:
-     name: "benchmark result"   
-     paths:
-       - Benchmark.Paging.LogicalLevel/bin/Release/netcoreapp2.0/BenchmarkDotNet.Artifacts/
-   script:
+    - cp -r Benchmark.Paging.PhysicalLevel/bin/Release/Benchmarks/* public/benchmarks/physical
     - dotnet run --project Benchmark.Paging.LogicalLevel/Benchmark.Paging.LogicalLevel.Core.csproj -c Release
-
+    - cp -r Benchmark.Paging.LogicalLevel/bin/Release/Benchmarks/* public/benchmarks/logical
+    
 
 packages:
   stage: deploy

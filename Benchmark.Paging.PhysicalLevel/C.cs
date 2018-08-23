@@ -17,11 +17,9 @@ namespace Benchmark.Paging.PhysicalLevel
         public C(string group)
         {
             var exp = new BenchmarkDotNet.Exporters.Csv.CsvExporter(BenchmarkDotNet.Exporters.Csv.CsvSeparator.Semicolon);
-            Add(Job.Core.WithInvocationCount(96 * 2).WithLaunchCount(3).WithAnalyzeLaunchVariance(true));
-            Add(exp);
-            Add(MarkdownExporter.GitHub);
+            Add(Job.Core.WithInvocationCount(96 * 2).WithLaunchCount(3).WithAnalyzeLaunchVariance(true));          
             Add(DefaultConfig.Instance.GetLoggers().ToArray());
-            Add(BenchmarkDotNet.Columns.TargetMethodColumn.Method);
+            Add(TargetMethodColumn.Method);
             Add(DefaultColumnProviders.Params);
             var ass = AppDomain.CurrentDomain.GetAssemblies().First(k => k.FullName.Contains("IO.Paging.PhysicalLevel"));
             var version = ass.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
@@ -30,14 +28,13 @@ namespace Benchmark.Paging.PhysicalLevel
             Add(StatisticColumn.Mean, StatisticColumn.Error);            
         }
 
-        
 
         private class DataColumn : IColumn
         {
             private readonly string _value;
             private readonly string _key;
 
-            public DataColumn(string key,string value)
+            public DataColumn(string key, string value)
             {
                 _value = value;
                 _key = key;
