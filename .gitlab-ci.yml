@@ -40,7 +40,10 @@ benchmark_physical:
   stage: benchmark
   cache:
      paths: 
-      - Benchmarks
+      - Benchmarks/
+  artifacts:
+     paths:
+     - Benchmarks
   script:
     - dotnet run --project Benchmark.Paging.PhysicalLevel/Benchmark.Paging.PhysicalLevel.Core.csproj -c Release
 
@@ -49,7 +52,10 @@ benchmark_logical:
   stage: benchmark
   cache:
      paths: 
-       - Benchmarks
+       - Benchmarks/
+  artifacts:
+     paths:
+      - Benchmarks
   script:
     - dotnet run --project Benchmark.Paging.LogicalLevel/Benchmark.Paging.LogicalLevel.Core.csproj -c Release
 
@@ -58,7 +64,7 @@ pages:
    stage: publish
    cache:
        paths: 
-         - Benchmarks
+         - Benchmarks/
       #   - Benchmark.Paging.LogicalLevel/bin/Release/Benchmarks
    artifacts:
      paths: 
