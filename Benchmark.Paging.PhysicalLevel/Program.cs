@@ -16,7 +16,7 @@ namespace Benchmark.Paging.PhysicalLevel
             //var t = new Physical_RecordAddBenchmark();
             //t.Init();
             //t.AddRecordWithFlush();     
-            var dir = Directory.CreateDirectory(".\\Benchmarks\\Physical");
+            var dir = Directory.CreateDirectory("Benchmarks//Physical");
             RunAndPrint< Physical_RecordSearchBenchmark>("Search");
             RunAndPrint<Physical_RecordAddBenchmark>("Add");
             RunAndPrint<Physical_RecordChangeBenchmark>("Change");
