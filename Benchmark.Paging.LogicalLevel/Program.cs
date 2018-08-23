@@ -28,7 +28,7 @@ namespace Benchmark.Paging.LogicalLevel
             ////t.AddRecordWithOrder();
             ////t.AddRecordWithOrder();
             //t.DeleteFile();
-            Directory.CreateDirectory("..\\Benchmarks\\");
+            Directory.CreateDirectory("Benchmarks\\Logical\\");
             RunAndPrint<RecordAddBenchmark>("Add");
             RunAndPrint<Logical_RecordSearch>("Search");
           
@@ -45,17 +45,17 @@ namespace Benchmark.Paging.LogicalLevel
             var result = BenchmarkRunnerCore.Run(r, _ => new InProcessToolchain(false));
             foreach (var c in MarkdownExporter.GitHub.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
-                File.Move(c, $"..\\Benchmarks\\{name}_{version}.md");
+                File.Move(c, $"Benchmarks\\Logical\\{name}_{version}.md");
                 
             }
             foreach (var c in HtmlExporter.Default.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
-                File.Move(c, $"..\\Benchmarks\\{name}_{version}.html");
+                File.Move(c, $"..\\Benchmarks\\Logical\\{name}_{version}.html");
             }
             var exp = new BenchmarkDotNet.Exporters.Csv.CsvExporter(BenchmarkDotNet.Exporters.Csv.CsvSeparator.Semicolon);
             foreach (var c in exp.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
-                File.Move(c, $"..\\Benchmarks\\{name}_{version}.csv");
+                File.Move(c, $"..\\Benchmarks\\Logical\\{name}_{version}.csv");
             }
         }
     }
