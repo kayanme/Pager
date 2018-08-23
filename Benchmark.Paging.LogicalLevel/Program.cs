@@ -46,6 +46,7 @@ namespace Benchmark.Paging.LogicalLevel
             foreach (var c in MarkdownExporter.GitHub.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
                 File.Move(c, $"..\\Benchmarks\\{name}_{version}.md");
+                
             }
             foreach (var c in HtmlExporter.Default.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {

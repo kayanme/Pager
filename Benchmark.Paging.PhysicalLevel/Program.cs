@@ -35,18 +35,18 @@ namespace Benchmark.Paging.PhysicalLevel
             foreach (var c in MarkdownExporter.GitHub.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
                 File.Move(c, $"..\\Benchmarks\\{name}_{version}.md");
-                ConsoleLogger.Default.WriteLine($"results at {c}");
+                ConsoleLogger.Default.WriteLine($"results at {Path.GetFullPath($"..\\Benchmarks\\{name}_{version}.md")}");
             }
             foreach (var c in HtmlExporter.Default.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
                 File.Move(c, $"..\\Benchmarks\\{name}_{version}.html");
-                ConsoleLogger.Default.WriteLine($"results at {c}");
+                ConsoleLogger.Default.WriteLine($"results at {Path.GetFullPath($"..\\Benchmarks\\{name}_{version}.md")}");
             }
             var exp = new BenchmarkDotNet.Exporters.Csv.CsvExporter(BenchmarkDotNet.Exporters.Csv.CsvSeparator.Semicolon);
             foreach (var c in exp.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
                 File.Move(c, $"..\\Benchmarks\\{name}_{version}.csv");
-                ConsoleLogger.Default.WriteLine($"results at {c}");
+                ConsoleLogger.Default.WriteLine($"results at {Path.GetFullPath($"..\\Benchmarks\\{name}_{version}.md")}");
             }
           
 
