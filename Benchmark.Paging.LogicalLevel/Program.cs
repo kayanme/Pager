@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.InProcess;
 using System;
@@ -28,7 +29,7 @@ namespace Benchmark.Paging.LogicalLevel
             ////t.AddRecordWithOrder();
             ////t.AddRecordWithOrder();
             //t.DeleteFile();
-            Directory.CreateDirectory("Benchmarks\\Logical\\");
+            Directory.CreateDirectory("Benchmarks//Logical");
             RunAndPrint<RecordAddBenchmark>("Add");
             RunAndPrint<Logical_RecordSearch>("Search");
           
@@ -43,19 +44,24 @@ namespace Benchmark.Paging.LogicalLevel
             var ass = AppDomain.CurrentDomain.GetAssemblies().First(k => k.FullName.Contains("IO.Paging.PhysicalLevel"));
             var version = ass.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
             var result = BenchmarkRunnerCore.Run(r, _ => new InProcessToolchain(false));
-            foreach (var c in MarkdownExporter.GitHub.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
+            foreach (var c in MarkdownExporter.GitHub.ExportToFiles(result, ConsoleLogger.Default))
             {
-                File.Move(c, $"Benchmarks\\Logical\\{name}_{version}.md");
-                
+                var path = Path.GetFullPath($"Benchmarks//Logical//{name}_{version}.md");
+                File.Move(c, path);
+                ConsoleLogger.Default.WriteLine($"results at {path}");
             }
             foreach (var c in HtmlExporter.Default.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
-                File.Move(c, $"..\\Benchmarks\\Logical\\{name}_{version}.html");
+                var path = Path.GetFullPath($"Benchmarks//Logical//{name}_{version}.html");
+                File.Move(c, path);
+                ConsoleLogger.Default.WriteLine($"results at {path}");
             }
             var exp = new BenchmarkDotNet.Exporters.Csv.CsvExporter(BenchmarkDotNet.Exporters.Csv.CsvSeparator.Semicolon);
             foreach (var c in exp.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
-                File.Move(c, $"..\\Benchmarks\\Logical\\{name}_{version}.csv");
+                var path = Path.GetFullPath($"Benchmarks//Logical//{name}_{version}.csv");
+                File.Move(c, path);
+                ConsoleLogger.Default.WriteLine($"results at {path}");
             }
         }
     }
