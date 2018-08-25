@@ -5,7 +5,7 @@
     <AssemblyName>System.IO.Paging.LogicalLevel</AssemblyName>
     <RootNamespace>System.IO.Paging.LogicalLevel</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.3-beta</Version>
+    <Version>0.0.4-beta</Version>
     <PackageId>Addiction.System.IO.Paging.LogicalLevel</PackageId>
     <Authors>Kayan</Authors>
     <Company>-</Company>

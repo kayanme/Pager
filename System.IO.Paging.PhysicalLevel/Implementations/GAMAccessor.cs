@@ -28,14 +28,30 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 
         private void CreateAccessors()
         {
-            _mapToReturn = _fileOperator.GetMappedFile(_pageSize * Extent.Size * (_gamPagesCount - 1) + Extent.Size * _gamPagesCount);
-            _accessors = Enumerable.Range(0, _gamPagesCount).Select(k => _mapToReturn.CreateViewAccessor((_pageSize + 1) * Extent.Size * k, Extent.Size,MemoryMappedFileAccess.ReadWrite)).ToList();
+            long targetSize = _pageSize * (long)Extent.Size * (_gamPagesCount - 1) + Extent.Size * _gamPagesCount;//преобразование к long надо, чтобы всё выражение считалось в  длинном числе, иначе на 2-х гигабайтах размер уйдёт в минус
+            if (targetSize < 0)
+                throw new InvalidOperationException($"Error estimating target file size (negative size), pagesize - {_pageSize}, pages -  {_gamPagesCount}");
+
+            _mapToReturn = _fileOperator.GetMappedFile(targetSize);
+            try
+            {
+                _accessors = Enumerable.Range(0, _gamPagesCount)
+                    .Select(k => _mapToReturn.CreateViewAccessor((_pageSize + 1) * (long)Extent.Size * k, Extent.Size, MemoryMappedFileAccess.ReadWrite))
+                    .ToList();
+            }
+            catch(ArgumentOutOfRangeException ex)
+            {
+                throw new InvalidOperationException($"Error creating gam page, page size {_pageSize}, gam page count {_gamPagesCount}");
+            }
         }
 
         public void InitializeGam(ushort pageSize)
         {
             _pageSize = pageSize;
-            _gamPagesCount = (ushort)(_fileOperator.FileSize / ((_pageSize + 1) * Extent.Size+1)+1);
+            checked
+            {
+                _gamPagesCount = (ushort)(_fileOperator.FileSize / ((_pageSize + 1) * Extent.Size + 1) + 1);
+            }
             CreateAccessors();
         }
         private int accNum(int pageNum)=> pageNum / Extent.Size;
@@ -143,7 +159,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 
         public long GamShift(int pageNum)
         {
-            var gamCount = pageNum / Extent.Size + 1;
+            var gamCount = pageNum / (long)Extent.Size + 1;
             return gamCount * Extent.Size;
         }
     }

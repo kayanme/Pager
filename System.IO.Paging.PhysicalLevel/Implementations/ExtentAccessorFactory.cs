@@ -21,6 +21,10 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 
         public IPageAccessor GetAccessor(long pageOffset, int pageLength)
         {
+            if (pageOffset < 0)
+                throw new ArgumentOutOfRangeException($"{nameof(pageOffset)} is negative");
+            if (pageLength < 0)
+                throw new ArgumentOutOfRangeException($"{nameof(pageLength)} is negative");
             var extentNumber = pageOffset / Extent.Size;
          
             var extentBorder = extentNumber * Extent.Size;

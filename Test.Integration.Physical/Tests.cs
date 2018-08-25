@@ -81,7 +81,7 @@ namespace Test.Integration.Physical
         public void CreatingLargeFile()
         {
             var sw = Stopwatch.StartNew();
-            for(var i = 0; i < 1E5; i++)
+            for(long i = 0; i < 1024*1024/2; i++)
             {
                var page = _pageManager.GetRecordAccessor<TestRecord>(_pageManager.CreatePage(1));
                 page.AddRecord(new TestRecord());

@@ -173,7 +173,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             {
                 page = _bufferedPages.GetOrAdd(pageNum.PageNum, i =>
                 {
-                    var block = _blockFactory.GetAccessor(_accessor.GamShift(pageNum.PageNum) + i * _pageSize, _pageSize);
+                    var block = _blockFactory.GetAccessor(_accessor.GamShift(pageNum.PageNum) + (long)i * _pageSize, _pageSize);
                     var pageType = _accessor.GetPageType(pageNum.PageNum);
                     var headerType = _config.HeaderConfig.ContainsKey(pageType) ? _config.HeaderConfig[pageType] : null;
                   
