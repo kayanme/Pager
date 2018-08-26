@@ -155,6 +155,38 @@ namespace Test.Paging.PhysicalLevel.Configurations
             VerifyHeaderCommon(tc);
         }
 
+        [TestMethod]
+        public void DefineOnlyNumberTypeAndOneRecordImageTypeWithCorrectSize()
+        {
+
+            var ti = CommonFixedRecordDefinition(4096);                        
+            var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
+                dp => dp(1).AsPageWithRecordType<TestRecord>().AsPlainImage(ti));
+
+            tc.Verify();
+
+            VerifyImageRecordCommon(tc);
+            Assert.IsFalse(tc.HeaderConfig.ContainsKey(1));
+            var pageHeaders = tc.PageMap[1].ReturnHeaderInfo();
+            Assert.AreEqual(4096,pageHeaders.RecordSize);
+            Assert.IsTrue(pageHeaders.IsFixed);
+            Assert.IsFalse(pageHeaders.WithLogicalSort);
+
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void DefineOnlyNumberTypeAndOneRecordImageTypeWithIncorrectSize()
+        {
+
+            var ti = CommonFixedRecordDefinition(10);
+            var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
+                dp => dp(1).AsPageWithRecordType<TestRecord>().AsPlainImage(ti));
+
+            tc.Verify();
+           
+        }
+
 
 
         private static IVariableSizeRecordDefinition<TestRecord> VariableRecordDefinitionCommon()
@@ -222,7 +254,7 @@ namespace Test.Paging.PhysicalLevel.Configurations
             Assert.AreEqual(2, t[0]);
         }
 
-        private static void VerifyFixedRecordCommon(TestingConfig tc, LockRuleset lockRules = null)
+        private static void VerifyFixedRecordCommon(TestingConfig tc, LockRuleset lockRules = null,int recordSize = 10)
         {
             Assert.AreEqual(1, tc.PageMap.Count);
             Assert.IsTrue(tc.PageMap.ContainsKey(1));
@@ -238,7 +270,28 @@ namespace Test.Paging.PhysicalLevel.Configurations
             Assert.IsInstanceOfType(c, typeof(FixedRecordTypePageConfiguration<TestRecord>));
             var c2 = c as FixedRecordTypePageConfiguration<TestRecord>;
             Assert.IsNotNull(c2.RecordMap);
-            Assert.AreEqual(10, c2.RecordMap.GetSize);
+            Assert.AreEqual(recordSize, c2.RecordMap.GetSize);
+            var t = new byte[1];
+            var t2 = default(TestRecord);
+            c2.RecordMap.FillBytes(ref t2, t);
+            Assert.AreEqual(1, t[0]);
+            c2.RecordMap.FillFromBytes(t, ref t2);
+            Assert.AreEqual(2, t[0]);
+        }
+
+        private static void VerifyImageRecordCommon(TestingConfig tc)
+        {
+            Assert.AreEqual(1, tc.PageMap.Count);
+            Assert.IsTrue(tc.PageMap.ContainsKey(1));
+            var c = tc.PageMap[1];
+            Assert.AreEqual(typeof(TestRecord), c.RecordType);
+           
+                Assert.AreEqual(ConsistencyAbilities.None, c.ConsistencyConfiguration.ConsistencyAbilities);
+           
+            Assert.IsInstanceOfType(c, typeof(ImageTypePageConfiguration<TestRecord>));
+            var c2 = c as ImageTypePageConfiguration<TestRecord>;
+            Assert.IsNotNull(c2.RecordMap);
+            Assert.AreEqual(c2.PageSize, c2.RecordMap.GetSize);
             var t = new byte[1];
             var t2 = default(TestRecord);
             c2.RecordMap.FillBytes(ref t2, t);
@@ -295,11 +348,11 @@ namespace Test.Paging.PhysicalLevel.Configurations
                             }
                             );
             A.CallTo(() => definition.FillFromBytes(null, ref t2)).WithAnyArguments().AssignsOutAndRefParametersLazily(a =>
-  {
-      var a1 = (TestRecord)a.Arguments[1];
-      getter(a.Arguments[0] as byte[], ref a1);
-      return new[] { a1 as object };
-  });
+            {
+                var a1 = (TestRecord)a.Arguments[1];
+                getter(a.Arguments[0] as byte[], ref a1);
+                return new[] { a1 as object };
+            });
             A.CallTo(() => definition.Size).Returns(10);
             var locks = A.Fake<LockRuleset>();
             var tc = new TestingConfig(PageManagerConfiguration.PageSize.Kb4,
@@ -371,6 +424,8 @@ namespace Test.Paging.PhysicalLevel.Configurations
             VerifyHeaderCommon(tc);
         }
 
+        
+
         private static void VerifyHeaderCommon(TestingConfig tc)
         {
             Assert.AreEqual(1, tc.HeaderConfig.Count);
@@ -403,16 +458,16 @@ namespace Test.Paging.PhysicalLevel.Configurations
                             }
                             );
             A.CallTo(() => t.FillFromBytes(null, ref t3)).WithAnyArguments().AssignsOutAndRefParametersLazily(a =>
-{
-var a1 = (TestHeader)a.Arguments[1];
-getter(a.Arguments[0] as byte[], ref a1);
-return new[] { a1 as object };
-});
+            {
+                var a1 = (TestHeader)a.Arguments[1];
+                getter(a.Arguments[0] as byte[], ref a1);
+                return new[] { a1 as object };
+            });
             A.CallTo(() => t.Size).Returns(10);
             return t;
         }
 
-        private static IFixedSizeRecordDefinition<TestRecord> CommonFixedRecordDefinition()
+        private static IFixedSizeRecordDefinition<TestRecord> CommonFixedRecordDefinition(int size = 10)
         {
             Getter<TestRecord> filler = (ref TestRecord a, byte[] b) => { b[0] = 1; };
             Setter<TestRecord> getter = (byte[] a, ref TestRecord b) => { a[0] = 2; };
@@ -428,11 +483,11 @@ return new[] { a1 as object };
                             ); ;
             A.CallTo(() => definition.FillFromBytes(null, ref t3)).WithAnyArguments().AssignsOutAndRefParametersLazily(a =>
             {
-                  var a1 = (TestRecord)a.Arguments[1];
-                   getter(a.Arguments[0] as byte[], ref a1);
-                   return new[] { a1 as object };
-             });
-            A.CallTo(() => definition.Size).Returns(10);
+                var a1 = (TestRecord)a.Arguments[1];
+                getter(a.Arguments[0] as byte[], ref a1);
+                return new[] { a1 as object };
+            });
+            A.CallTo(() => definition.Size).Returns(size);
             return definition;
         }
     }

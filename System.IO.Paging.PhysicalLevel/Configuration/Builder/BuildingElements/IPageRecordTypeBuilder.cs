@@ -11,5 +11,9 @@ namespace System.IO.Paging.PhysicalLevel.Configuration.Builder.BuildingElements
         IVariablePageBuilder<TRecordType> UsingRecordDefinition(IVariableSizeRecordDefinition<TRecordType> recordDefinition);
         IVariablePageBuilder<TRecordType> UsingRecordDefinition(Getter<TRecordType> fillBytes,
             Setter<TRecordType> fillFromBytes, Func<TRecordType, int> size);
+
+        IImagePageBuilder<TRecordType> AsPlainImage(IFixedSizeRecordDefinition<TRecordType> recordDefinition);
+        IImagePageBuilder<TRecordType> AsPlainImage(Getter<TRecordType> fillBytes,
+            Setter<TRecordType> fillFromBytes);
     }
 }

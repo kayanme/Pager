@@ -8,7 +8,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Addiction.System.IO.Paging.PhysicalLevel.MemoryStubs</PackageId>
     <Description>Memory-mapped file paging subsystem. Testing stubs.</Description>
-    <Version>0.0.3-beta</Version>
+    <Version>0.0.5-beta</Version>
     <Authors>kayan</Authors>
     <Company>-</Company>
     <Product>-</Product>

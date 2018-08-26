@@ -15,10 +15,15 @@ namespace System.IO.Paging.PhysicalLevel.Classes.PageFactories
             var headerInfo = config.ReturnHeaderInfo();
             var headerAccessor = accessor.GetChildAccessorWithStartShift(startPageShift);
             if (headerInfo.IsFixed)
-                if (!headerInfo.WithLogicalSort)
+            {
+                if (headerInfo.RecordSize == accessor.PageSize)
+                {
+                    return new ImagePageHeader(accessor);
+                }
+                else if (!headerInfo.WithLogicalSort)
                 {
                     var pageCalculator =
-                        new FixedPageParametersCalculator((ushort) headerAccessor.PageSize, headerInfo.RecordSize);
+                        new FixedPageParametersCalculator((ushort)headerAccessor.PageSize, headerInfo.RecordSize);
                     pageCalculator.CalculatePageParameters();
                     var used = pageCalculator.CalculateUsed(accessor.GetByteArray(0, pageCalculator.PamSize));
                     return new FixedRecordPhysicalOnlyHeader(headerAccessor, pageCalculator, used);
@@ -26,10 +31,11 @@ namespace System.IO.Paging.PhysicalLevel.Classes.PageFactories
                 else
                 {
                     var pageCalculator =
-                        new FixedPageParametersCalculator((ushort) headerAccessor.PageSize, headerInfo.RecordSize, 16);
-                    pageCalculator.CalculatePageParameters();                 
+                        new FixedPageParametersCalculator((ushort)headerAccessor.PageSize, headerInfo.RecordSize, 16);
+                    pageCalculator.CalculatePageParameters();
                     return new FixedRecordWithLogicalOrderHeader(headerAccessor, pageCalculator);
                 }
+            }
             else
             {
                 throw new Exception();

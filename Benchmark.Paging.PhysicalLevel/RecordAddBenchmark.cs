@@ -7,6 +7,8 @@ using System.IO.Paging.PhysicalLevel.Contracts;
 using System.IO.Paging.PhysicalLevel.Implementations;
 using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using System.IO.Paging.PhysicalLevel;
+using System;
+using System.Linq;
 
 namespace Benchmark.Paging.PhysicalLevel
 {
@@ -16,13 +18,25 @@ namespace Benchmark.Paging.PhysicalLevel
         [Params(PageManagerConfiguration.PageSize.Kb4,PageManagerConfiguration.PageSize.Kb8)]        
         public PageManagerConfiguration.PageSize PageSize;
 
-        [Params(WriteMethod.Naive, WriteMethod.FixedSize)]
+        [Params(WriteMethod.Naive, WriteMethod.FixedSize,WriteMethod.FixedSizeWithOrder,WriteMethod.Image)]
         public WriteMethod WriteMethod;
 
-        private class PageConfig : PageManagerConfiguration
+        private unsafe class PageConfig : PageManagerConfiguration
         {
+
+            private  void Copy(byte[] b, ref TestRecord2 t)
+            {
+                
+                fixed (byte* ft = b)
+                fixed (byte* ft2 = t.Data)
+                {
+                    Buffer.MemoryCopy(ft, ft2, _size,_size);
+                }
+            }
+            private int _size;
             public PageConfig(PageManagerConfiguration.PageSize size) : base(size)
             {
+                _size = SizeOfPage == PageSize.Kb4 ? 4096 : 8192;
                 DefinePageType(1)
                     .AsPageWithRecordType<TestRecord>()
                     .UsingRecordDefinition((ref TestRecord t, byte[] b) => { t.FillByteArray(b); }, (byte[] b, ref TestRecord t) => { t.FillFromByteArray(b); }, 7);
@@ -37,12 +51,17 @@ namespace Benchmark.Paging.PhysicalLevel
                     .AsPageWithRecordType<TestRecord>()                    
                     .UsingRecordDefinition((ref TestRecord t, byte[] b) => { t.FillByteArray(b); }, (byte[] b, ref TestRecord t) => { t.FillFromByteArray(b); }, 7)
                     .ApplyLogicalSortIndex();
+
+                DefinePageType(4)
+                   .AsPageWithRecordType<TestRecord2>()
+                   .AsPlainImage((ref TestRecord2 t, byte[] b) => { t.Data = b; }, Copy);
             }
         }
 
         private IPage<TestRecord> _page;
         private IPage<TestRecord> _page2;
         private IPage<TestRecord> _page3;
+        private IPage<TestRecord2> _page4;
         private FileStream _other;
         [GlobalSetup]
         public void Init()
@@ -54,6 +73,7 @@ namespace Benchmark.Paging.PhysicalLevel
             _page =_manager.GetRecordAccessor<TestRecord>( _manager.CreatePage(1));
             _page2 = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(1));
             _page3 = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(3));
+            _page4 = _manager.GetRecordAccessor<TestRecord2>(_manager.CreatePage(4));
             _other = System.IO.File.Open("testfile2" , FileMode.OpenOrCreate);
         }
 
@@ -63,6 +83,11 @@ namespace Benchmark.Paging.PhysicalLevel
             switch (WriteMethod)
             {
                 case WriteMethod.FixedSize:  _page.AddRecord(new TestRecord( new byte[] { 1, 2, 3, 4, 5, 6, 7 } ));break;
+                case WriteMethod.Image:
+                    var rec = _page4.IterateRecords().First();
+                    rec.Data.Data = new byte[] { 1, 2, 3, 4, 5, 6, 7 };
+                    _page4.StoreRecord(rec);
+                    break;
                 case WriteMethod.FixedSizeWithOrder: _page3.AddRecord(new TestRecord (new byte[] { 1, 2, 3, 4, 5, 6, 7 } )); break;
                 case WriteMethod.VariableSize: _page2.AddRecord(new TestRecord (new byte[] { 1, 2, 3, 4, 5, 6, 7 } )); break;
                 case WriteMethod.Naive: _other.Write(new byte[] { 1, 1, 2, 3, 4, 5, 6, 7, }, 0, 8); break;
@@ -75,6 +100,12 @@ namespace Benchmark.Paging.PhysicalLevel
             switch (WriteMethod)
             {
                 case WriteMethod.FixedSize: _page.AddRecord(new TestRecord(new byte[] { 1, 2, 3, 4, 5, 6, 7 } )); _page.Flush(); break;
+                case WriteMethod.Image:
+                    var rec = _page4.IterateRecords().First();
+                    rec.Data.Data = new byte[] { 1, 2, 3, 4, 5, 6, 7 };
+                    _page4.StoreRecord(rec);
+                    _page4.Flush();
+                    break;
                 case WriteMethod.FixedSizeWithOrder: _page3.AddRecord(new TestRecord(new byte[] { 1, 2, 3, 4, 5, 6, 7 } )); _page.Flush(); break;
                 case WriteMethod.VariableSize: _page2.AddRecord(new TestRecord(new byte[] { 1, 2, 3, 4, 5, 6, 7 } )); _page2.Flush(); break;
                 case WriteMethod.Naive: _other.Write(new byte[] { 1, 1, 2, 3, 4, 5, 6, 7, }, 0, 8); _other.Flush(); break;

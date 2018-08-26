@@ -5,7 +5,7 @@
     <AssemblyName>System.IO.Paging.LogicalLevel</AssemblyName>
     <RootNamespace>System.IO.Paging.LogicalLevel</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.4-beta</Version>
+    <Version>0.0.5-beta</Version>
     <PackageId>Addiction.System.IO.Paging.LogicalLevel</PackageId>
     <Authors>Kayan</Authors>
     <Company>-</Company>
@@ -15,6 +15,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageReleaseNotes>First beta. Not for public usage.</PackageReleaseNotes>
     <PackageProjectUrl>https://gitlab.com/kayanme/System.IO.Paging</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>

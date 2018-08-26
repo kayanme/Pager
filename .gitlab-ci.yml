@@ -1,7 +1,8 @@
 image: microsoft/aspnetcore-build:latest
 stages:
  #- build
- - test 
+ - unit_test 
+ - integration_test 
  - durability
  - benchmark
  - publish
@@ -12,24 +13,35 @@ stages:
 #  script: dotnet build Test.Pager.Core.sln
 
 test_physical_debug: 
-  stage: test  
+  stage: unit_test  
   script: 
      - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug -r testResult/ 
 
 test_physical_release: 
-  stage: test  
+  stage: unit_test  
   script: 
     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release -r testResult/
 
 test_logical_debug: 
-  stage: test  
+  stage: unit_test  
   script: 
     - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Debug -r testResult/
 
 test_logical_release: 
-  stage: test  
+  stage: unit_test  
   script: 
     - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release -r testResult/
+
+test_integration_physical_debug: 
+  stage: integration_test  
+  script: 
+     - dotnet test Test.Integration.Physical/Test.Integration.PhysicalLevel.Core.csproj -c Debug -r testResult/ 
+
+test_integration_physical_release: 
+  stage: integration_test  
+  script: 
+    - dotnet test Test.Integration.Physical/Test.Integration.PhysicalLevel.Core.csproj -c Release -r testResult/
+
 
 #durability_physical:
 #   stage: durability

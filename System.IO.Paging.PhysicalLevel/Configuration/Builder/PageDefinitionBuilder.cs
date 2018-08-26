@@ -33,12 +33,36 @@ namespace System.IO.Paging.PhysicalLevel.Configuration.Builder
     internal class PageDefinitionBuilder<TRecordType> : PageDefinitionBuilder,
         IPageRecordTypeBuilder<TRecordType>,
         IFixedPageBuilder<TRecordType>,
-        IVariablePageBuilder<TRecordType>     
+        IVariablePageBuilder<TRecordType>,
+        IImagePageBuilder<TRecordType>
          where TRecordType : struct
     {
       
         public PageDefinitionBuilder(PageManagerConfiguration config, byte pageNum):base(config,pageNum)
         {
+        }
+
+        public IImagePageBuilder<TRecordType> AsPlainImage(IFixedSizeRecordDefinition<TRecordType> recordDefinition)
+        {
+            if (recordDefinition == null) throw new ArgumentNullException(nameof(recordDefinition));
+            
+            var conf = new ImageTypePageConfiguration<TRecordType>();
+            conf.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
+            
+            conf.RecordMap = new FixedSizeRecordDeclaration<TRecordType>(recordDefinition.FillBytes, recordDefinition.FillFromBytes, recordDefinition.Size);
+            _config.PageMap[_pageNum] = conf;
+            return this;
+        }
+
+        public IImagePageBuilder<TRecordType> AsPlainImage(Getter<TRecordType> fillBytes, Setter<TRecordType> fillFromBytes)
+        {
+            if (fillBytes == null) throw new ArgumentNullException(nameof(fillBytes));
+            if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
+            var conf = new ImageTypePageConfiguration<TRecordType>();
+            conf.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
+            conf.RecordMap = new FixedSizeRecordDeclaration<TRecordType>(fillBytes, fillFromBytes, conf.PageSize);
+            _config.PageMap[_pageNum] = conf;
+            return this;
         }
 
         public IFixedPageBuilder<TRecordType> UsingRecordDefinition(IFixedSizeRecordDefinition<TRecordType> recordDefinition)
