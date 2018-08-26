@@ -35,12 +35,12 @@ test_logical_release:
 test_integration_physical_debug: 
   stage: integration_test  
   script: 
-     - dotnet test Test.Integration.Physical/Test.Integration.PhysicalLevel.Core.csproj -c Debug -r testResult/ 
+     - dotnet test Test.Integration.Physical/Test.Integration.Physical.Core.csproj -c Debug -r testResult/ 
 
 test_integration_physical_release: 
   stage: integration_test  
   script: 
-    - dotnet test Test.Integration.Physical/Test.Integration.PhysicalLevel.Core.csproj -c Release -r testResult/
+    - dotnet test Test.Integration.Physical/Test.Integration.Physical.Core.csproj -c Release -r testResult/
 
 
 #durability_physical:
