@@ -95,6 +95,8 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         public void MarkPageToRemoveFromBuffer(PageReference pageNum)
         {
             _bufferedPages.TryGetValue(pageNum.PageNum, out var page);
+            if (page == null)//такое может быть, если мы получили ссылку при создании страницы, но не получали саму страницу
+                return;
             page.MarkedForRemoval = true;
             if (page.UserCount == 0)
                 RemovePageFromBuffer(pageNum);

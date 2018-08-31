@@ -84,7 +84,7 @@ namespace Test.Integration.Physical
             for(long i = 0; i < 1024*1024/2; i++)
             {
                 var rf = _pageManager.CreatePage(1);
-               var page = _pageManager.GetRecordAccessor<TestRecord>(_pageManager.CreatePage(1));
+               var page = _pageManager.GetRecordAccessor<TestRecord>(rf);
                 page.AddRecord(new TestRecord());
                 page.Dispose();
                 (_pageManager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(rf);
