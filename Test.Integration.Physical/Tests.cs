@@ -83,9 +83,11 @@ namespace Test.Integration.Physical
             var sw = Stopwatch.StartNew();
             for(long i = 0; i < 1024*1024/2; i++)
             {
+                var rf = _pageManager.CreatePage(1);
                var page = _pageManager.GetRecordAccessor<TestRecord>(_pageManager.CreatePage(1));
                 page.AddRecord(new TestRecord());
                 page.Dispose();
+                (_pageManager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(rf);
             }
             sw.Stop();
             Debug.Print(sw.Elapsed.ToString("g"));
