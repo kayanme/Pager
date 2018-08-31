@@ -4,7 +4,7 @@ using System.Text;
 
 namespace System.IO.Paging.PhysicalLevel.Configuration
 {
-    internal sealed class ImageTypePageConfiguration<TRecordType> : PageContentConfiguration where TRecordType : new()
+    internal sealed class ImageTypePageConfiguration<TRecordType> : FixedRecordTypePageConfiguration<TRecordType> where TRecordType : new()
     {
         public ImageTypePageConfiguration()
         {
@@ -13,7 +13,7 @@ namespace System.IO.Paging.PhysicalLevel.Configuration
         
         internal override Type RecordType => typeof(TRecordType);
 
-        public FixedSizeRecordDeclaration<TRecordType> RecordMap { get; set; }
+        
         public override void Verify()
         {
             if (RecordMap.GetSize != PageSize)

@@ -1,6 +1,6 @@
 ﻿namespace System.IO.Paging.PhysicalLevel.Configuration
 {
-    internal sealed class FixedRecordTypePageConfiguration<TRecordType> : PageContentConfiguration where TRecordType :  new()
+    internal  class FixedRecordTypePageConfiguration<TRecordType> : PageContentConfiguration where TRecordType :  new()
     {
         internal override Type RecordType => typeof(TRecordType);
         internal FixedSizeRecordDeclaration<TRecordType> RecordMap { get; set; }

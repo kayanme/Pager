@@ -9,6 +9,7 @@ using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using System.IO.Paging.PhysicalLevel;
 using System;
 using System.Linq;
+using System.IO.Paging.PhysicalLevel.Classes.References;
 
 namespace Benchmark.Paging.PhysicalLevel
 {
@@ -18,7 +19,7 @@ namespace Benchmark.Paging.PhysicalLevel
         [Params(PageManagerConfiguration.PageSize.Kb4,PageManagerConfiguration.PageSize.Kb8)]        
         public PageManagerConfiguration.PageSize PageSize;
 
-        [Params(WriteMethod.Naive, WriteMethod.FixedSize,WriteMethod.FixedSizeWithOrder,WriteMethod.Image)]
+        [Params(WriteMethod.Naive, WriteMethod.FixedSize,WriteMethod.FixedSizeWithOrder,WriteMethod.Image,WriteMethod.VariableSize)]
         public WriteMethod WriteMethod;
 
         private unsafe class PageConfig : PageManagerConfiguration
@@ -26,7 +27,8 @@ namespace Benchmark.Paging.PhysicalLevel
 
             private  void Copy(byte[] b, ref TestRecord2 t)
             {
-                
+                if (t.Data == null)
+                    t.Data = new byte[_size];
                 fixed (byte* ft = b)
                 fixed (byte* ft2 = t.Data)
                 {
@@ -112,7 +114,64 @@ namespace Benchmark.Paging.PhysicalLevel
             }
             _page.AddRecord(new TestRecord (new byte[] { 1, 2, 3, 4, 5, 6, 7 } ));
             _page.Flush();
-        }       
+        }
+
+
+        [Benchmark]
+        public void BufferedPageTaking()
+        {
+            switch (WriteMethod)
+            {
+                case WriteMethod.FixedSize:
+                    _page.Dispose();
+                    _page = _manager.GetRecordAccessor<TestRecord>(new PageReference(0));
+                    break;
+                case WriteMethod.Image:
+                    _page4.Dispose();
+                    _page4 = _manager.GetRecordAccessor<TestRecord2>(new PageReference(3));                  
+                    break;
+                case WriteMethod.FixedSizeWithOrder:
+                    _page3.Dispose();
+                    _page3 = _manager.GetRecordAccessor<TestRecord>(new PageReference(2));
+                    break;
+                case WriteMethod.VariableSize:
+                    _page2.Dispose();
+                    _page2 = _manager.GetRecordAccessor<TestRecord>(new PageReference(1));
+                    break;
+                case WriteMethod.Naive: return;
+            }           
+        }
+
+
+        [Benchmark]
+        public void NonBufferedPageTaking()
+        {
+            
+            switch (WriteMethod)
+            {
+                case WriteMethod.FixedSize:
+                    (_manager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(new PageReference(0));
+                    _page.Dispose();
+                    _page = _manager.GetRecordAccessor<TestRecord>(new PageReference(0));
+                    break;
+                case WriteMethod.Image:
+                    (_manager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(new PageReference(3));
+                    _page4.Dispose();
+                    _page4 = _manager.GetRecordAccessor<TestRecord2>(new PageReference(3));
+                    break;
+                case WriteMethod.FixedSizeWithOrder:
+                    (_manager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(new PageReference(2));
+                    _page3.Dispose();
+                    _page3 = _manager.GetRecordAccessor<TestRecord>(new PageReference(2));
+                    break;
+                case WriteMethod.VariableSize:
+                    (_manager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(new PageReference(1));
+                    _page2.Dispose();
+                    _page2 = _manager.GetRecordAccessor<TestRecord>(new PageReference(1));
+                    break;
+                case WriteMethod.Naive: return;
+            }
+        }
 
         [GlobalCleanup]
         public void DeleteFile()

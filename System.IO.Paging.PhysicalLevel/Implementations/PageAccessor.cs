@@ -25,6 +25,8 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public unsafe void QueueByteArrayOperation(int position, int length, ByteAction byteAction)
         {
+            if (_disposedValue)
+                throw new ObjectDisposedException("IPageAccessor");
             Debug.Assert(position + length <= PageSize, "position + length <= _pageSize");
             RuntimeHelpers.PrepareConstrainedRegions();
             byte* memory = null;

@@ -17,11 +17,11 @@ namespace Benchmark.Paging.PhysicalLevel
             //t.Init();
             //t.AddRecordWithFlush();     
             var dir = Directory.CreateDirectory("Benchmarks//Physical");
-            RunAndPrint< Physical_RecordSearchBenchmark>("Search");
+        //    RunAndPrint< Physical_RecordSearchBenchmark>("Search");
             RunAndPrint<Physical_RecordAddBenchmark>("Add");
-            RunAndPrint<Physical_RecordChangeBenchmark>("Change");
-            RunAndPrint<Physical_RecordIterateBenchmark>("Iterate");
-            RunAndPrint<Physical_LockBenchmark>("Lock");
+         //   RunAndPrint<Physical_RecordChangeBenchmark>("Change");
+          //  RunAndPrint<Physical_RecordIterateBenchmark>("Iterate");
+          //  RunAndPrint<Physical_LockBenchmark>("Lock");
             foreach (var f in dir.EnumerateFiles())
             {
                 ConsoleLogger.Default.WriteLine(f.FullName);
@@ -38,20 +38,20 @@ namespace Benchmark.Paging.PhysicalLevel
             foreach (var c in MarkdownExporter.GitHub.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
                 var path = Path.GetFullPath($"Benchmarks//Physical//{name}_{version}.md");
-                File.Move(c, path);
+                System.IO.File.Move(c, path);
                 ConsoleLogger.Default.WriteLine($"results at {path}");
             }
             foreach (var c in HtmlExporter.Default.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
                 var path = Path.GetFullPath($"Benchmarks//Physical//{name}_{version}.html");
-                File.Move(c, path);
+                System.IO.File.Move(c, path);
                 ConsoleLogger.Default.WriteLine($"results at {path}");
             }
             var exp = new BenchmarkDotNet.Exporters.Csv.CsvExporter(BenchmarkDotNet.Exporters.Csv.CsvSeparator.Semicolon);
             foreach (var c in exp.ExportToFiles(result, BenchmarkDotNet.Loggers.ConsoleLogger.Default))
             {
                 var path = Path.GetFullPath($"Benchmarks//Physical//{name}_{version}.csv");
-                File.Move(c, path);
+               System.IO.File.Move(c, path);
                 ConsoleLogger.Default.WriteLine($"results at {path}");
             }
           

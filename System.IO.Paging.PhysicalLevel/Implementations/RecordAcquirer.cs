@@ -29,6 +29,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             _accessor.QueueByteArrayOperation(offset, size,
                 b =>
                 {
+                   
                      r = _serializer.DeserializeFixedSize(b, size);
                   
                 });
