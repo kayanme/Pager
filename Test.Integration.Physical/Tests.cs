@@ -82,7 +82,7 @@ namespace Test.Integration.Physical
         {
             
             var sw = Stopwatch.StartNew();
-            for(long i = 0; i < 1024*1024/2; i++)
+            for(long i = 0; i < 1024/2; i++)
             {
                 var rf = _pageManager.CreatePage(1);
                var page = _pageManager.GetRecordAccessor<TestRecord>(rf);
@@ -90,7 +90,7 @@ namespace Test.Integration.Physical
                 page.Dispose();
                 (_pageManager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(rf);
                 if (i % 1000 == 0)
-                    TestContext.WriteLine($"Large File {i}");
+                    TestContext.WriteLine($"Large File {i} in {sw.Elapsed}");
             }
             sw.Stop();
             Debug.Print(sw.Elapsed.ToString("g"));
