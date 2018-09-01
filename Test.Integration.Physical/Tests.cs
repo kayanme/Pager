@@ -20,7 +20,7 @@ namespace Test.Integration.Physical
     public class Tests
     {
         private IPageManager _pageManager;
-
+        public TestContext TestContext { get; set; }
         [TestInitialize]
         public void Init()
         {
@@ -80,6 +80,7 @@ namespace Test.Integration.Physical
         [TestMethod]
         public void CreatingLargeFile()
         {
+            
             var sw = Stopwatch.StartNew();
             for(long i = 0; i < 1024*1024/2; i++)
             {
@@ -88,6 +89,8 @@ namespace Test.Integration.Physical
                 page.AddRecord(new TestRecord());
                 page.Dispose();
                 (_pageManager as IPhysicalPageManipulation).MarkPageToRemoveFromBuffer(rf);
+                if (i % 1000 == 0)
+                    TestContext.WriteLine($"Large File {i}");
             }
             sw.Stop();
             Debug.Print(sw.Elapsed.ToString("g"));
