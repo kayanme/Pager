@@ -91,7 +91,8 @@ namespace System.IO.Paging.PhysicalLevel.MemoryStubs
 
                     if (!_pages.ContainsKey(r))
                     {
-                        var page = Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), r, pageConfig, _size,type) as IPageInfo;
+
+                        var page =  Activator.CreateInstance(typeof(PageStub<>).MakeGenericType(pageConfig.RecordType), r, pageConfig, _size,type) as IPageInfo;
                         _pageTypes.Add(r, type);
                         
                         _pages.Add(r, page);

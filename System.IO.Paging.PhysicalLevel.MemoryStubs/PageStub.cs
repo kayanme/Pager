@@ -21,6 +21,12 @@ namespace System.IO.Paging.PhysicalLevel.MemoryStubs
             _config = config;
             _pageSize = pageSize;
             RegisteredPageType = pageType;
+            if (_config is ImageTypePageConfiguration<TRecord>)
+            {
+                _records.Add(PageRecordReference.CreateReference(r, 0, Classes.Pages.KeyPersistanseType.Physical), new byte[pageSize]);
+                _recordType.Add(PageRecordReference.CreateReference(r, 0, Classes.Pages.KeyPersistanseType.Physical), 1);
+                _recordSize.Add(PageRecordReference.CreateReference(r, 0, Classes.Pages.KeyPersistanseType.Physical), pageSize);
+            }
         }      
 
         public double PageFullness => throw new NotImplementedException();
@@ -38,6 +44,10 @@ namespace System.IO.Paging.PhysicalLevel.MemoryStubs
                 int size = 0;
                 byte type = 1;
                 byte[] d = null;
+                if (_config is ImageTypePageConfiguration<TRecord>)
+                {
+                    return null;
+                }
                 if (_config is FixedRecordTypePageConfiguration<TRecord>)
                 {
                     var c = _config as FixedRecordTypePageConfiguration<TRecord>;
@@ -84,8 +94,13 @@ namespace System.IO.Paging.PhysicalLevel.MemoryStubs
 
         public void FreeRecord(TypedRecord<TRecord> record)
         {
+            if (_config is ImageTypePageConfiguration<TRecord>)
+            {
+                return;
+            }
             lock (_records)
             {
+                
                 if (_records.ContainsKey(record.Reference))
                 {
                     _records.Remove(record.Reference);

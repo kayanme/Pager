@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>System.IO.Paging.PhysicalLevel</AssemblyName>
     <RootNamespace>System.IO.Paging.PhysicalLevel</RootNamespace>
-    <Version>0.0.6-beta</Version>
+    <Version>0.0.7-beta</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Addiction.System.IO.Paging.PhysicalLevel</PackageId>
     <Authors>Kayan</Authors>
