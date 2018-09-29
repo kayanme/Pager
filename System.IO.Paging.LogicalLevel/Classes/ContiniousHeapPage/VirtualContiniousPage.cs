@@ -25,7 +25,8 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
             PageFullness = 0;
 
             _headersPage = new ConcurrentBag<PageReference>(_physicalPageManager.IteratePages(headerPageTypeNum));
-             if (!_headersPage.Any()) _headersPage.Add(_physicalPageManager.CreatePage(headerPageTypeNum));
+             if (!_headersPage.Any())
+                _headersPage.Add(_physicalPageManager.CreatePage(headerPageTypeNum));
 
 
             FindOrCreateNewCandidate();                    

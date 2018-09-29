@@ -55,7 +55,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         {
             if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
+            var pageType = _accessor.GetPageType(page.PageNum);
             _accessor.MarkPageFree(page.PageNum);
+            _firstPages.TryRemove(pageType, out var _);
             Interlocked.Decrement(ref _pages);
         }
 
@@ -192,8 +194,10 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             if (type == 0)
                 throw new ArgumentException("TRecordType");
             var newPageNum = _accessor.MarkPageUsed(type);
+            var newRef = new PageReference(newPageNum);
+            _firstPages.AddOrUpdate(type, newRef, (s, n) => n == null ? newRef : n);
             Interlocked.Increment(ref _pages);
-            PageCreated(this,new NewPageCreatedEventArgs(new PageReference(newPageNum),type));
+            PageCreated(this,new NewPageCreatedEventArgs(newRef, type));
             return new PageReference(newPageNum);
         }      
 
