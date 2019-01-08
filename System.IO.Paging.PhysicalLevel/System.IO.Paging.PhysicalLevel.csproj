@@ -13,6 +13,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageReleaseNotes>First beta. Not for public usage.</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/kayanme/System.IO.Paging</RepositoryUrl>
+    <PackageId>Addiction.System.IO.Paging.PhysicalLevel</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">    
