@@ -84,11 +84,11 @@ packages:
   script: 
    - dotnet build System.IO.Paging.PhysicalLevel/System.IO.Paging.PhysicalLevel.csproj -c Release 
    - dotnet nuget push System.IO.Paging.PhysicalLevel/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
-   - dotnet build System.IO.Paging.LogicalLevel/System.IO.Paging.LogicalLevel.Core.csproj -c Release 
+   - dotnet build System.IO.Paging.LogicalLevel/System.IO.Paging.LogicalLevel.csproj -c Release 
    - dotnet nuget push System.IO.Paging.LogicalLevel/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
-   - dotnet build System.IO.Paging.PhysicalLevel.MemoryStubs/System.IO.Paging.PhysicalLevel.MemoryStubs.Core.csproj -c Release 
+   - dotnet build System.IO.Paging.PhysicalLevel.MemoryStubs/System.IO.Paging.PhysicalLevel.MemoryStubs.csproj -c Release 
    - dotnet nuget push System.IO.Paging.PhysicalLevel.MemoryStubs/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
    - dotnet build System.IO.Paging.PhysicalLevel/System.IO.Paging.PhysicalLevel.csproj -c Debug 
    - dotnet nuget push System.IO.Paging.PhysicalLevel/bin/Debug/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
-   - dotnet build System.IO.Paging.LogicalLevel/System.IO.Paging.LogicalLevel.Core.csproj -c Debug
+   - dotnet build System.IO.Paging.LogicalLevel/System.IO.Paging.LogicalLevel.csproj -c Debug
    - dotnet nuget push System.IO.Paging.LogicalLevel/bin/Debug/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
