@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">    
-    <Product>System.IO.Paging.PhysicalLevel</Product>
+    <Product>Addiction.System.IO.Paging.PhysicalLevel</Product>
     <Description>Memory-mapped file paging subsystem. Physical pages.</Description>    
   </PropertyGroup>
 
