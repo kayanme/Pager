@@ -15,32 +15,32 @@ stages:
 test_physical_debug: 
   stage: unit_test  
   script: 
-     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Debug -r testResult/ 
+     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.csproj -c Debug -r testResult/ 
 
 test_physical_release: 
   stage: unit_test  
   script: 
-    - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.Core.csproj -c Release -r testResult/
+    - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.csproj -c Release -r testResult/
 
 test_logical_debug: 
   stage: unit_test  
   script: 
-    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Debug -r testResult/
+    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.csproj -c Debug -r testResult/
 
 test_logical_release: 
   stage: unit_test  
   script: 
-    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.Core.csproj -c Release -r testResult/
+    - dotnet test Test.Paging.LogicalLevel/Test.Paging.LogicalLevel.csproj -c Release -r testResult/
 
 test_integration_physical_debug: 
   stage: integration_test  
   script: 
-     - dotnet test Test.Integration.Physical/Test.Integration.Physical.Core.csproj -c Debug -r testResult/ 
+     - dotnet test Test.Integration.Physical/Test.Integration.Physical.csproj -c Debug -r testResult/ 
 
 test_integration_physical_release: 
   stage: integration_test  
   script: 
-    - dotnet test Test.Integration.Physical/Test.Integration.Physical.Core.csproj -c Release -r testResult/
+    - dotnet test Test.Integration.Physical/Test.Integration.Physical.csproj -c Release -r testResult/
 
 
 #durability_physical:
@@ -54,7 +54,7 @@ benchmark_physical:
      paths:
      - Benchmarks
   script:
-    - dotnet run --project Benchmark.Paging.PhysicalLevel/Benchmark.Paging.PhysicalLevel.Core.csproj -c Release
+    - dotnet run --project Benchmark.Paging.PhysicalLevel/Benchmark.Paging.PhysicalLevel.csproj -c Release
 
 
 benchmark_logical:
@@ -63,7 +63,7 @@ benchmark_logical:
      paths:
       - Benchmarks
   script:
-    - dotnet run --project Benchmark.Paging.LogicalLevel/Benchmark.Paging.LogicalLevel.Core.csproj -c Release
+    - dotnet run --project Benchmark.Paging.LogicalLevel/Benchmark.Paging.LogicalLevel.csproj -c Release
 
 
 pages:
@@ -82,9 +82,13 @@ pages:
 packages:
   stage: deploy
   script: 
-   - dotnet build System.IO.Paging.PhysicalLevel/System.IO.Paging.PhysicalLevel.Core.csproj -c Release 
+   - dotnet build System.IO.Paging.PhysicalLevel/System.IO.Paging.PhysicalLevel.csproj -c Release 
    - dotnet nuget push System.IO.Paging.PhysicalLevel/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
    - dotnet build System.IO.Paging.LogicalLevel/System.IO.Paging.LogicalLevel.Core.csproj -c Release 
    - dotnet nuget push System.IO.Paging.LogicalLevel/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
    - dotnet build System.IO.Paging.PhysicalLevel.MemoryStubs/System.IO.Paging.PhysicalLevel.MemoryStubs.Core.csproj -c Release 
    - dotnet nuget push System.IO.Paging.PhysicalLevel.MemoryStubs/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
+   - dotnet build System.IO.Paging.PhysicalLevel/System.IO.Paging.PhysicalLevel.csproj -c Debug 
+   - dotnet nuget push System.IO.Paging.PhysicalLevel/bin/Debug/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
+   - dotnet build System.IO.Paging.LogicalLevel/System.IO.Paging.LogicalLevel.Core.csproj -c Debug
+   - dotnet nuget push System.IO.Paging.LogicalLevel/bin/Debug/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json

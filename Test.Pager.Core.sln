@@ -3,30 +3,30 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark.Paging.LogicalLevel.Core", "Benchmark.Paging.LogicalLevel\Benchmark.Paging.LogicalLevel.Core.csproj", "{451784AC-5A66-48B2-8ED4-6BAF71894ED1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark.Paging.LogicalLevel", "Benchmark.Paging.LogicalLevel\Benchmark.Paging.LogicalLevel.csproj", "{451784AC-5A66-48B2-8ED4-6BAF71894ED1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Durability.Paging.PhysicalLevel.Core", "Durability.Paging.PhysicalLevel\Durability.Paging.PhysicalLevel.Core.csproj", "{4CB634AE-B4D2-491D-BB60-7626B322F184}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Durability.Paging.PhysicalLevel", "Durability.Paging.PhysicalLevel\Durability.Paging.PhysicalLevel.csproj", "{4CB634AE-B4D2-491D-BB60-7626B322F184}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Integration.Physical.Core", "Test.Integration.Physical\Test.Integration.Physical.Core.csproj", "{6450657D-0873-4AB7-9D9C-DD98E5DFCA60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Integration.Physical", "Test.Integration.Physical\Test.Integration.Physical.csproj", "{6450657D-0873-4AB7-9D9C-DD98E5DFCA60}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Paging.LogicalLevel.Core", "Test.Paging.LogicalLevel\Test.Paging.LogicalLevel.Core.csproj", "{85C11547-4E86-4313-938D-A775DD72BCC7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Paging.LogicalLevel", "Test.Paging.LogicalLevel\Test.Paging.LogicalLevel.csproj", "{85C11547-4E86-4313-938D-A775DD72BCC7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Paging.PhysicalLevel.Core", "Test.Paging.Physical\Test.Paging.PhysicalLevel.Core.csproj", "{BFE1A3AF-23C4-45B3-8E89-0DFDFC6F6BEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Paging.PhysicalLevel", "Test.Paging.Physical\Test.Paging.PhysicalLevel.csproj", "{BFE1A3AF-23C4-45B3-8E89-0DFDFC6F6BEB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark.Paging.PhysicalLevel.Core", "Benchmark.Paging.PhysicalLevel\Benchmark.Paging.PhysicalLevel.Core.csproj", "{02AF2747-CC15-4024-B4EC-627CFEBD6D52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark.Paging.PhysicalLevel", "Benchmark.Paging.PhysicalLevel\Benchmark.Paging.PhysicalLevel.csproj", "{02AF2747-CC15-4024-B4EC-627CFEBD6D52}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5FF54D7D-6A85-4FDC-A9FC-E8EAE60FC120}"
 	ProjectSection(SolutionItems) = preProject
 		.gitlab-ci.yml = .gitlab-ci.yml
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.PhysicalLevel.Core", "System.IO.Paging.PhysicalLevel\System.IO.Paging.PhysicalLevel.Core.csproj", "{545172B0-A5D0-4A0F-A4A7-847273EA404E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.PhysicalLevel", "System.IO.Paging.PhysicalLevel\System.IO.Paging.PhysicalLevel.csproj", "{545172B0-A5D0-4A0F-A4A7-847273EA404E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.LogicalLevel.Core", "System.IO.Paging.LogicalLevel\System.IO.Paging.LogicalLevel.Core.csproj", "{050A89FA-EA3B-44FE-99B7-D3465D0993EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.LogicalLevel", "System.IO.Paging.LogicalLevel\System.IO.Paging.LogicalLevel.csproj", "{050A89FA-EA3B-44FE-99B7-D3465D0993EE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.PhysicalLevel.MemoryStubs.Core", "System.IO.Paging.PhysicalLevel.MemoryStubs\System.IO.Paging.PhysicalLevel.MemoryStubs.Core.csproj", "{41D022BF-3E36-43EF-ABBD-1B19BD9CAD55}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.PhysicalLevel.MemoryStubs", "System.IO.Paging.PhysicalLevel.MemoryStubs\System.IO.Paging.PhysicalLevel.MemoryStubs.csproj", "{41D022BF-3E36-43EF-ABBD-1B19BD9CAD55}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Durability.Paging.LogicalLevel.Core", "Durability.Paging.LogicalLevel.Core\Durability.Paging.LogicalLevel.Core.csproj", "{00783308-2DA6-4A29-B46A-4348E1216702}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Durability.Paging.LogicalLevel", "Durability.Paging.LogicalLevel.Core\Durability.Paging.LogicalLevel.csproj", "{00783308-2DA6-4A29-B46A-4348E1216702}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

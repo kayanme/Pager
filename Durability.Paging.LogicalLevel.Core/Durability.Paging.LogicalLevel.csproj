@@ -10,6 +10,8 @@
     <RootNamespace>Durability.Paging.LogicalLevel</RootNamespace>
 
     <StartupObject>Durability.Paging.LogicalLevel.Core.Program</StartupObject>
+
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -23,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\System.IO.Paging.LogicalLevel\System.IO.Paging.LogicalLevel.Core.csproj" />
-    <ProjectReference Include="..\System.IO.Paging.PhysicalLevel\System.IO.Paging.PhysicalLevel.Core.csproj" />
+    <ProjectReference Include="..\System.IO.Paging.LogicalLevel\System.IO.Paging.LogicalLevel.csproj" />
+    <ProjectReference Include="..\System.IO.Paging.PhysicalLevel\System.IO.Paging.PhysicalLevel.csproj" />
   </ItemGroup>
 
 </Project>

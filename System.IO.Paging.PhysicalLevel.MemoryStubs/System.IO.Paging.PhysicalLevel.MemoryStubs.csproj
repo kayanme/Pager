@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\System.IO.Paging.PhysicalLevel\System.IO.Paging.PhysicalLevel.Core.csproj" />
+    <ProjectReference Include="..\System.IO.Paging.PhysicalLevel\System.IO.Paging.PhysicalLevel.csproj" />
   </ItemGroup>
 
 </Project>

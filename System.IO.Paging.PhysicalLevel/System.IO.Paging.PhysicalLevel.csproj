@@ -4,25 +4,35 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>System.IO.Paging.PhysicalLevel</AssemblyName>
     <RootNamespace>System.IO.Paging.PhysicalLevel</RootNamespace>
-    <Version>0.0.8-beta</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>Addiction.System.IO.Paging.PhysicalLevel</PackageId>
+    <Version>0.0.9-beta</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>    
     <Authors>Kayan</Authors>
     <Company>-</Company>
-    <Product>System.IO.Paging.PhysicalLevel</Product>
-    <Description>Memory-mapped file paging subsystem. Physical pages.</Description>
+    <Product>System.IO.Paging.PhysicalLevel</Product>   
     <PackageProjectUrl>https://github.com/kayanme/System.IO.Paging</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReleaseNotes>First beta. Not for public usage.</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/kayanme/System.IO.Paging</RepositoryUrl>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">    
+    <PackageId>Addiction.System.IO.Paging.PhysicalLevel.Debug</PackageId>   
+    <Description>Memory-mapped file paging subsystem with debug info and tracing. Physical pages.</Description>    
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">    
+    <Product>System.IO.Paging.PhysicalLevel</Product>
+    <Description>Memory-mapped file paging subsystem. Physical pages.</Description>    
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants />
   </PropertyGroup>
 
   <ItemGroup>
