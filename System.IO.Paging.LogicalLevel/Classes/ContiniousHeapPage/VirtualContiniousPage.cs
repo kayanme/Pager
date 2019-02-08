@@ -36,8 +36,8 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
 
         private void FindOrCreateNewCandidate()
         {
-            Tracing.Tracer.TraceInformation($"Looking for a new candidate for record placement.");
-            var sw = Stopwatch.StartNew();
+            var newCanAct = Tracing.Tracer.StartActivity(new Activity($"Looking for a new candidate for record placement."),null);
+          
             var theBestCandidate =
                 _headersPage.Select(_physicalPageManager.GetRecordAccessor<HeapHeader>)
                     .SelectMany(k => k.IterateRecords())
@@ -46,7 +46,8 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
             
             if (theBestCandidate == null)
             {
-                Tracing.Tracer.TraceInformation($"Nothing found in {sw.Elapsed}. Creating new one.");
+                Tracing.Tracer.StopActivity(newCanAct,"nothing found");
+                var creatingAct = Tracing.Tracer.StartActivity(new Activity("Creating new candidate"), null);
                 var newPage = _physicalPageManager.CreatePage(RegisteredPageType);
                 var candidate = new HeapHeader
                 {
@@ -62,11 +63,11 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
                         theBestCandidate = acc.AddRecord(candidate);
 
                 }
-                Tracing.Tracer.TraceInformation($"Created new candidate in {sw.Elapsed}.");
+                Tracing.Tracer.StopActivity(creatingAct,null);
             }
             else
             {
-                Tracing.Tracer.TraceInformation($"Found in {sw.Elapsed}.");
+                Tracing.Tracer.StopActivity(newCanAct,"found");
             }
             _theBestCandidate = theBestCandidate;
         }
@@ -85,31 +86,32 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
         public TypedRecord<TRecord> AddRecord(TRecord type)
         {
             TypedRecord<TRecord> recordAdded = null;
-            Tracing.Tracer.TraceInformation($"Adding record {type} to virtual continuous page");
-            var sw = Stopwatch.StartNew();
-            Trace.Indent();
+            var act = Tracing.Tracer.StartActivity(new Activity($"Adding record to virtual continuous page"),type);
+            var searchCandAct = Tracing.Tracer.StartActivity(new Activity("Candidate search"), type);
             while (recordAdded == null)
             {
                 var currentCandidate = _theBestCandidate;
                 var pageRef = new PageReference((int)currentCandidate.Data.LogicalPageNum);
-                Tracing.Tracer.TraceInformation($"Found candidate physical page {type} to virtual continuous page in {sw.Elapsed}");
+                Tracing.Tracer.StopActivity(searchCandAct,null);
+            
                 using (var page =
                     _physicalPageManager.GetRecordAccessor<TRecord>(pageRef))
                 {
                     recordAdded = page.AddRecord(type);
                     if (recordAdded != null)
                     {
+                        var recordAdd = Tracing.Tracer.StartActivity(new Activity("Updating virtual header"), type);
                         currentCandidate.Data.Fullness = _physicalPageManager
                             .GetPageInfo(new PageReference((int)currentCandidate.Data.LogicalPageNum))
                             .PageFullness;
                         using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(currentCandidate.Reference.Page))
                             headersPage.StoreRecord(currentCandidate);
-                        Tracing.Tracer.TraceInformation($"Updated virtual header ({sw.Elapsed})");
+                        Tracing.Tracer.StopActivity(recordAdd,null);
                     }
                 }
                 if (recordAdded == null)
                 {
-                    Tracing.Tracer.TraceInformation($"Chosen physical page is full!! Will find another.");
+                    Tracing.Tracer.Write($"Chosen physical page is full!! Will find another.",null);
                     currentCandidate.Data.Fullness = 1;
                     using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(currentCandidate.Reference.Page))
                         headersPage.StoreRecord(currentCandidate);
@@ -131,8 +133,7 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
 
         public void FreeRecord(TypedRecord<TRecord> record)
         {
-            Tracing.Tracer.TraceInformation($"Freeing record {record.Reference} {record.Data} in virtual continuous page");
-            var sw = Stopwatch.StartNew();
+            var act = Tracing.Tracer.StartActivity(new Activity($"Freeing record"),(record.Reference,record.Data));            
             using (var pageInfo = _physicalPageManager.GetPageInfo(record.Reference.Page))
             using (var page = _physicalPageManager.GetRecordAccessor<TRecord>(record.Reference.Page))
             {
@@ -142,7 +143,7 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
                 if (pageInfo.RegisteredPageType != RegisteredPageType)
                     throw new InvalidOperationException($"The record does not belong to this page");
                 page.FreeRecord(record);
-                Tracing.Tracer.TraceInformation($"Freed physical record {record.Reference} in virtual continuous page in {sw.Elapsed}");
+                
                 foreach (var headerPageRef in _headersPage)
                 {
 
@@ -158,36 +159,34 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
                             break;
                         }
                     }
-                    Tracing.Tracer.TraceInformation($"Searched and cleaned virtual header for {record.Reference} in virtual continuous page in {sw.Elapsed}");
+                    Tracing.Tracer.StopActivity(act,null);
                 }
             }
         }
 
         public TypedRecord<TRecord> GetRecord(PageRecordReference reference)
         {
-            Tracing.Tracer.TraceInformation($"Getting record {reference} from virtual continuous page");
-            var sw = Stopwatch.StartNew();
+            var act = Tracing.Tracer.StartActivity(new Activity($"Getting record from virtual continuous page"),reference);
+          
             using (var pageInfo = _physicalPageManager.GetPageInfo(reference.Page))
             using (var page = _physicalPageManager.GetRecordAccessor<TRecord>(reference.Page))
             {
                 if (page == null)
                     return null;
                 if (pageInfo.RegisteredPageType != RegisteredPageType)
-                {
-                    Tracing.Tracer.TraceEvent(TraceEventType.Error,0, "The record does not belong to this page");
+                {                    
                     throw new InvalidOperationException($"The record does not belong to this page");
                 }
                 var rec = page.GetRecord(reference);
-                Tracing.Tracer.TraceInformation($"Got record {reference} {rec.Data} from virtual continuous page");
+                Tracing.Tracer.StopActivity(act,rec.Data);
                 return rec;
             }
         }
 
         public void StoreRecord(TypedRecord<TRecord> record)
         {
-            Tracing.Tracer.TraceInformation($"Storing record {record.Reference} {record.Data} to virtual continuous page");
-            var sw = Stopwatch.StartNew();
-
+            var act = Tracing.Tracer.StartActivity(new Activity($"Storing record  to virtual continuous page"),(record.Reference,record.Data));
+           
             using (var pageInfo = _physicalPageManager.GetPageInfo(record.Reference.Page))
             using (var page = _physicalPageManager.GetRecordAccessor<TRecord>(record.Reference.Page))
             {
@@ -196,7 +195,7 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
                 if (pageInfo.RegisteredPageType != RegisteredPageType)
                     throw new InvalidOperationException($"The record does not belong to this page");
                 page?.StoreRecord(record);
-                Tracing.Tracer.TraceInformation($"Stored record {record.Reference} {record.Data} to virtual continuous page in {sw.Elapsed}");
+                Tracing.Tracer.StopActivity(act,null);
             }
         }
 
@@ -207,7 +206,7 @@ namespace System.IO.Paging.LogicalLevel.Classes.ContiniousHeapPage
 
         public IEnumerable<TypedRecord<TRecord>> IterateRecords()
         {
-            Tracing.Tracer.TraceInformation($"Starting iterating records in virtual continuous page");
+            Tracing.Tracer.Write($"Starting iterating records in virtual continuous page",null);
             foreach (var headerPageRef in _headersPage)
             using (var headersPage = _physicalPageManager.GetRecordAccessor<HeapHeader>(headerPageRef))
             {

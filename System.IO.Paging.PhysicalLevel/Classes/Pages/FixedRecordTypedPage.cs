@@ -32,7 +32,8 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
             CheckReferenceToPageAffinity(reference);
             if (reference is NullPageRecordReference)
                 return null;
-            Tracing.Tracer.TraceInformation($"Getting record {reference} from fixed size record page");
+            var act = new Activity("Getting record from fixed size record page");
+            Tracing.Tracer.StartActivity(act, reference);
             var sw = Stopwatch.StartNew();
             Debug.Assert(reference is PhysicalPositionPersistentPageRecordReference,
                 "reference is PhysicalPositionPersistentPageRecordReference");
@@ -42,20 +43,24 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
                 var size = Headers.RecordSize(reference.PersistentRecordNum);
                 TypedRecord<TRecordType> r2 = new TypedRecord<TRecordType>{Reference = reference};
                 r2.Data=_recordGetter.GetRecord(offset, size);
-                Tracing.Tracer.TraceInformation($"Getting record {reference} from fixed size record page returns {r2.Data} in {sw.Elapsed}");
+                Tracing.Tracer.StopActivity(act,r2.Data);
                 return r2;
             }
-            Tracing.Tracer.TraceInformation($"Getting record {reference} from fixed size record page returns nothing in {sw.Elapsed}");
+            Tracing.Tracer.StopActivity(act, null);          
             return null;
 
         }
 
         public TypedRecord<TRecordType> AddRecord(TRecordType type)
         {
-            Tracing.Tracer.TraceInformation($"Adding record {type} to fixed size record page");
-            var sw = Stopwatch.StartNew();
+            var act = new Activity("Adding record to fixed size record page");
+
+            act = Tracing.Tracer.StartActivity(act, type);
+            var headerAct = new Activity("Header allocation in fixed size record page");
+            headerAct.SetParentId(act.Id);
+            headerAct = Tracing.Tracer.StartActivity(headerAct,type);
             var physicalRecordNum = Headers.TakeNewRecord(0, (ushort) _config.RecordMap.GetSize);
-            Tracing.Tracer.TraceInformation($"Header allocation for {type} ({physicalRecordNum}) in fixed size record page in {sw.Elapsed}");
+            Tracing.Tracer.StopActivity(headerAct, physicalRecordNum);                                  
             if (physicalRecordNum == -1)
                 return null;
             SetRecord(physicalRecordNum, type);
@@ -65,36 +70,33 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
                 Data = type,
                 Reference = new PhysicalPositionPersistentPageRecordReference(Reference, (ushort) physicalRecordNum)
             };
-            Tracing.Tracer.TraceInformation($"Storing {type} and result returning ({d.Reference}) in fixed size record page in {sw.Elapsed}");
+            Tracing.Tracer.StopActivity(act,d.Reference );            
             return d;
 
         }
 
         private  void SetRecord(int logicalRecordNum, TRecordType record)
         {
-            
-            var sw = Stopwatch.StartNew();
-
+            var act = Tracing.Tracer.StartActivity(new Activity("Stored record by log. shift to fixed size record page"),record);
             var recordStart = Headers.RecordShift((ushort)logicalRecordNum);
             var recordSize = Headers.RecordSize((ushort)logicalRecordNum);
-
-            _recordGetter.SetRecord(recordStart, recordSize,record);
-            Tracing.Tracer.TraceInformation($"Stored record {record} by log. shift to fixed size record page in {sw.Elapsed}");
+            _recordGetter.SetRecord(recordStart, recordSize,record);           
+            Tracing.Tracer.StopActivity(act,null);
         }
 
         private  void SetRecord(ushort physicalRecordNum, TRecordType record)
         {
-            var sw = Stopwatch.StartNew();
+            var act = Tracing.Tracer.StartActivity(new Activity("Stored record by log. shift to fixed size record page"), record);
+
             var recordSize = (ushort) _config.RecordMap.GetSize;
             _recordGetter.SetRecord(physicalRecordNum, recordSize, record);
-            Tracing.Tracer.TraceInformation($"Stored record {record} by phys. shift to fixed size record page in {sw.Elapsed}");
+            Tracing.Tracer.StopActivity(act, null);
         }
 
         public void StoreRecord(TypedRecord<TRecordType> record)
         {
             if (record.Reference.Page != Reference)
-                throw new ArgumentException();
-            Tracing.Tracer.TraceInformation($"Storing record {record.Reference} {record.Data}  to fixed size record page");
+                throw new ArgumentException();          
             SetRecord(record.Reference.PersistentRecordNum, record.Data);
 
         }
@@ -119,7 +121,7 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
         {
             CheckReferenceToPageAffinity(start);
             CheckReferenceToPageAffinity(end);
-            Tracing.Tracer.TraceInformation($"Search for records in range: {start} {end}");
+            Tracing.Tracer.Write($"Search for records in range:",(start,end));
             var nonFreeHeaders = InRange(Headers.NonFreeRecords(),k=>k ==start.PersistentRecordNum,k=>k==end.PersistentRecordNum).ToArray();
             foreach (var nonFreeRecord in nonFreeHeaders)
             {
@@ -137,27 +139,25 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
                 throw new ArgumentNullException(nameof(record));
             if (record.Reference is NullPageRecordReference)
                 throw new ArgumentException("Trying to delete deleted record");
+            var act = Tracing.Tracer.StartActivity(new Activity("Freeing record"), (record.Reference, record.Data));
 
-            Tracing.Tracer.TraceInformation($"Freeing {record.Reference} {record.Data}");
             var sw = Stopwatch.StartNew();
-            Headers.FreeRecord((ushort) record.Reference.PersistentRecordNum);
+            Headers.FreeRecord((ushort)record.Reference.PersistentRecordNum);
             record.Reference = new NullPageRecordReference(Reference);
-            Tracing.Tracer.TraceInformation($"Freed {record.Reference}  in {sw.Elapsed}");
+            Tracing.Tracer.StopActivity(act, null);
         }
     
 
         public IEnumerable<TypedRecord<TRecordType>> IterateRecords()
         {          
             var s = (ushort) _config.RecordMap.GetSize;
-            
-            Tracing.Tracer.TraceInformation($"Starting iterate records in {Reference}");
+            Tracing.Tracer.Write($"Starting iterate records", Reference);          
             var sw = Stopwatch.StartNew();
             foreach (var nonFreeRecord in Headers.NonFreeRecords())
             {
                 var shift = Headers.RecordShift(nonFreeRecord);
                 var t = _recordGetter.GetRecord(shift, s);
-                var reference = PageRecordReference.CreateReference(Reference,nonFreeRecord,_keyType);
-                Tracing.Tracer.TraceInformation($"Yielding {reference} {t} in {sw.Elapsed}");                
+                var reference = PageRecordReference.CreateReference(Reference,nonFreeRecord,_keyType);                    
                 yield return new TypedRecord<TRecordType>{Data = t,Reference = reference};
                 sw.Restart();
             }           
@@ -168,10 +168,10 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
 
         public void Flush()
         {
-            Tracing.Tracer.TraceInformation($"Starting flush in {Reference}");
-            var sw = Stopwatch.StartNew();
+            var act = Tracing.Tracer.StartActivity(new Activity($"Starting flush"),Reference);
+          
             _recordGetter.Flush();
-            Tracing.Tracer.TraceInformation($"Flushed in {Reference} in {sw.Elapsed}");
+            Tracing.Tracer.StopActivity(act,null);
         }
 
 

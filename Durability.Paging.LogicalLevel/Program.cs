@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Paging.LogicalLevel;
 using System.IO.Paging.LogicalLevel.Configuration;
@@ -52,6 +53,7 @@ namespace Durability.Paging.LogicalLevel.Core
 
         public async static Task Main()
         {
+           
             var pmf = new LogicalPageManagerFactory();
             using (var pm = pmf.CreateManager("test", new C(), true))
             {
@@ -64,6 +66,7 @@ namespace Durability.Paging.LogicalLevel.Core
                     DeleteTask(pm)
                     );
             }
+         
             File.Delete("test");
         }
 

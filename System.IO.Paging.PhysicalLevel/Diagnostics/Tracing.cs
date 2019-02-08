@@ -5,10 +5,15 @@ using System.Text;
 
 namespace System.IO.Paging.Diagnostics
 {
-    public static class Tracing
+    internal static class Tracing
     {
-        public static readonly TraceSource Tracer = new TraceSource("System.IO.Paging.Physical");
+        internal static readonly DiagnosticSource Tracer = new DiagnosticListener("System.IO.Paging.Physical");
+        public static void Trace(string name,object value)
+        {
+            if (Tracer.IsEnabled(name))
+                Tracer.Write(name, value);
 
-        
+        }      
     }
 }
+
