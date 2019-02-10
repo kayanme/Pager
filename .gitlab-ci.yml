@@ -20,8 +20,8 @@ test_physical_release:
      - dotnet tool install --global coverlet.console     
      - dotnet tool install coveralls.net --tool-path ./tools
      - dotnet build Test.Paging.Physical -c Release
-     - coverlet Test.Paging.Physical/bin/Release/netcoreapp2.0/ -t dotnet -a "test Test.Paging.Physical -c Release --no-build" --format opencover --output "coverage.xml"
-     - tools/csmacnz.Coveralls --opencover -i coverage.xml --repoToken $COVER_TOKEN --commitId $CI_COMMIT_SHA --commitBranch "$CI_COMMIT_REF_NAME" --commitMessage "$CI_COMMIT_TITLE" --jobId $CI_JOB_ID     
+     - coverlet Test.Paging.Physical/bin/Release/netcoreapp2.0/ -t dotnet -a "test Test.Paging.Physical -c Release --no-build" --format opencover --output "coverage.xml" --exclude "[Test*]*"
+     - tools/csmacnz.Coveralls --opencover -i coverage.xml --repoToken $COVER_TOKEN --commitId "$CI_COMMIT_SHA" --commitBranch "$CI_COMMIT_REF_NAME" --commitMessage "$CI_COMMIT_TITLE" --jobId "$CI_JOB_ID""
 
 test_logical_debug: 
   stage: unit_test  
@@ -35,8 +35,8 @@ test_logical_release:
      - dotnet tool install --global coverlet.console     
      - dotnet build Test.Paging.LogicalLevel -c Release
      - dotnet tool install coveralls.net --tool-path ./tools
-     - coverlet Test.Paging.LogicalLevel/bin/Release/netcoreapp2.0 -t dotnet -a "test Test.Paging.LogicalLevel  -c Release --no-build" --format opencover --output "coverage.xml" 
-     - tools/csmacnz.Coveralls --opencover -i coverage.xml --repoToken $COVER_TOKEN --commitId $CI_COMMIT_SHA --commitBranch "$CI_COMMIT_REF_NAME" --commitMessage "$CI_COMMIT_TITLE" --jobId $CI_JOB_ID        
+     - coverlet Test.Paging.LogicalLevel/bin/Release/netcoreapp2.0 -t dotnet -a "test Test.Paging.LogicalLevel  -c Release --no-build" --format opencover --output "coverage.xml"  --exclude "[Test*]*"
+     - tools/csmacnz.Coveralls --opencover -i coverage.xml --repoToken $COVER_TOKEN --commitId "$CI_COMMIT_SHA" --commitBranch "$CI_COMMIT_REF_NAME" --commitMessage "$CI_COMMIT_TITLE" --jobId "$CI_JOB_ID""        
 
 test_integration_physical_debug: 
   stage: integration_test  
