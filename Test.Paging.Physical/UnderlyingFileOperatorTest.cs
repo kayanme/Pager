@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.IO.Paging.PhysicalLevel;
+using System.IO.Paging.PhysicalLevel.Configuration;
 using System.IO.Paging.PhysicalLevel.Contracts;
 using System.IO.Paging.PhysicalLevel.Contracts.Internal;
 using System.IO.Paging.PhysicalLevel.Implementations;
@@ -31,7 +32,8 @@ namespace Test.Paging.PhysicalLevel
             _file = System.IO.File.Open(FileName, FileMode.OpenOrCreate);
             _file.SetLength(initSize);
             _file.Flush();
-            return new UnderyingFileOperator(_file, _extentSize);
+            return new UnderyingFileOperator(_file,
+                new PageManagerConfiguration { ExtentSize = _extentSize });
         }
 
         [TestCleanup]

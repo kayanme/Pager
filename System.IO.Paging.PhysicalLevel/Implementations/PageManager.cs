@@ -42,15 +42,15 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             _accessor = accessor;     
             _config = config;            
             _pageSize = config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? 4096 : 8192;
-           
-            accessor.InitializeGam((ushort)_pageSize,(ushort)config.ExtentSize);
+            _extentSize = config.ExtentSize;
+            accessor.InitializeGam((ushort)_pageSize,_extentSize);
             _operatorForDisposal = operatorForDisposal;
             _pageBuffer = pageBuffer;
             _pageFactory = pageFactory;
             _pageBuffer.PageRemovedFromBuffer += PageRemovedFromBuffer;
             _pageBuffer.PageCreated += PageCreated;
 
-            _pages = (int)((operatorForDisposal.FileSize - config.ExtentSize) / _pageSize);            
+            _pages = (int)((operatorForDisposal.FileSize - _extentSize) / _pageSize);            
         }
 
         public void MarkPageToRemoveFromBuffer(PageReference pageNum)

@@ -78,4 +78,7 @@ In addition, some logical features are available.
 - Autosorting (based on some record property) page type.
 
 # Perfomance
-Access speed varies due to the scenario, the latest bechmarks a published in docs section.
+Access speed varies due to the scenario, the latest bechmarks are published in docs section.
+
+
+[https://img.shields.io/coveralls/github/kayanme/System.IO.Paging.svg?style=flat]

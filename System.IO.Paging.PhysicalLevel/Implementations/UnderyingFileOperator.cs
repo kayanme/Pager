@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
+using System.IO.Paging.PhysicalLevel.Configuration;
 using System.IO.Paging.PhysicalLevel.Contracts.Internal;
 using System.Threading;
 
@@ -17,13 +18,13 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         private string _mapName;
         private int _extentSize;
         [ImportingConstructor]
-        internal UnderyingFileOperator(FileStream file,int extentSize)
+        internal UnderyingFileOperator(FileStream file, PageManagerConfiguration config)
         {
-            _extentSize = extentSize;
+            _extentSize = config.ExtentSize;
             _file = file ?? throw new ArgumentNullException(nameof(file));
             //_mapName = "PageMap" + Guid.NewGuid();
             _mapName = null;
-            _map = MemoryMappedFile.CreateFromFile(_file, _mapName, _file.Length!=0?_file.Length:extentSize , MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
+            _map = MemoryMappedFile.CreateFromFile(_file, _mapName, _file.Length!=0?_file.Length:_extentSize , MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
             Debug.Assert(_map != null, "_map!=null");
             if (_map == null)
                 throw new ArgumentException("_map");

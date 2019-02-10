@@ -36,17 +36,15 @@ namespace Test.Paging.PhysicalLevel
         private void CheckFile(byte[] gam)
         {
             _map.Dispose();
-            var file = System.IO.File.ReadAllBytes(FileName);
+            var file = File.ReadAllBytes(FileName).Take(gam.Length).ToArray();
             CollectionAssert.AreEqual(gam, file);
         }
 
         private string FileName=>TestContext.TestName;
         private MemoryMappedFile _map;
         private IGamAccessor GetManager()
-        {
-          //  _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, FileName, Extent.Size);
-            var file = A.Fake<IUnderlyingFileOperator>(s=>s.Strict());
-          //  A.CallTo(()=> file.GetMappedFile(Extent.Size)).Returns(_map);
+        {          
+            var file = A.Fake<IUnderlyingFileOperator>(s=>s.Strict());          
             A.CallTo(() => file.FileSize).Returns(_extentSize);
             A.CallTo(() => file.GetMappedFile(A<long>.Ignored))
                 .ReturnsLazily((long l)=>
@@ -54,7 +52,7 @@ namespace Test.Paging.PhysicalLevel
 
             A.CallTo(() => file.ReturnMappedFile(A<MemoryMappedFile>.Ignored)).Invokes((MemoryMappedFile m)=> { if (m!=null) m.Dispose();});           
             var g = new GamAccessor(file);
-            g.InitializeGam(4096,_extentSize);
+            g.InitializeGam(0,_extentSize);
             return g;
         }
         [TestCleanup]

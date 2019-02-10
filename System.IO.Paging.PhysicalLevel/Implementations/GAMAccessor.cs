@@ -50,7 +50,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         {
             if (extentSize < pageSize)
                 throw new InvalidOperationException($"Extent size {extentSize} is less, than a page size {pageSize}");
-            if (extentSize/pageSize * pageSize != extentSize)
+            if (_pageSize!=0 && extentSize/pageSize * pageSize != extentSize)//page size can be 0 in some test cases, but since it is formed strictly inside assembly during normal work - let it be
                 throw new InvalidOperationException($"Extent size {extentSize} is not a multiply of a page size {pageSize}");
             _pageSize = pageSize;
             _extentSize = extentSize;
@@ -140,12 +140,15 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             {
                 if (disposing)
                 {
+                  
                     //Debug.Assert(_mapToReturn != null, "_mapToReturn != null");
                     if (_mapToReturn !=null)
                        _fileOperator.ReturnMappedFile(_mapToReturn);
-                    if (_accessors !=null)
-                    foreach(var acc in _accessors)
-                       acc.Dispose();
+                    if (_accessors != null)
+                        foreach (var acc in _accessors)
+                        {                            
+                            acc.Dispose();
+                        }
                 }
 
                 _disposedValue = true;
