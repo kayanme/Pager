@@ -12,7 +12,7 @@ test_physical_debug:
   stage: unit_test  
   script: 
      - dotnet tool install --global coverlet.console
-     - dotnet tool install coveralls.net --version 1.0.0-beta0002 --tool-path ./tools
+     - dotnet tool install coveralls.net --tool-path ./tools
      - dotnet test Test.Paging.Physical -c Debug -r testResult/ /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=coverage.xml               
      - tools/csmacnz.Coveralls --opencover -i coverage.xml --repoToken 6ZRcivFLTNUU4bmNIqsZgaXOc4IMWktjd --commitId $CI_COMMIT_SHA --commitBranch $CI_COMMIT_REF_NAME --commitMessage $CI_COMMIT_TITLE --jobId $CI_JOB_ID
 
