@@ -4,6 +4,7 @@ The concept is basically the same, as the most databases use, so it can help you
 
 # Usage sample
 Describe your pages first:
+
 '''C#
 internal class PageConfiguration:PageManagerConfiguration
     {
@@ -22,6 +23,7 @@ internal class PageConfiguration:PageManagerConfiguration
         }
     }
 '''
+
 Than create a manager, which will use that configuration to work exclusevly with it's own file:
 
 '''C#
@@ -32,6 +34,7 @@ Than create a manager, which will use that configuration to work exclusevly with
  '''
 
  After that you can use this manager and accessors it provides to communicate with pages and their records:
+
  '''C#
  //here we create a page first to work with it
     var pageRef = _pageManager.CreatePage(2);
@@ -58,6 +61,7 @@ Than create a manager, which will use that configuration to work exclusevly with
 		page.FreeRecord(recordWithReference);
 	}
 '''
+
 At last you can destroy the page itself.
 
 '''C#
@@ -80,5 +84,9 @@ In addition, some logical features are available.
 # Perfomance
 Access speed varies due to the scenario, the latest bechmarks are published in docs section.
 
-
-[https://img.shields.io/coveralls/github/kayanme/System.IO.Paging.svg?style=flat]
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Build](https://img.shields.io/gitlab/pipeline/kayanme/System.IO.Paging.svg?style=flat)]
+[![Test coverage](https://img.shields.io/coveralls/github/kayanme/System.IO.Paging.svg?style=flat)]
+[![NuGet](https://img.shields.io/nuget/v/Addiction.System.IO.Paging.PhysicalLevel.svg)](https://www.nuget.org/packages/Addiction.System.IO.Paging.PhysicalLevel)
+[![Nuget downloads](https://img.shields.io/nuget/dt/Addiction.System.IO.Paging.PhysicalLevel.svg?style=flat)]
+[![Nuget downloads](https://img.shields.io/nuget/dt/Addiction.System.IO.Paging.LogicalLevel.svg?style=flat)]
