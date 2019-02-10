@@ -22,9 +22,8 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
             Action action) 
             : base( reference,action)
         {
-            _accessor = accessor;
-        
-            _config = config;
+            _accessor = accessor ?? throw new ArgumentNullException(nameof(accessor));        
+            _config = config ?? throw new ArgumentNullException(nameof(config));
            
         }
 

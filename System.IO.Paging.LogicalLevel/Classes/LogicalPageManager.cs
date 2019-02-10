@@ -108,11 +108,11 @@ namespace System.IO.Paging.LogicalLevel.Classes
             }
         }
 
-        public void DeletePage(PageReference page, bool ensureEmptyness)
+        public void DeletePage(PageReference page)
         {
             if (page is VirtualPageReference)
                 return;
-            _physicalManager.DeletePage(page, ensureEmptyness);
+            _physicalManager.DeletePage(page);
         }
 
         public void RecreatePage(PageReference pageNum, byte type)

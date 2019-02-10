@@ -15,7 +15,7 @@ namespace System.IO.Paging.PhysicalLevel.Configuration
         public enum PageSize { Kb4 = 4*1024, Kb8 = 8 * 1024 }
 
         internal PageSize SizeOfPage { get; set; }
-
+        internal int ExtentSize { get; set; }
         [MethodImpl(MethodImplOptions.Synchronized)]
         protected IPageDefinitionBuilder DefinePageType(byte num)
         {
@@ -30,10 +30,17 @@ namespace System.IO.Paging.PhysicalLevel.Configuration
         {           
         }
 
-        protected PageManagerConfiguration(PageSize sizeOfPage)
+        protected PageManagerConfiguration(PageSize sizeOfPage) : this(sizeOfPage,64)
         {
+            
+        }
+
+        protected PageManagerConfiguration(PageSize sizeOfPage,int extentSizeInKb)
+        {
+            ExtentSize = extentSizeInKb*1024;
             SizeOfPage = sizeOfPage;
         }
+
 
         internal void Verify()
         {

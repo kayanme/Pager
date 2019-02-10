@@ -28,7 +28,7 @@ namespace Test.Integration.Physical
                 System.IO.File.Delete("testFile");
             using (var factory = new PageManagerFactory())
             {
-                _pageManager = factory.CreateManager("testFile", new PageConfiguration(), true);
+                _pageManager = factory.CreateManagerWithAutoFileCreation("testFile", new PageConfiguration());
             }
         }
 
@@ -162,7 +162,7 @@ namespace Test.Integration.Physical
                 var e = list.First(k => k.Data.Value == y.Data.Value);
                 Assert.AreEqual(e.Reference, y.Reference);
             }
-            _pageManager.DeletePage(pageRef, false); 
+            _pageManager.DeletePage(pageRef); 
             page.Dispose();
             sw.Stop();
             Debug.Print(sw.Elapsed.ToString("g"));
@@ -242,7 +242,7 @@ namespace Test.Integration.Physical
                 var e = list.First(k => k.Data.Value == y.Data.Value);
                 Assert.AreEqual(e.Reference, y.Reference);
             }
-            _pageManager.DeletePage(pageRef, false);
+            _pageManager.DeletePage(pageRef);
             sw.Stop();
             Debug.Print(sw.Elapsed.ToString("g"));
         }

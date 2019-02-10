@@ -1,38 +1,40 @@
 using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using System.IO.Paging.PhysicalLevel.Classes.References;
+using System.IO.Paging.PhysicalLevel.Configuration.Builder;
 using System.Threading.Tasks;
 
 namespace System.IO.Paging.PhysicalLevel.Classes.Pages
 {
     internal  class LockingPage :TypedPageBase, IPhysicalLocks 
     {
-        private readonly IPhysicalLockManager<PageReference> _pageLockManager;
-        private readonly IPhysicalLockManager<PageRecordReference> _pageRecordLockManager;
-        private readonly LockMatrix _lockMatrix;
+        private readonly ILockManager<PageReference> _pageLockManager;
+        private readonly ILockManager<PageRecordReference> _pageRecordLockManager;
+        private readonly LockRuleset _lockMatrix;
 
-        public LockingPage(IPhysicalLockManager<PageReference> pageLockManager,
-            IPhysicalLockManager<PageRecordReference> pageRecordLockManager,
-            LockMatrix lockMatrix,
+        public LockingPage(ILockManager<PageReference> pageLockManager,
+            ILockManager<PageRecordReference> pageRecordLockManager,
+            LockRuleset lockMatrix,
             PageReference reference,
             Action action):base(reference,action)
         {
             _pageLockManager = pageLockManager;
             _pageRecordLockManager = pageRecordLockManager;
             _lockMatrix = lockMatrix;
+            
         }
 
        
 
         public bool AcqurePageLock(byte lockType, out LockToken<PageReference> token)
         {
-            return _pageLockManager.AcqureLock(_reference, lockType, _lockMatrix, out token);
+            return _pageLockManager.TryAcqureLock(_reference,  _lockMatrix, lockType, out token);
         }
 
         private PageReference _reference { get;  }
 
         public async Task<LockToken<PageReference>> WaitPageLock(byte lockType)
         {
-            return await _pageLockManager.WaitLock(_reference, lockType, _lockMatrix);
+            return await _pageLockManager.WaitLock(_reference,  _lockMatrix, lockType);
         }
 
         public void ReleasePageLock(LockToken<PageReference> token)
@@ -42,12 +44,12 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
 
         public bool AcqureLock(PageRecordReference record, byte lockType, out LockToken<PageRecordReference> token)
         {
-            return _pageRecordLockManager.AcqureLock(record, lockType, _lockMatrix, out token);
+            return _pageRecordLockManager.TryAcqureLock(record,  _lockMatrix, lockType, out token);
         }
 
         public async Task<LockToken<PageRecordReference>> WaitLock(PageRecordReference record, byte lockType)
         {
-            return await _pageRecordLockManager.WaitLock(record, lockType, _lockMatrix);
+            return await _pageRecordLockManager.WaitLock(record, _lockMatrix, lockType);
         }
 
         public void ReleaseLock(LockToken<PageRecordReference> token)

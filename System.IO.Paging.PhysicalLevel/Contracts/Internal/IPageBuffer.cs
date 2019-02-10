@@ -7,7 +7,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 {
     internal interface IPageBuffer:IDisposable
     {        
-        BufferedPage GetPageFromBuffer(PageReference pageNum, PageManagerConfiguration _config, int pageSize);
+        BufferedPage GetPageFromBuffer(PageReference pageNum, PageManagerConfiguration _config, int pageSize,int extentSize);
         void MarkPageToRemoveFromBuffer(PageReference pageNum);
         void RemovePageFromBuffer(PageReference page);
         void Flush(params PageReference[] pages);

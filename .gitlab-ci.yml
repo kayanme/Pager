@@ -74,6 +74,8 @@ pages:
    artifacts:
      paths: 
        - public
+   only:
+     - master
    script: 
     - cp -r Benchmarks public  
   #  - cp -r Benchmark.Paging.LogicalLevel/bin/Release/Benchmarks/* public/benchmarks/logical
@@ -81,24 +83,32 @@ pages:
 
 packages_physical_release:
   stage: deploy
+  only:
+     - master
   script: 
    - dotnet build System.IO.Paging.PhysicalLevel/System.IO.Paging.PhysicalLevel.csproj -c Release 
    - dotnet nuget push System.IO.Paging.PhysicalLevel/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
 
 packages_physical_debug:
   stage: deploy
+  only:
+     - master
   script: 
    - dotnet build System.IO.Paging.PhysicalLevel/System.IO.Paging.PhysicalLevel.csproj -c Debug 
    - dotnet nuget push System.IO.Paging.PhysicalLevel/bin/Debug/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
    
 packages_logical_release:
   stage: deploy
+  only:
+     - master
   script: 
    - dotnet build System.IO.Paging.LogicalLevel/System.IO.Paging.LogicalLevel.csproj -c Release 
    - dotnet nuget push System.IO.Paging.LogicalLevel/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json
    
 packages_logical_debug:
   stage: deploy
+  only:
+     - master
   script:    
    - dotnet build System.IO.Paging.LogicalLevel/System.IO.Paging.LogicalLevel.csproj -c Debug
    - dotnet nuget push System.IO.Paging.LogicalLevel/bin/Debug/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json

@@ -9,7 +9,7 @@ namespace System.IO.Paging.PhysicalLevel.Contracts
 {
     internal interface IBufferedPageFactory
     {
-        BufferedPage CreateHeaderedPage(int pageNum, PageContentConfiguration pageConfig, PageHeadersConfiguration headerConfig, int _pageSize);
-        BufferedPage CreatePage(int pageNum, PageContentConfiguration _config, int _pageSize);
+        BufferedPage CreateHeaderedPage(int pageNum, PageContentConfiguration pageConfig, PageHeadersConfiguration headerConfig, int _pageSize, int extentSize);
+        BufferedPage CreatePage(int pageNum, PageContentConfiguration _config, int _pageSize, int extentSize);
     }
 }

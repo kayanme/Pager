@@ -10,11 +10,21 @@ namespace System.IO.Paging.LogicalLevel
 {
     public sealed class LogicalPageManagerFactory : ILogicalPageManagerFactory
     {
-        public IPageManager CreateManager(string fileName, PageManagerConfiguration configuration, bool createFileIfNotExists)
+      
+
+        public IPageManager CreateManagerWithAutoFileCreation(string fileName, PageManagerConfiguration configuration)
         {
-            var phys = _factory.CreateManager(fileName, configuration, createFileIfNotExists);
+            var phys = _factory.CreateManagerWithAutoFileCreation(fileName, configuration);
             var config = configuration as LogicalPageManagerConfiguration;
-            return config != null ? new LogicalPageManager(phys, config,new LogicalPageFactory()) : phys;
+            return config != null ? new LogicalPageManager(phys, config, new LogicalPageFactory()) : phys;
+        }
+
+        public IPageManager CreateManagerForExistingFile(string fileName, PageManagerConfiguration configuration)
+        {
+            var phys = _factory.CreateManagerForExistingFile(fileName, configuration);
+            var config = configuration as LogicalPageManagerConfiguration;
+            return config != null ? new LogicalPageManager(phys, config, new LogicalPageFactory()) : phys;
+
         }
 
         readonly IPageManagerFactory _factory;

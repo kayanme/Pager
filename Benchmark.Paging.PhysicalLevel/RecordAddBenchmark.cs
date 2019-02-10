@@ -19,6 +19,9 @@ namespace Benchmark.Paging.PhysicalLevel
         [Params(PageManagerConfiguration.PageSize.Kb4,PageManagerConfiguration.PageSize.Kb8)]        
         public PageManagerConfiguration.PageSize PageSize;
 
+        [Params(8,16,32,64,128)]
+        public int ExtentRate;
+
         [Params(WriteMethod.Naive, WriteMethod.FixedSize,WriteMethod.FixedSizeWithOrder,WriteMethod.Image,WriteMethod.VariableSize)]
         public WriteMethod WriteMethod;
 
@@ -36,7 +39,7 @@ namespace Benchmark.Paging.PhysicalLevel
                 }
             }
             private int _size;
-            public PageConfig(PageManagerConfiguration.PageSize size) : base(size)
+            public PageConfig(PageSize size,int extentSize) : base(size,extentSize)
             {
                 _size = SizeOfPage == PageSize.Kb4 ? 4096 : 8192;
                 DefinePageType(1)
@@ -69,14 +72,15 @@ namespace Benchmark.Paging.PhysicalLevel
         public void Init()
         {
             System.IO.File.Delete("testFile");
-            var config = new PageConfig( PageSize);
+            var config = new PageConfig( PageSize,ExtentRate);
            
-            _manager = new PageManagerFactory().CreateManager("testFile", config,true);
+            _manager = new PageManagerFactory().CreateManagerWithAutoFileCreation("testFile", config);
             _page =_manager.GetRecordAccessor<TestRecord>( _manager.CreatePage(1));
             _page2 = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(1));
             _page3 = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(3));
             _page4 = _manager.GetRecordAccessor<TestRecord2>(_manager.CreatePage(4));
             _other = System.IO.File.Open("testfile2" , FileMode.OpenOrCreate);
+            
         }
 
         [Benchmark]

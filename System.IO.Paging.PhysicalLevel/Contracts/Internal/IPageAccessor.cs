@@ -9,6 +9,7 @@
         void QueueByteArrayOperation(int position, int length, ByteAction byteAction);
 
         int PageSize { get; }
+        
         void Flush();
         uint ExtentNumber { get; }
         void ClearPage();

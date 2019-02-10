@@ -16,8 +16,8 @@ namespace Test.Paging.PhysicalLevel
     {
         public TestContext TestContext { get; set; }
 
-
-        private static byte[] CreateEmptyGam() => new byte[Extent.Size];
+        private static int _extentSize = 64*1024;
+        private static byte[] CreateEmptyGam() => new byte[_extentSize];
 
     
         private static void MarkInGamFilled(byte[] gam, int pageNum,byte type)
@@ -47,14 +47,14 @@ namespace Test.Paging.PhysicalLevel
           //  _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, FileName, Extent.Size);
             var file = A.Fake<IUnderlyingFileOperator>(s=>s.Strict());
           //  A.CallTo(()=> file.GetMappedFile(Extent.Size)).Returns(_map);
-            A.CallTo(() => file.FileSize).Returns(Extent.Size);
+            A.CallTo(() => file.FileSize).Returns(_extentSize);
             A.CallTo(() => file.GetMappedFile(A<long>.Ignored))
                 .ReturnsLazily((long l)=>
                 { _map = MemoryMappedFile.CreateFromFile(FileName, FileMode.OpenOrCreate, null, l);Debug.Assert(_map!=null,"_map!=null"); return _map; });
 
             A.CallTo(() => file.ReturnMappedFile(A<MemoryMappedFile>.Ignored)).Invokes((MemoryMappedFile m)=> { if (m!=null) m.Dispose();});           
             var g = new GamAccessor(file);
-            g.InitializeGam(0);
+            g.InitializeGam(4096,_extentSize);
             return g;
         }
         [TestCleanup]
@@ -87,18 +87,18 @@ namespace Test.Paging.PhysicalLevel
         {
             using (var file = System.IO.File.Create(FileName))
             {
-                var bytes = Enumerable.Repeat((byte)1, Extent.Size).ToArray();
-                file.Write(bytes, 0, Extent.Size);
+                var bytes = Enumerable.Repeat((byte)1, _extentSize).ToArray();
+                file.Write(bytes, 0, _extentSize);
             }
             using (var manager = GetManager())
             {
                 var pageNum = manager.MarkPageUsed(1);
-                Assert.AreEqual(Extent.Size, pageNum);
+                Assert.AreEqual(_extentSize, pageNum);
             }
 
             var gam = CreateEmptyGam();
             var gam2 = CreateEmptyGam();
-            for(int i = 0;i<Extent.Size;i++) MarkInGamFilled(gam, i, 1);
+            for(int i = 0;i< _extentSize; i++) MarkInGamFilled(gam, i, 1);
             MarkInGamFilled(gam2, 0, 1);
             CheckFile(gam.Concat(gam2).ToArray());
         }

@@ -7,12 +7,12 @@ using System.IO.Paging.PhysicalLevel.Implementations;
 
 namespace Benchmark.Paging.PhysicalLevel
 {
-    public class Physical_LockBenchmark
+    public class LockBenchmark
     {
         private ConcurrentDictionary<int,ReaderWriterLockSlim> _locks = new ConcurrentDictionary<int, ReaderWriterLockSlim>();
      
         private LockManager<int> _lock = new LockManager<int>();
-        private LockMatrix _matrix = new LockMatrix(new ReaderWriterLockRuleset());
+        private LockRuleset _matrix = new ReaderWriterLockRuleset();
 
         [Benchmark]
         public void NaiveReadTakeRelease()
@@ -39,7 +39,7 @@ namespace Benchmark.Paging.PhysicalLevel
         [Benchmark]
         public void PageReadTakeRelease()
         {
-            _lock.AcqureLock(1, 0, _matrix, out var token);
+            _lock.TryAcqureLock(1, _matrix,0, out var token);
             _lock.ReleaseLock(token,_matrix);
         }
 
@@ -47,8 +47,8 @@ namespace Benchmark.Paging.PhysicalLevel
         [Benchmark]
         public void PageTwoReadTakeRelease()
         {
-            _lock.AcqureLock(1, 0, _matrix, out var token);
-            _lock.AcqureLock(1, 0, _matrix, out var token2);
+            _lock.TryAcqureLock(1, _matrix, 0, out var token);
+            _lock.TryAcqureLock(1, _matrix, 0, out var token2);
             _lock.ReleaseLock(token, _matrix);
             _lock.ReleaseLock(token2, _matrix);
         }
@@ -64,7 +64,7 @@ namespace Benchmark.Paging.PhysicalLevel
         [Benchmark]
         public void PageWriteTakeRelease()
         {
-            _lock.AcqureLock(1, 0, _matrix, out var token);
+            _lock.TryAcqureLock(1, _matrix, 0, out var token);
             _lock.ReleaseLock(token, _matrix);
         }
     }

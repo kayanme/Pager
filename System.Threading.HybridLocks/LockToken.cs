@@ -1,4 +1,5 @@
 ﻿using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using System.IO.Paging.PhysicalLevel.Configuration.Builder;
 using System.IO.Paging.PhysicalLevel.Exceptions;
 using System.IO.Paging.PhysicalLevel.Implementations;
 using System.Threading;
@@ -9,10 +10,10 @@ namespace System.IO.Paging.PhysicalLevel.Classes
     {
         public readonly  byte LockLevel;
         internal readonly T LockedObject;
-        private readonly IPhysicalLockManager<T> _holder;
-        private readonly LockMatrix _matrix;
+        private readonly ILockManager<T> _holder;
+        private readonly LockRuleset _matrix;
         private int _isReleased;
-        internal LockToken(byte lockLevel, T lockedObject, IPhysicalLockManager<T> holder, LockMatrix matrix,int sharedLockCount)
+        internal LockToken(byte lockLevel, T lockedObject, ILockManager<T> holder, LockRuleset matrix,int sharedLockCount)
         {
             LockLevel = lockLevel;
             LockedObject = lockedObject;

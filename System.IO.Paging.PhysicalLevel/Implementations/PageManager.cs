@@ -22,6 +22,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
          
         private readonly IGamAccessor _accessor;
         private readonly int _pageSize;
+        private readonly int _extentSize;
         private readonly PageManagerConfiguration _config;
         private readonly IUnderlyingFileOperator _operatorForDisposal;
         private readonly IPageBuffer _pageBuffer;
@@ -41,14 +42,15 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             _accessor = accessor;     
             _config = config;            
             _pageSize = config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? 4096 : 8192;
-            accessor.InitializeGam((ushort)_pageSize);
+           
+            accessor.InitializeGam((ushort)_pageSize,(ushort)config.ExtentSize);
             _operatorForDisposal = operatorForDisposal;
             _pageBuffer = pageBuffer;
             _pageFactory = pageFactory;
             _pageBuffer.PageRemovedFromBuffer += PageRemovedFromBuffer;
             _pageBuffer.PageCreated += PageCreated;
 
-            _pages = (int)((operatorForDisposal.FileSize - Extent.Size) / _pageSize);            
+            _pages = (int)((operatorForDisposal.FileSize - config.ExtentSize) / _pageSize);            
         }
 
         public void MarkPageToRemoveFromBuffer(PageReference pageNum)
@@ -57,10 +59,10 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         }
 
 
-        public void DeletePage(PageReference pageNum, bool ensureEmptyness)
+        public void DeletePage(PageReference pageNum)
         {
             var act = Tracing.Tracer.StartActivity(new Activity($"Deleting page"),pageNum);
-            var sw = Stopwatch.StartNew();
+            
             if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
             var pageType = _accessor.GetPageType(pageNum.PageNum);
@@ -77,7 +79,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             BufferedPage block;
             do
             {
-                block = _pageBuffer.GetPageFromBuffer(pageNum,_config,_pageSize);
+                block = _pageBuffer.GetPageFromBuffer(pageNum,_config,_pageSize,_extentSize);
             } while (Interlocked.CompareExchange(ref block.UserCount, -1, 0) != 0);
 
             Thread.BeginCriticalRegion();            
@@ -102,12 +104,12 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             var firstPage = _firstPages.GetOrAdd(pageType, pt =>
             {
                 int pr = 0;
-                while (pr < Extent.Size && _accessor.GetPageType(pr) != pt)
+                while (pr < _extentSize && _accessor.GetPageType(pr) != pt)
                 {
                     pr++;
                 }
                 ;
-                if (pr == Extent.Size)
+                if (pr == _extentSize)
                     return null;
                 return new PageReference(pr);
             });
@@ -118,7 +120,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                 yield return firstPage;
                 int pr = firstPage.PageNum + 1;
 
-                foreach (var i in Enumerable.Range(pr, Extent.Size))
+                foreach (var i in Enumerable.Range(pr, _extentSize))
                 {
                     if (_accessor.GetPageType(pr) == pageType)
                     {
@@ -135,10 +137,10 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         {
             if (_disposedValue)
                 throw new ObjectDisposedException("IPageManager");
-            Trace.Indent();
+            
             var act = Tracing.Tracer.StartActivity(new Activity($"Retrieving page"), pageNum);
             var bufferAct = Tracing.Tracer.StartActivity(new Activity($"Retrieving page  from buffer"), pageNum);
-            var page = _pageBuffer.GetPageFromBuffer(pageNum,_config,_pageSize);
+            var page = _pageBuffer.GetPageFromBuffer(pageNum,_config,_pageSize,_extentSize);
             Tracing.Tracer.StopActivity(act,null);
             T userPage;
             try
@@ -154,7 +156,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             if (userPage == null)
                 _pageBuffer.ReleasePageUseAndCleanIfNeeded(pageNum, page);
             Tracing.Tracer.StopActivity(act,null);
-            Trace.Unindent();
+            
             return userPage;
         }
 

@@ -43,4 +43,8 @@
     <PackageReference Include="System.IO.MemoryMappedFiles" Version="4.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\System.Threading.HybridLocks\System.Threading.HybridLocks.csproj" />
+  </ItemGroup>
+
 </Project>

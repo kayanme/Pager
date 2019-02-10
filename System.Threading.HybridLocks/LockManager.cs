@@ -3,6 +3,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO.Paging.PhysicalLevel.Classes;
 using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
+using System.IO.Paging.PhysicalLevel.Configuration.Builder;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,8 +12,8 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 {
 
 
-    [InheritedExport(typeof(IPhysicalLockManager<>))]
-    internal sealed class LockManager<T>:IPhysicalLockManager<T>
+    [InheritedExport(typeof(ILockManager<>))]
+    public sealed class LockManager<T>:ILockManager<T>
     {
         private class LockHolder
         {
@@ -31,17 +32,17 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         }
         private ConcurrentDictionary<T, LockHolder> _locks = new ConcurrentDictionary<T, LockHolder>();
 
-        public bool AcqureLock(T lockingObject, byte lockType, LockMatrix rules, out LockToken<T> token)
+        public bool TryAcqureLock(T lockingObject, LockRuleset rules, byte lockType, out LockToken<T> token)
         {
-            var h = _locks.GetOrAdd(lockingObject, _ => new LockHolder(rules.SelfSharedLocks));
+            var h = _locks.GetOrAdd(lockingObject, _ => new LockHolder(rules.LockMatrix.SelfSharedLocks));
             h.LastUsage = Stopwatch.GetTimestamp();
 
             return EnterIfPossible(lockingObject, lockType, rules, out token, h);
         }
 
-        private bool EnterIfPossible(T lockingObject, byte lockType, LockMatrix rules, out LockToken<T> token, LockHolder h)
+        private bool EnterIfPossible(T lockingObject, byte lockType, LockRuleset rules, out LockToken<T> token, LockHolder h)
         {
-            var entrancePair = rules.EntrancePair(lockType, h.LockInfo);//найден (или не найден) допустимый переход из текущего состояния блокировок в требуемый тип
+            var entrancePair = rules.LockMatrix.EntrancePair(lockType, h.LockInfo);//найден (или не найден) допустимый переход из текущего состояния блокировок в требуемый тип
             if (entrancePair.HasValue)//если найден
             {
                 
@@ -56,7 +57,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                         //если взяли разделяемую блокировку с уже существующей
                         if ((blockExit & LockMatrix.SharenessCheckLock) == LockMatrix.SharenessCheckLock)
                         {
-                            sharedLockCount = h.IncrLock(rules.SelfSharedLockShift(lockType));//добавляем счётчик к количеству этих блокировок на заданном типе
+                            sharedLockCount = h.IncrLock(rules.LockMatrix.SelfSharedLockShift(lockType));//добавляем счётчик к количеству этих блокировок на заданном типе
                             Debug.Print($"sharedLockCount");
                             Debug.Assert(h.LockInfo == blockExit, "h.LockInfo == blockExit", "Состояние блокировок изменилось там, где не должно");
                             h.LockInfo = (int)((uint)h.LockInfo & LockMatrix.SharenessCheckLockDrop);//и сбрасываем этот флажок обратно. Никто не должен поменять LockInfo, т.к. с этим поднятым флажков не должно быть допустимых состояний.
@@ -70,9 +71,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             return false;
         }
 
-        public async Task<LockToken<T>> WaitLock(T lockingObject, byte lockType, LockMatrix rules)
+        public async Task<LockToken<T>> WaitLock(T lockingObject, LockRuleset rules, byte lockType)
         {
-            var h = _locks.GetOrAdd(lockingObject, _ => new LockHolder(rules.SelfSharedLocks));
+            var h = _locks.GetOrAdd(lockingObject, _ => new LockHolder(rules.LockMatrix.SelfSharedLocks));
             h.LastUsage = Stopwatch.GetTimestamp();
             LockToken<T> token;
             while (!EnterIfPossible(lockingObject, lockType, rules, out token, h)) await Task.Delay(1);
@@ -80,17 +81,17 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 
         }
         
-        public void ReleaseLock(LockToken<T> token, LockMatrix rules)
+        public void ReleaseLock(LockToken<T> token, LockRuleset rules)
         {
             if (!_locks.TryGetValue(token.LockedObject,out var h))
             {
                 throw new InvalidOperationException("Object not locked");
             }
             var lockType = token.LockLevel;
-
+            var matrix = rules.LockMatrix;
             unchecked
             {
-                if (rules.IsSelfShared(lockType))
+                if (matrix.IsSelfShared(lockType))
                 {
                     int i;
                     Thread.BeginCriticalRegion();
@@ -100,14 +101,14 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                         i = (int)( h.LockInfo & LockMatrix.SharenessCheckLockDrop);//мы исключаем из возможных переходы, результатом которых будет поднятый флаг проверки разделяемой блокировки (проверки разделяемой блокировки смогут пересечься)
                     } while (Interlocked.CompareExchange(ref h.LockInfo,i | (int)LockMatrix.SharenessCheckLock,i)!=i);
                     
-                    if (h.GetSharedLockCount(rules.SelfSharedLockShift(lockType)) == 0)//если текущий переход убирает существующую разделяемую блокировку (т.е. их сейчас нет).
+                    if (h.GetSharedLockCount(matrix.SelfSharedLockShift(lockType)) == 0)//если текущий переход убирает существующую разделяемую блокировку (т.е. их сейчас нет).
                     {
                         //делаем переход в новое состояние
-                        h.LockInfo = (int)rules.ExitPair(lockType,(int)(LockMatrix.SharenessCheckLockDrop & (uint)h.LockInfo)).Value.BlockEntrance;
+                        h.LockInfo = (int)matrix.ExitPair(lockType,(int)(LockMatrix.SharenessCheckLockDrop & (uint)h.LockInfo)).Value.BlockEntrance;
                     }
                     else//если же видим, что освобождение текущей блокировки только уменьшает количество разделяемых блокировок её типа
                     {
-                        var sharedLockCount = h.DecrLock(rules.SelfSharedLockShift(lockType));//то уменьшаем счётчик блокировок
+                        var sharedLockCount = h.DecrLock(matrix.SelfSharedLockShift(lockType));//то уменьшаем счётчик блокировок
                         Debug.Print($"{sharedLockCount}");
                         h.LockInfo = h.LockInfo & (int)LockMatrix.SharenessCheckLockDrop;//и сбрасываем флаг проверки
                     }
@@ -117,7 +118,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                 {                     
                     while (true)
                     {
-                        var entrancePair = rules.ExitPair(lockType,(int)(h.LockInfo & LockMatrix.SharenessCheckLockDrop));
+                        var entrancePair = matrix.ExitPair(lockType,(int)(h.LockInfo & LockMatrix.SharenessCheckLockDrop));
                         if (entrancePair.HasValue)
                         {
                             if (Interlocked.CompareExchange(ref h.LockInfo, (int) entrancePair.Value.BlockEntrance,
@@ -134,13 +135,14 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         }
         
 
-        public bool ChangeLockLevel(ref LockToken<T> token, LockMatrix rules, byte newLevel)
+        public bool ChangeLockLevel(ref LockToken<T> token, LockRuleset rules, byte newLevel)
         {
             if (!_locks.TryGetValue(token.LockedObject, out var h))
             {
                 throw new InvalidOperationException("Object not locked");
             }
-            var excalationPair = rules.EscalationPairs(token.LockLevel, newLevel)
+            var matrix = rules.LockMatrix;
+            var excalationPair = matrix.EscalationPairs(token.LockLevel, newLevel)
                 .Select(k=>(LockMatrix.MatrPair?)k)
                 .FirstOrDefault(k => k.Value.BlockEntrance == h.LockInfo);
             if (excalationPair.HasValue)
@@ -155,16 +157,16 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             return false;
         }
 
-        public async Task<LockToken<T>> WaitForLockLevelChange(LockToken<T> token, LockMatrix rules, byte newLevel)
+        public async Task<LockToken<T>> WaitForLockLevelChange(LockToken<T> token, LockRuleset rules, byte newLevel)
         {
             if (!_locks.TryGetValue(token.LockedObject, out var h))
             {
                 throw new InvalidOperationException("Object not locked");
             }
-
+            var matrix = rules.LockMatrix;
             while (true)
             {
-                var excalationPair = rules.EscalationPairs(token.LockLevel, newLevel)
+                var excalationPair = matrix.EscalationPairs(token.LockLevel, newLevel)
                     .Select(k => (LockMatrix.MatrPair?)k)
                     .FirstOrDefault(k => k.Value.BlockEntrance == h.LockInfo);
                 if (excalationPair.HasValue)

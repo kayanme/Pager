@@ -25,7 +25,7 @@ namespace Durability.Paging.PhysicalLevel
             var config = new PageConfig(PageManagerConfiguration.PageSize.Kb8);
           
             var f = new PageManagerFactory();
-            _pageManager = f.CreateManager("teststress", config, true);
+            _pageManager = f.CreateManagerWithAutoFileCreation("teststress", config);
             _lastunempty =_pageManager.GetRecordAccessor<TestRecord>( _pageManager.CreatePage(2));
             _store = new SharedDataStore();
             var d = new CompositeDisposable(CreateWorker(),

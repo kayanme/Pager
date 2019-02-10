@@ -2,14 +2,15 @@
 using FakeItEasy;
 using System.IO.Paging.PhysicalLevel.Classes;
 using System.IO.Paging.PhysicalLevel.Configuration.Builder;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using NUnit.Framework;
 
 namespace Test.Paging.PhysicalLevel.Locks
 {
-    [TestClass]
+    [TestFixture]
     public class MatrixBuild
     {
-        [TestMethod]
+        
         public void SimpleLockRule()
         {
             var r = A.Fake<LockRuleset>();
@@ -29,7 +30,7 @@ namespace Test.Paging.PhysicalLevel.Locks
         }
 
 
-        [TestMethod]
+        [Test]
         public void SimpleLockRule_WithSelfShared()
         {
             var r = A.Fake<LockRuleset>();
@@ -46,7 +47,7 @@ namespace Test.Paging.PhysicalLevel.Locks
         }
 
 
-        [TestMethod]
+        [Test]
         public void Reader_Writer_LockScheme()
         {
             var r = A.Fake<LockRuleset>();
@@ -80,7 +81,7 @@ namespace Test.Paging.PhysicalLevel.Locks
 
         }
 
-        [TestMethod]
+        [Test]
         public void ThreeLocks_TwoPairsShared_OneUnshared()
         {
             var r = A.Fake<LockRuleset>();

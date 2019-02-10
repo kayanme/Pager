@@ -128,7 +128,8 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
 
         }
 
-        public IEnumerable<ushort> NonFreeRecords()=>  RecordInfo.Where((k,i) => RecordType((ushort)i) != 0).Select((k, i) => (ushort)i);
+        public IEnumerable<ushort> NonFreeRecords() 
+            =>  RecordInfo.Where((k,i) => RecordType((ushort)i) != 0).Select((k, i) => (ushort)i);
 
         public void SetNewRecordInfo(ushort logicalRecordNum,ushort rSize, byte rType)
         {

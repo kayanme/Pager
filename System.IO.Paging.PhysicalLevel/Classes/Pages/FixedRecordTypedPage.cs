@@ -140,8 +140,7 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
             if (record.Reference is NullPageRecordReference)
                 throw new ArgumentException("Trying to delete deleted record");
             var act = Tracing.Tracer.StartActivity(new Activity("Freeing record"), (record.Reference, record.Data));
-
-            var sw = Stopwatch.StartNew();
+            
             Headers.FreeRecord((ushort)record.Reference.PersistentRecordNum);
             record.Reference = new NullPageRecordReference(Reference);
             Tracing.Tracer.StopActivity(act, null);

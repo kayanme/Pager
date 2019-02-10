@@ -4,15 +4,15 @@ using System.IO.Paging.PhysicalLevel.Classes;
 using System.IO.Paging.PhysicalLevel.Configuration.Builder;
 using System.IO.Paging.PhysicalLevel.Classes.Pages.Contracts;
 using System.IO.Paging.PhysicalLevel.Implementations;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace Test.Paging.PhysicalLevel.Locks
 {
-    [TestClass]
+    [TestFixture]
     public class LockTest
     {
-        public TestContext TestContext { get; set; }
-        private IPhysicalLockManager<int> CreateLock(bool readerWriteLockScheme)
+        
+        private ILockManager<int> CreateLock(bool readerWriteLockScheme)
         {
 
             var rules = A.Fake<LockRuleset>();
@@ -30,150 +30,146 @@ namespace Test.Paging.PhysicalLevel.Locks
                 A.CallTo(() => rules.AreShared(1, 1)).Returns(false);
             }
 
-            matrix = new LockMatrix(rules);
+            matrix = rules;
             return new LockManager<int>();
         }
 
 
-        private LockMatrix matrix
-        {
-            get => TestContext.Properties["rules"] as LockMatrix;
-            set => TestContext.Properties.Add("rules", value);
-        }
-
-        [TestMethod]
+        private LockRuleset matrix;
+        
+        [Test]
         public void AcquireRecordLock()
         {
             var manager = CreateLock(false);
 
-            Assert.IsTrue(manager.AcqureLock(1, 0, matrix, out var token));
+            Assert.IsTrue(manager.TryAcqureLock(1,  matrix, 0, out var token));
             Assert.AreEqual(0, token.LockLevel);
             Assert.AreEqual(1, token.LockedObject);
         }
 
 
-        [TestMethod]
+        [Test]
         public void AcquireRecordLockAndCheckItLocked()
         {
             var manager = CreateLock(false);
 
-            manager.AcqureLock(1, 0, matrix, out var token);
-            Assert.IsFalse(manager.AcqureLock(1, 0, matrix, out var _));
+            manager.TryAcqureLock(1, matrix, 0, out var token);
+            Assert.IsFalse(manager.TryAcqureLock(1,  matrix, 0, out var _));
         }
 
-        [TestMethod]
+        [Test]
         public void AcquireRecordLockAndCheckItNotLockedForAnotherRecord()
         {
             var manager = CreateLock(false);
 
-            manager.AcqureLock(1, 0, matrix, out var token);
-            Assert.IsTrue(manager.AcqureLock(2, 0, matrix, out var _));
+            manager.TryAcqureLock(1,  matrix, 0, out var token);
+            Assert.IsTrue(manager.TryAcqureLock(2,  matrix, 0, out var _));
         }
 
-        [TestMethod]
+        [Test]
         public void AcquireRecordLock_AndRelease_AndReacquire()
         {
             var manager = CreateLock(false);
 
-            manager.AcqureLock(1, 0, matrix, out var token);
+            manager.TryAcqureLock(1, matrix, 0, out var token);
             manager.ReleaseLock(token, matrix);
-            Assert.IsTrue(manager.AcqureLock(1, 0, matrix, out token));
+            Assert.IsTrue(manager.TryAcqureLock(1,  matrix, 0, out token));
         }
 
 
-        [TestMethod]
+        [Test]
         public void AcquireRecordLock_AndRelease_AndReacquire_Alt()
         {
             var manager = CreateLock(false);
 
-            manager.AcqureLock(1, 0, matrix, out var token);
+            manager.TryAcqureLock(1, matrix, 0, out var token);
             token.Release();
-            Assert.IsTrue(manager.AcqureLock(1, 0, matrix, out token));
+            Assert.IsTrue(manager.TryAcqureLock(1, matrix, 0, out token));
         }
 
-        [TestMethod]
+        [Test]
         public async Task AcquireRecordLock_AndRelease_AndWaitForIt()
         {
             var manager = CreateLock(false);
 
-            manager.AcqureLock(1, 0, matrix, out var token);
+            manager.TryAcqureLock(1,  matrix, 0, out var token);
             token.Release();
-            token = await manager.WaitLock(1,0,matrix);
+            token = await manager.WaitLock(1,matrix,0);
             Assert.AreEqual(1,token.LockedObject);
             Assert.AreEqual(0, token.LockLevel);
         }
 
-        [TestMethod]
+        [Test]
         public void AcquireSharedRecordLockAndCheckItNotLocked()
         {
             var manager = CreateLock(true);
 
-            manager.AcqureLock(1, 0, matrix, out _);
-            Assert.IsTrue(manager.AcqureLock(1, 0, matrix, out _));
+            manager.TryAcqureLock(1, matrix, 0, out _);
+            Assert.IsTrue(manager.TryAcqureLock(1, matrix, 0, out _));
         }
 
-        [TestMethod]
+        [Test]
         public void AcquireSharedRecordTwoTimesLockAndCheckItLockedForNonSharedAfterOneRelease_AndNotLockedAfterSecond()
         {
             var manager = CreateLock(true);
 
-            manager.AcqureLock(1, 0, matrix, out var token);
-            manager.AcqureLock(1, 0, matrix, out var token2);
+            manager.TryAcqureLock(1,  matrix, 0, out var token);
+            manager.TryAcqureLock(1, matrix, 0, out var token2);
             token.Release();
-            Assert.IsFalse(manager.AcqureLock(1, 1, matrix, out _));
+            Assert.IsFalse(manager.TryAcqureLock(1, matrix, 1, out _));
             token2.Release();
-            Assert.IsTrue(manager.AcqureLock(1, 1, matrix, out _));
+            Assert.IsTrue(manager.TryAcqureLock(1, matrix, 1, out _));
 
         }
 
-        [TestMethod]
+        [Test]
         public void AcquireSharedRecordLockAndCheckItLockedForNonShared()
         {
             var manager = CreateLock(true);
 
-            manager.AcqureLock(1, 0, matrix, out var _);
-            Assert.IsFalse(manager.AcqureLock(1, 1, matrix, out var _));
+            manager.TryAcqureLock(1,  matrix,0, out var _);
+            Assert.IsFalse(manager.TryAcqureLock(1,  matrix,1, out var _));
         }
 
-        [TestMethod]
+        [Test]
         public void AcquireSharedRecordLock_ThenRelease_AndCheckItNotLockedForNonShared()
         {
             var manager = CreateLock(true);
 
-            manager.AcqureLock(1, 0, matrix, out var token);
+            manager.TryAcqureLock(1,  matrix,0, out var token);
             token.Release();
-            Assert.IsTrue(manager.AcqureLock(1, 1, matrix, out var _));
+            Assert.IsTrue(manager.TryAcqureLock(1,  matrix, 1,out var _));
         }
 
-        [TestMethod]
+        [Test]
         public void WaitForRecordLock()
         {
             var manager = CreateLock(false);
 
-            var token = manager.WaitLock(1, 0, matrix).Result;
+            var token = manager.WaitLock(1,  matrix,0).Result;
             Assert.AreEqual(0, token.LockLevel);
             Assert.AreEqual(1, token.LockedObject);
         }
 
 
-        [TestMethod]
+        [Test]
         public void WaitForRecordLockAndCheckItLocked()
         {
             var manager = CreateLock(false);
 
-            var task = manager.WaitLock(1, 0, matrix);
+            var task = manager.WaitLock(1,  matrix,0);
             task.Wait();
-            Assert.IsFalse(manager.AcqureLock(1, 0, matrix, out var _));
+            Assert.IsFalse(manager.TryAcqureLock(1,  matrix,0, out var _));
         }
 
-        [TestMethod]
+        [Test]
         public void AcquireLockAndCheckThatItUnlocksForWaiterAfterRelease()
         {
             var manager = CreateLock(false);
 
-            manager.AcqureLock(1, 0, matrix, out var token);
+            manager.TryAcqureLock(1,  matrix,0, out var token);
             bool lockAcquired = false;
-            var task = manager.WaitLock(1, 0, matrix);
+            var task = manager.WaitLock(1,  matrix,0);
             var t2 = task.ContinueWith(t =>
             {
                 token = t.Result;
@@ -189,22 +185,22 @@ namespace Test.Paging.PhysicalLevel.Locks
             Assert.AreEqual(1, token.LockedObject);
         }
 
-        [TestMethod]
+        [Test]
         public async Task WaitForSharedRecordLockAndCheckItNotLocked()
         {
             var manager = CreateLock(true);
 
-            await manager.WaitLock(1, 0, matrix);
-            Assert.IsTrue(manager.AcqureLock(1, 0, matrix, out var _));
+            await manager.WaitLock(1,  matrix,0);
+            Assert.IsTrue(manager.TryAcqureLock(1,  matrix,0, out var _));
         }
 
-        [TestMethod]
+        [Test]
         public void TakeSharedRecordLock_AndWaitForNonShared()
         {
             var manager = CreateLock(true);
-            manager.AcqureLock(1, 0, matrix, out var token);
+            manager.TryAcqureLock(1,  matrix, 0,out var token);
             var acquired = false;
-            var t = manager.WaitLock(1, 1, matrix);
+            var t = manager.WaitLock(1,  matrix,1);
             var t2 = t.ContinueWith(_ => acquired = true);
 
             Assert.IsFalse(acquired);
@@ -213,14 +209,14 @@ namespace Test.Paging.PhysicalLevel.Locks
             Assert.IsTrue(acquired);
         }
 
-        [TestMethod]
+        [Test]
         public void TakeSharedLock_ReleaseIt_AndWaitForNonShared()
         {
             var manager = CreateLock(true);
-            manager.AcqureLock(1, 0, matrix, out var token);
+            manager.TryAcqureLock(1,  matrix,0, out var token);
             
             var acquired = false;
-            var t = manager.WaitLock(1, 1, matrix);
+            var t = manager.WaitLock(1,  matrix,1);
             
             var t2 = t.ContinueWith(_ => acquired = true);
             Assert.IsFalse(acquired);
@@ -229,31 +225,31 @@ namespace Test.Paging.PhysicalLevel.Locks
             Assert.IsTrue(acquired);
         }
 
-        [TestMethod]
+        [Test]
         public void ChainOFSharedAndNonShared()
         {
             var manager = CreateLock(true);
-            manager.AcqureLock(1, 0, matrix, out var token);
+            manager.TryAcqureLock(1,  matrix,0, out var token);
             token.Release();
-            manager.AcqureLock(1, 1, matrix,out token);
+            manager.TryAcqureLock(1,  matrix,1,out token);
             token.Release();
-            manager.AcqureLock(1, 0, matrix, out token);
+            manager.TryAcqureLock(1,  matrix,0, out token);
             token.Release();         
-            var acquired =  manager.AcqureLock(1, 1, matrix,out token);
+            var acquired =  manager.TryAcqureLock(1,  matrix,1,out token);
          
             Assert.IsTrue(acquired);
         }
 
 
-        [TestMethod]
+        [Test]
         public void TakeTwoSharedLocks_AndWaitForNonShared()
         {
             var manager = CreateLock(true);
 
-            manager.AcqureLock(1, 0, matrix, out var token);
-            manager.AcqureLock(1, 0, matrix, out var token2);
+            manager.TryAcqureLock(1,  matrix,0, out var token);
+            manager.TryAcqureLock(1,  matrix,0, out var token2);
             var acquired = false;
-            var t = manager.WaitLock(1, 1, matrix);
+            var t = manager.WaitLock(1,  matrix,1);
             var t2 = t.ContinueWith(_ => acquired = true);
 
             Assert.IsFalse(acquired);

@@ -10,12 +10,12 @@ namespace System.IO.Paging.PhysicalLevel.Classes.PageFactories
     [Export]
     internal sealed class LockingPageFactory
     {
-        private readonly IPhysicalLockManager<PageReference> _pageLockManager;
-        private readonly IPhysicalLockManager<PageRecordReference> _pageRecordLockManager;
+        private readonly ILockManager<PageReference> _pageLockManager;
+        private readonly ILockManager<PageRecordReference> _pageRecordLockManager;
 
         [ImportingConstructor]
-        public LockingPageFactory([Import(AllowDefault = true)]IPhysicalLockManager<PageReference> pageLockManager,
-            [Import(AllowDefault = true)]IPhysicalLockManager<PageRecordReference> pageRecordLockManager)
+        public LockingPageFactory([Import(AllowDefault = true)]ILockManager<PageReference> pageLockManager,
+            [Import(AllowDefault = true)]ILockManager<PageRecordReference> pageRecordLockManager)
         {
             this._pageLockManager = pageLockManager??new LockManager<PageReference>();
             this._pageRecordLockManager = pageRecordLockManager??new LockManager<PageRecordReference>();
@@ -25,7 +25,7 @@ namespace System.IO.Paging.PhysicalLevel.Classes.PageFactories
         {
             return page.Config.ConsistencyConfiguration.ConsistencyAbilities.HasFlag(ConsistencyAbilities.PhysicalLocks)
                 ? new LockingPage(_pageLockManager, _pageRecordLockManager,
-                    new LockMatrix(page.Config.ConsistencyConfiguration.LockRules), pageNum, actionToClean)
+                    page.Config.ConsistencyConfiguration.LockRules, pageNum, actionToClean)
                 : null;
           
         }

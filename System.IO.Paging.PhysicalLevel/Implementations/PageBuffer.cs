@@ -44,7 +44,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             }
         }
 
-        public BufferedPage GetPageFromBuffer(PageReference pageNum,PageManagerConfiguration _config,int pageSize)
+        public BufferedPage GetPageFromBuffer(PageReference pageNum,PageManagerConfiguration _config,int pageSize,int extentSize)
         {
             BufferedPage page;
             int userCount;
@@ -59,8 +59,8 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                     var headerType = _config.HeaderConfig.ContainsKey(pageType) ? _config.HeaderConfig[pageType] : null;
                     var type = _config.PageMap[pageType];
                     var newPage = headerType == null ?
-                            _pageFactory.CreatePage(pageNum.PageNum, type, pageSize)
-                          : _pageFactory.CreateHeaderedPage(pageNum.PageNum, type, headerType, pageSize);
+                            _pageFactory.CreatePage(pageNum.PageNum, type, pageSize, extentSize)
+                          : _pageFactory.CreateHeaderedPage(pageNum.PageNum, type, headerType, pageSize, extentSize);
                     newPage.PageType = pageType;                    
                     return newPage;
                 });

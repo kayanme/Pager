@@ -2,6 +2,6 @@
 {
     internal static class Extent
     {
-        public const int Size = 64 * 1024;
+      //  public static int Size = 64 * 1024;
     }
 }

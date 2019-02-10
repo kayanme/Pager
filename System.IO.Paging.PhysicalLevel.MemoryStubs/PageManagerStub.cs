@@ -116,7 +116,7 @@ namespace System.IO.Paging.PhysicalLevel.MemoryStubs
 
         }
 
-        public void DeletePage(PageReference page, bool ensureEmptyness)
+        public void DeletePage(PageReference page)
         {
             lock (_pages)
             {

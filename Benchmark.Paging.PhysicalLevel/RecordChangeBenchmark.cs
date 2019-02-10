@@ -53,7 +53,7 @@ namespace Benchmark.Paging.PhysicalLevel
         {
             _count = 0;
             var config = new Config(PageSize);                   
-            _manager = new PageManagerFactory().CreateManager("testFile", config,true);
+            _manager = new PageManagerFactory().CreateManagerWithAutoFileCreation("testFile", config);
             if (WriteMethod == WriteMethod.FixedSize)
             {
                 var pages = Enumerable.Range(0, PageCount).Select(k =>_manager.GetRecordAccessor<TestRecord>( _manager.CreatePage(1))).ToArray();

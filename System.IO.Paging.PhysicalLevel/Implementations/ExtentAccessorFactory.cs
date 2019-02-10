@@ -19,18 +19,18 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             
         }
 
-        public IPageAccessor GetAccessor(long pageOffset, int pageLength)
+        public IPageAccessor GetAccessor(long pageOffset, int pageLength,int extentSize)
         {
             if (pageOffset < 0)
                 throw new ArgumentOutOfRangeException($"{nameof(pageOffset)} is negative");
             if (pageLength < 0)
                 throw new ArgumentOutOfRangeException($"{nameof(pageLength)} is negative");
-            var extentNumber = pageOffset / Extent.Size;
+            var extentNumber = pageOffset / extentSize;
          
-            var extentBorder = extentNumber * Extent.Size;
-            var map = _file.GetMappedFile(pageOffset + pageLength+Extent.Size);
+            var extentBorder = extentNumber * extentSize;
+            var map = _file.GetMappedFile(pageOffset + pageLength+ extentSize);
          
-            var accessor = map.CreateViewAccessor(extentBorder, Extent.Size);
+            var accessor = map.CreateViewAccessor(extentBorder, extentSize);
          
             _accessorsLent.TryAdd(accessor, map);
             return new PageAccessor((int)(pageOffset - extentBorder),pageLength,(uint)extentNumber,accessor, this);

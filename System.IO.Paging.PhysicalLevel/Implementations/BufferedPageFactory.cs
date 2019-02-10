@@ -28,9 +28,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
           
         }
 
-        public BufferedPage CreateHeaderedPage(int pageNum, PageContentConfiguration pageConfig, PageHeadersConfiguration headerConfig, int _pageSize)
+        public BufferedPage CreateHeaderedPage(int pageNum, PageContentConfiguration pageConfig, PageHeadersConfiguration headerConfig, int _pageSize,int extentSize)
         {
-            var block = _blockFactory.GetAccessor(_accessor.GamShift(pageNum) + (long)pageNum * _pageSize, _pageSize);
+            var block = _blockFactory.GetAccessor(_accessor.GamShift(pageNum) + (long)pageNum * _pageSize, _pageSize,extentSize);
             var type = headerConfig.InnerPageMap;
             if (type == null)
                 throw new InvalidOperationException();
@@ -46,9 +46,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             };
         }
 
-        public BufferedPage CreatePage(int pageNum, PageContentConfiguration pageConfig, int _pageSize)
+        public BufferedPage CreatePage(int pageNum, PageContentConfiguration pageConfig, int _pageSize,int extentSize)
         {
-            var block = _blockFactory.GetAccessor(_accessor.GamShift(pageNum) + (long)pageNum * _pageSize, _pageSize);                              
+            var block = _blockFactory.GetAccessor(_accessor.GamShift(pageNum) + (long)pageNum * _pageSize, _pageSize, extentSize);                              
             var headers = _headerFactory.CreateHeaders(pageConfig, block);
             return
             new BufferedPage

@@ -15,13 +15,15 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 
         private readonly ConcurrentDictionary<MemoryMappedFile,int> _oldMaps = new ConcurrentDictionary<MemoryMappedFile,int>();
         private string _mapName;
+        private int _extentSize;
         [ImportingConstructor]
-        internal UnderyingFileOperator(FileStream file)
+        internal UnderyingFileOperator(FileStream file,int extentSize)
         {
-            _file = file;
+            _extentSize = extentSize;
+            _file = file ?? throw new ArgumentNullException(nameof(file));
             //_mapName = "PageMap" + Guid.NewGuid();
             _mapName = null;
-            _map = MemoryMappedFile.CreateFromFile(_file, _mapName, _file.Length!=0?_file.Length:Extent.Size , MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
+            _map = MemoryMappedFile.CreateFromFile(_file, _mapName, _file.Length!=0?_file.Length:extentSize , MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
             Debug.Assert(_map != null, "_map!=null");
             if (_map == null)
                 throw new ArgumentException("_map");
@@ -36,7 +38,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
         {
             if (_disposedValue)
                 throw new ObjectDisposedException("fileOperator");
-            var extentChange = (int)(desiredFileLength - _file.Length) / Extent.Size + ((desiredFileLength - _file.Length) % Extent.Size == 0 ? 0 : 1);
+            var extentChange = (int)(desiredFileLength - _file.Length) / _extentSize + ((desiredFileLength - _file.Length) % _extentSize == 0 ? 0 : 1);
             if (extentChange>0)
             {
                 AddExtent(extentChange);
@@ -130,7 +132,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                 //_file.Flush();
                 //  var map = MemoryMappedFile.OpenExisting(_mapName, MemoryMappedFileRights.FullControl, HandleInheritability.None);
                 //+ _file.Length + Extent.Size * extentCount
-                var map = MemoryMappedFile.CreateFromFile(_file,_mapName , _file.Length + Extent.Size * extentCount, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None,true);
+                var map = MemoryMappedFile.CreateFromFile(_file,_mapName , _file.Length + _extentSize * extentCount, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None,true);
                 _oldMaps.TryAdd(map, 0);
                 oldMap = _map;
                 _map = map;

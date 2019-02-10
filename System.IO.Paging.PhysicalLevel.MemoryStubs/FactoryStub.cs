@@ -7,7 +7,14 @@ namespace System.IO.Paging.PhysicalLevel.MemoryStubs
     [Export(typeof(IPageManagerFactory))]
     public sealed class FactoryStub : IPageManagerFactory
     {
-        public IPageManager CreateManager(string fileName, PageManagerConfiguration configuration, bool createFileIfNotExists)
+      
+
+        public IPageManager CreateManagerForExistingFile(string fileName, PageManagerConfiguration configuration)
+        {
+            return new PageManagerStub(configuration);
+        }
+
+        public IPageManager CreateManagerWithAutoFileCreation(string fileName, PageManagerConfiguration configuration)
         {
             return new PageManagerStub(configuration);
         }

@@ -4,6 +4,7 @@ namespace System.IO.Paging.PhysicalLevel.Contracts
 {
     public interface IPageManagerFactory
     {
-        IPageManager CreateManager(string fileName,PageManagerConfiguration configuration, bool createFileIfNotExists);
+        IPageManager CreateManagerWithAutoFileCreation(string fileName,PageManagerConfiguration configuration);
+        IPageManager CreateManagerForExistingFile(string fileName, PageManagerConfiguration configuration);
     }
 }

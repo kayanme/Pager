@@ -51,7 +51,7 @@ namespace Benchmark.Paging.LogicalLevel
         {
             var config = new Config(PageSize);
 
-            _manager = new LogicalPageManagerFactory().CreateManager("RecordSearch", config, true);
+            _manager = new LogicalPageManagerFactory().CreateManagerWithAutoFileCreation("RecordSearch", config);
             _pages = new IPage<TestRecord>[5];
             _pages[0] = _manager.GetRecordAccessor<TestRecord>(_manager.CreatePage(1));
           

@@ -25,12 +25,13 @@ namespace Test.Paging.PhysicalLevel
 
         private string FileName => TestContext.TestName;
         private FileStream _file;
+        private static int _extentSize = 64 * 1024;
         private IUnderlyingFileOperator GetOperator(int initSize)
         {
             _file = System.IO.File.Open(FileName, FileMode.OpenOrCreate);
             _file.SetLength(initSize);
             _file.Flush();
-            return new UnderyingFileOperator(_file);
+            return new UnderyingFileOperator(_file, _extentSize);
         }
 
         [TestCleanup]
@@ -47,26 +48,26 @@ namespace Test.Paging.PhysicalLevel
         [TestMethod]
         public void TakeMap_OneFileIsSmaller()
         {
-            var opr = GetOperator(Extent.Size);
-            var map = opr.GetMappedFile(Extent.Size*2);
+            var opr = GetOperator(_extentSize);
+            var map = opr.GetMappedFile(_extentSize * 2);
             opr.Dispose();
             map.Dispose();            
             _file.Dispose();
             var f = System.IO.File.Open(FileName, FileMode.OpenOrCreate);
-            Assert.AreEqual(Extent.Size * 2, f.Length);
+            Assert.AreEqual(_extentSize * 2, f.Length);
             f.Dispose();
         }
 
         [TestMethod]
         public void TakeMap()
         {
-            var opr = GetOperator(Extent.Size*2);
-            var map = opr.GetMappedFile(Extent.Size);
+            var opr = GetOperator(_extentSize * 2);
+            var map = opr.GetMappedFile(_extentSize);
             opr.Dispose();
             map.Dispose();
             _file.Dispose();
             var f = System.IO.File.Open(FileName, FileMode.OpenOrCreate);
-            Assert.AreEqual(Extent.Size * 2, f.Length);
+            Assert.AreEqual(_extentSize * 2, f.Length);
             f.Dispose();
         }
     }

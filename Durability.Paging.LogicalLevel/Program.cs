@@ -55,7 +55,7 @@ namespace Durability.Paging.LogicalLevel.Core
         {
            
             var pmf = new LogicalPageManagerFactory();
-            using (var pm = pmf.CreateManager("test", new C(), true))
+            using (var pm = pmf.CreateManagerWithAutoFileCreation("test", new C()))
             {
                 await Task.WhenAll(
                     AddTask(pm),

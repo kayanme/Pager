@@ -22,7 +22,7 @@ namespace Test.Paging.PhysicalLevel
     {
 
         public TestContext TestContext { get; set; }
-
+        private static int _extentSize = 64 * 1024;
         [TestInitialize]
         public void Init()
         {
@@ -36,7 +36,8 @@ namespace Test.Paging.PhysicalLevel
             TestContext.Properties.Add("IUnderlyingFileOperator", fileOperator);
             var config = new PageManagerConfiguration()
             {
-                SizeOfPage = PageManagerConfiguration.PageSize.Kb4
+                SizeOfPage = PageManagerConfiguration.PageSize.Kb4,
+                ExtentSize = _extentSize
             };
             var fconfig = new FixedRecordTypePageConfiguration<TestRecord>
             {
@@ -70,7 +71,7 @@ namespace Test.Paging.PhysicalLevel
             TestContext.Properties.Add("hconfig", hconfig);
             TestContext.Properties.Add("pageBuffer", pageBuffer);
             TestContext.Properties.Add("pageFact", pageFact);
-            A.CallTo(() => GamMock.GamShift(A<int>.Ignored)).Returns(Extent.Size);
+            A.CallTo(() => GamMock.GamShift(A<int>.Ignored)).Returns(config.ExtentSize);
         }
 
         private IPageManager GetManager()
@@ -100,9 +101,9 @@ namespace Test.Paging.PhysicalLevel
             A.CallTo(() => t.GetByteArray(0, 4096)).Returns(new byte[4096]);
             A.CallTo(() => t.GetByteArray(0, 72)).Returns(new byte[72]);         
             A.CallTo(() => t.GetChildAccessorWithStartShift(0)).Returns(t);
-            A.CallTo(() => BlockMock.GetAccessor(Extent.Size, 4096)).Returns(t);
+            A.CallTo(() => BlockMock.GetAccessor(0, 4096, _extentSize)).Returns(t);
             A.CallTo(()=> GamMock.MarkPageUsed(1)).Returns(0);
-            A.CallTo(() => GamMock.GamShift(1)).Returns(Extent.Size);
+            A.CallTo(() => GamMock.GamShift(1)).Returns(_extentSize);
 
             var manager = GetManager();
             var page = manager.CreatePage(Fconfig);
@@ -117,7 +118,7 @@ namespace Test.Paging.PhysicalLevel
         {                            
           
             var manager = GetManager();
-            manager.DeletePage(new PageReference(0),true);
+            manager.DeletePage(new PageReference(0));
             manager.Dispose();
 
             A.CallTo(() => GamMock.MarkPageFree(0)).MustHaveHappened();
@@ -130,9 +131,9 @@ namespace Test.Paging.PhysicalLevel
         {
           
             var bufpage = A.Dummy<BufferedPage>();               
-            A.CallTo(() => GamMock.GamShift(0)).Returns(Extent.Size);
+            A.CallTo(() => GamMock.GamShift(0)).Returns(_extentSize);
             A.CallTo(() => pageBuffer.GetPageFromBuffer(A<PageReference>.That.Matches(pr => pr.PageNum == 0),
-                A<PageManagerConfiguration>.Ignored,4096))
+                A<PageManagerConfiguration>.Ignored,4096, _extentSize))
                 .Returns(bufpage);
             var p = A.Fake<IPageInfo>();
             
@@ -175,7 +176,7 @@ namespace Test.Paging.PhysicalLevel
             var p = A.Fake<IPageInfo>();
             A.CallTo(() => pageBuffer.GetPageFromBuffer(
                 A<PageReference>.That.Matches(pr => pr.PageNum == 1),
-                A<PageManagerConfiguration>.Ignored, 4096))
+                A<PageManagerConfiguration>.Ignored, 4096,_extentSize))
               .Returns(bufpage);
 
             A.CallTo(() => pageFactory.GetPageInfo(A<BufferedPage>.That.IsSameAs(bufpage), new PageReference(1), A<Action>.That.IsNotNull()))

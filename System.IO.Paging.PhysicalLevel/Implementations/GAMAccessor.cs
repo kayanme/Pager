@@ -14,6 +14,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
     
         private MemoryMappedFile _mapToReturn;
         private ushort _pageSize;
+        private int _extentSize;
         private ushort _gamPagesCount;
         private int _bestCandidate;
         private List<MemoryMappedViewAccessor> _accessors;
@@ -28,7 +29,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 
         private void CreateAccessors()
         {
-            long targetSize = _pageSize * (long)Extent.Size * (_gamPagesCount - 1) + Extent.Size * _gamPagesCount;//преобразование к long надо, чтобы всё выражение считалось в  длинном числе, иначе на 2-х гигабайтах размер уйдёт в минус
+            long targetSize = _pageSize * (long)_extentSize * (_gamPagesCount - 1) + _extentSize * _gamPagesCount;//преобразование к long надо, чтобы всё выражение считалось в  длинном числе, иначе на 2-х гигабайтах размер уйдёт в минус
             if (targetSize < 0)
                 throw new InvalidOperationException($"Error estimating target file size (negative size), pagesize - {_pageSize}, pages -  {_gamPagesCount}");
 
@@ -36,7 +37,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             try
             {
                 _accessors = Enumerable.Range(0, _gamPagesCount)
-                    .Select(k => _mapToReturn.CreateViewAccessor((_pageSize + 1) * (long)Extent.Size * k, Extent.Size, MemoryMappedFileAccess.ReadWrite))
+                    .Select(k => _mapToReturn.CreateViewAccessor((_pageSize + 1) * (long)_extentSize * k, _extentSize, MemoryMappedFileAccess.ReadWrite))
                     .ToList();
             }
             catch(ArgumentOutOfRangeException ex)
@@ -45,49 +46,54 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             }
         }
 
-        public void InitializeGam(ushort pageSize)
+        public void InitializeGam(ushort pageSize,int extentSize)
         {
+            if (extentSize < pageSize)
+                throw new InvalidOperationException($"Extent size {extentSize} is less, than a page size {pageSize}");
+            if (extentSize/pageSize * pageSize != extentSize)
+                throw new InvalidOperationException($"Extent size {extentSize} is not a multiply of a page size {pageSize}");
             _pageSize = pageSize;
+            _extentSize = extentSize;
             checked
             {
-                _gamPagesCount = (ushort)(_fileOperator.FileSize / ((_pageSize + 1) * Extent.Size + 1) + 1);
+                _gamPagesCount = (ushort)(_fileOperator.FileSize / ((_pageSize + 1) * _extentSize + 1) + 1);
             }
             CreateAccessors();
         }
-        private int accNum(int pageNum)=> pageNum / Extent.Size;
+        private int accNum(int pageNum)=> pageNum / _extentSize;
         public void MarkPageFree(int pageNum)
         {
             lock (_accessors)
             {
                 var an = accNum(pageNum );
-                _accessors[an].Write(pageNum % Extent.Size, 0);
+                _accessors[an].Write(pageNum % _extentSize, 0);
                 _accessors[an].Flush();
             }
         }
         public byte GetPageType(int pageNum)
         {
             var an = accNum(pageNum);
-            return _accessors[an].ReadByte(pageNum % Extent.Size);
+            return _accessors[an].ReadByte(pageNum % _extentSize);
         }
 
         public void SetPageType(int pageNum, byte pageType)
         {
             var an = accNum(pageNum);
-            _accessors[an].Write(pageNum % Extent.Size, pageType);
+            _accessors[an].Write(pageNum % _extentSize, pageType);
         }
         private int? CheckBestCandidate(byte pageType)
         {
-            if (_bestCandidate >= _gamPagesCount * Extent.Size)
+            if (_bestCandidate >= _gamPagesCount * _extentSize)
             {
                 return CreateNewGam(pageType);
             }
-            var acc = _bestCandidate / Extent.Size;
-            var shift = _bestCandidate % Extent.Size;
+            var acc = _bestCandidate / _extentSize;
+            var shift = _bestCandidate % _extentSize;
             if (_accessors[acc].ReadByte(shift) == 0)
             {
                 _accessors[acc].Write(shift, pageType);
-                _bestCandidate = shift + acc * Extent.Size+1;
-                return shift + acc * Extent.Size;
+                _bestCandidate = shift + acc * _extentSize+1;
+                return shift + acc * _extentSize;
             }
             return null;
         }
@@ -101,7 +107,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
             CreateAccessors();
             _accessors.Last().Write(0, pageType);
             _bestCandidate++;
-            return Extent.Size * (_gamPagesCount - 1);
+            return _extentSize * (_gamPagesCount - 1);
         }
 
         public int MarkPageUsed(byte pageType)
@@ -112,14 +118,14 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                 if (page.HasValue)
                     return page.Value;
               for (var k = 0;k<_gamPagesCount;k++)
-                for (int i = 0; i < Extent.Size; i++)
+                for (int i = 0; i < _extentSize; i++)
                 {
                     var pageMark = _accessors[k].ReadByte(i);
                     if (pageMark == 0)
                     {
                         _accessors[k].Write(i, pageType);
-                        _bestCandidate = i + k * Extent.Size+1;
-                        return i + k*Extent.Size;
+                        _bestCandidate = i + k * _extentSize+1;
+                        return i + k*_extentSize;
                     }
                 }
                 return CreateNewGam(pageType);
@@ -159,8 +165,8 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
 
         public long GamShift(int pageNum)
         {
-            var gamCount = pageNum / (long)Extent.Size + 1;
-            return gamCount * Extent.Size;
+            var gamCount = pageNum / (long)_extentSize + 1;
+            return gamCount * _extentSize;
         }
     }
 }
