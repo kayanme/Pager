@@ -1,6 +1,5 @@
 image: microsoft/aspnetcore-build:latest
 stages:
- #- build
  - unit_test 
  - integration_test 
  - durability
@@ -8,18 +7,15 @@ stages:
  - publish
  - deploy
 
-#build_all:  
-#  stage: build
-#  script: dotnet build Test.Pager.Core.sln
 
 test_physical_debug: 
   stage: unit_test  
   script: 
-     - nuget install OpenCover -OutputDirectory packages -Version 4.6.166
+     - dotnet restore Test.Paging.Physical 
      - dotnet tool install coveralls.net --version 1.0.0-beta0002 --tool-path tools
-     - dotnet test Test.Paging.Physical/Test.Paging.PhysicalLevel.csproj -c Debug -r testResult/ 
-     - .\packages\OpenCover.4.6.166\tools\OpenCover.Console.exe -register:user -target:dotnet.exe -targetargs:"test Test.Paging.Physical/ -c Debug" -oldstyle -output:coverage.xml     
-     - .\tools\csmacnz.coveralls.exe --opencover -i coverage.xml --repoToken 6ZRcivFLTNUU4bmNIqsZgaXOc4IMWktjd --commitId $CI_COMMIT_SHA --commitBranch $CI_COMMIT_REF_NAME --commitMessage $CI_COMMIT_TITLE --jobId $CI_JOB_ID
+     - dotnet test Test.Paging.Physical -c Debug -r testResult/ 
+     - $NUGET_PACKAGES/OpenCover.4.6.166/tools/OpenCover.Console.exe -register:user -target:dotnet.exe -targetargs:"test Test.Paging.Physical -c Debug" -oldstyle -output:coverage.xml     
+     - ./tools/csmacnz.coveralls.exe --opencover -i coverage.xml --repoToken 6ZRcivFLTNUU4bmNIqsZgaXOc4IMWktjd --commitId $CI_COMMIT_SHA --commitBranch $CI_COMMIT_REF_NAME --commitMessage $CI_COMMIT_TITLE --jobId $CI_JOB_ID
 
 
 test_physical_release: 
