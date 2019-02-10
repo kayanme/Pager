@@ -19,8 +19,8 @@ test_physical_release:
      - dotnet tool install --global coverlet.console
      - export PATH="$PATH:/root/.dotnet/tools"
      - dotnet tool install coveralls.net --tool-path ./tools
-     - dotnet build Test.Paging.Physical
-     - coverlet Test.Paging.Physical/bin/Release/netcoreapp2.0/ -t dotnet -a "test Test.Paging.Physical -c Release" --format opencover --output coverage.xml --include [*Paging.PhysicalLevel*]*
+     - dotnet build Test.Paging.Physical -c Release
+     - coverlet Test.Paging.Physical/bin/Release/netcoreapp2.0/ -t dotnet -a "test Test.Paging.Physical" --format opencover --output coverage.xml --include [*Paging.PhysicalLevel*]*
      - tools/csmacnz.Coveralls --opencover -i Test.Paging.Physical/coverage.xml --repoToken $COVER_TOKEN --commitId $CI_COMMIT_SHA --commitBranch $CI_COMMIT_REF_NAME --commitMessage $CI_COMMIT_TITLE --jobId $CI_JOB_ID     
 
 test_logical_debug: 
@@ -33,9 +33,9 @@ test_logical_release:
   script: 
      - dotnet tool install --global coverlet.console
      - export PATH="$PATH:/root/.dotnet/tools"
-     - dotnet build Test.Paging.LogicalLevel
+     - dotnet build Test.Paging.LogicalLevel -c Release
      - dotnet tool install coveralls.net --tool-path ./tools
-     - coverlet Test.Paging.LogicalLevel/bin/Release/netcoreapp2.0 -t dotnet -a "test Test.Paging.LogicalLevel -c Release" --format opencover --output coverage.xml --include [*Paging.LogicalLevel*]*
+     - coverlet Test.Paging.LogicalLevel/bin/Release/netcoreapp2.0 -t dotnet -a "test Test.Paging.LogicalLevel" --format opencover --output coverage.xml --include [*Paging.LogicalLevel*]*
      - tools/csmacnz.Coveralls --opencover -i Test.Paging.LogicalLevel/coverage.xml --repoToken $COVER_TOKEN --commitId $CI_COMMIT_SHA --commitBranch $CI_COMMIT_REF_NAME --commitMessage $CI_COMMIT_TITLE --jobId $CI_JOB_ID        
 
 test_integration_physical_debug: 
