@@ -9,8 +9,4 @@
     <PackageReference Include="BenchmarkDotNet.Core" Version="0.10.14" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\System.Threading.HybridLocks\System.Threading.HybridLocks.csproj" />
-  </ItemGroup>
-
 </Project>

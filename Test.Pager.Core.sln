@@ -29,12 +29,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.PhysicalLe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Durability.Paging.LogicalLevel", "Durability.Paging.LogicalLevel\Durability.Paging.LogicalLevel.csproj", "{B737E274-A909-4E04-8EAC-BA29AA701BCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Threading.HybridLocks", "System.Threading.HybridLocks\System.Threading.HybridLocks.csproj", "{435F3426-FD30-438F-B5AC-D7668C929EF4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Threading.HybridLocks", "Test.Threading.HybridLocks\Test.Threading.HybridLocks.csproj", "{C0A87038-8B90-4B4B-9B41-76DFC01862E6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark.HybridLocks", "Benchmark.HybridLocks\Benchmark.HybridLocks.csproj", "{E025B90C-3CB8-4EE6-970C-FE8E513E6A02}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,18 +75,6 @@ Global
 		{B737E274-A909-4E04-8EAC-BA29AA701BCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B737E274-A909-4E04-8EAC-BA29AA701BCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B737E274-A909-4E04-8EAC-BA29AA701BCF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{435F3426-FD30-438F-B5AC-D7668C929EF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{435F3426-FD30-438F-B5AC-D7668C929EF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{435F3426-FD30-438F-B5AC-D7668C929EF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{435F3426-FD30-438F-B5AC-D7668C929EF4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C0A87038-8B90-4B4B-9B41-76DFC01862E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C0A87038-8B90-4B4B-9B41-76DFC01862E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C0A87038-8B90-4B4B-9B41-76DFC01862E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C0A87038-8B90-4B4B-9B41-76DFC01862E6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E025B90C-3CB8-4EE6-970C-FE8E513E6A02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E025B90C-3CB8-4EE6-970C-FE8E513E6A02}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E025B90C-3CB8-4EE6-970C-FE8E513E6A02}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E025B90C-3CB8-4EE6-970C-FE8E513E6A02}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

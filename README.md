@@ -1,6 +1,15 @@
+
 # About System.IO.Paging
 This is a low-level framework allowing to build up an I/O  system based on file pages. 
 The concept is basically the same, as the most databases use, so it can help you to build your own.
+
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Build](https://img.shields.io/gitlab/pipeline/kayanme/System.IO.Paging.svg?style=flat)]
+[![Test coverage](https://img.shields.io/coveralls/github/kayanme/System.IO.Paging.svg?style=flat)]
+[![NuGet](https://img.shields.io/nuget/v/Addiction.System.IO.Paging.PhysicalLevel.svg)](https://www.nuget.org/packages/Addiction.System.IO.Paging.PhysicalLevel)
+[![Nuget downloads](https://img.shields.io/nuget/dt/Addiction.System.IO.Paging.PhysicalLevel.svg?style=flat)]
+[![Nuget downloads](https://img.shields.io/nuget/dt/Addiction.System.IO.Paging.LogicalLevel.svg?style=flat)]
 
 # Usage sample
 Describe your pages first:
@@ -8,7 +17,7 @@ Describe your pages first:
 ```C#
 
 internal class PageConfiguration:PageManagerConfiguration
-    {
+{
         public PageConfiguration() : base(PageSize.Kb8)
         {            
             DefinePageType(1)
@@ -22,9 +31,11 @@ internal class PageConfiguration:PageManagerConfiguration
                 .UsingRecordDefinition(new TestRecordGetter())
                 .ApplyLockScheme(new ReaderWriterLockRuleset());
         }
-    }
+}
 
 ```
+
+Record can be any type you want (here is "TestRecord"), if you can provide a (de-)serializer for it. Here it is named "TestRecordGetter".
 
 Than create a manager, which will use that configuration to work exclusevly with it's own file:
 
@@ -49,9 +60,10 @@ Than create a manager, which will use that configuration to work exclusevly with
 	//...changing your header...
 	headerPage.ModifyHeader(header);
 
-//now we are gonna add and play with some previously created record.
+//now we are gonna add and play with some record.
 	using(var page = _pageManager.GetRecordAccessor<TestRecord>(pageRef))
 	{
+	    var newRecord = new TestRecord();
 		var recordWithReference = page.AddRecord(newRecord);
 		//here we will have (on success) our record with it's persistent page reference.
 		//if we can't insert a record due to page fulness - it will be null, so take care
@@ -91,10 +103,3 @@ In addition, some logical features are available.
 
 # Perfomance
 Access speed varies due to the scenario, the latest bechmarks are published in docs section.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Build](https://img.shields.io/gitlab/pipeline/kayanme/System.IO.Paging.svg?style=flat)]
-[![Test coverage](https://img.shields.io/coveralls/github/kayanme/System.IO.Paging.svg?style=flat)]
-[![NuGet](https://img.shields.io/nuget/v/Addiction.System.IO.Paging.PhysicalLevel.svg)](https://www.nuget.org/packages/Addiction.System.IO.Paging.PhysicalLevel)
-[![Nuget downloads](https://img.shields.io/nuget/dt/Addiction.System.IO.Paging.PhysicalLevel.svg?style=flat)]
-[![Nuget downloads](https://img.shields.io/nuget/dt/Addiction.System.IO.Paging.LogicalLevel.svg?style=flat)]
