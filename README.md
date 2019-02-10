@@ -5,7 +5,7 @@ The concept is basically the same, as the most databases use, so it can help you
 # Usage sample
 Describe your pages first:
 
-'''C#
+```C#
 
 internal class PageConfiguration:PageManagerConfiguration
     {
@@ -24,22 +24,22 @@ internal class PageConfiguration:PageManagerConfiguration
         }
     }
 
-'''
+```
 
 Than create a manager, which will use that configuration to work exclusevly with it's own file:
 
-'''C#
+```C#
 
  using (var factory = new PageManagerFactory())
  {
        _pageManager = factory.CreateManagerWithAutoFileCreation("fileWithPages", new PageConfiguration());
  }
 
- '''
+ ```
 
  After that you can use this manager and accessors it provides to communicate with pages and their records:
 
- '''C#
+ ```C#
 
  //here we create a page first to work with it
     var pageRef = _pageManager.CreatePage(2);
@@ -66,15 +66,15 @@ Than create a manager, which will use that configuration to work exclusevly with
 		page.FreeRecord(recordWithReference);
 	}
 
-'''
+```
 
 At last you can destroy the page itself.
 
-'''C#
+```C#
 
 	_pageManager.DeletePage(pageRef);
 
-'''
+```
 
 # Current features 
 - 4Kb and 8Kb pages support.
