@@ -32,7 +32,7 @@ test_logical_release:
      - dotnet tool install --global coverlet.console
      - dotnet tool install coveralls.net --tool-path ./tools
      - dotnet test Test.Paging.LogicalLevel -c Release /p:Include="[*System.IO.Paging.LogicalLevel]*" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=coverage.xml               
-     - tools/csmacnz.Coveralls --opencover -i Test.Paging.Physical/coverage.xml --repoToken 6ZRcivFLTNUU4bmNIqsZgaXOc4IMWktjd --commitId $CI_COMMIT_SHA --commitBranch $CI_COMMIT_REF_NAME --commitMessage $CI_COMMIT_TITLE --jobId $CI_JOB_ID        
+     - tools/csmacnz.Coveralls --opencover -i Test.Paging.LogicalLevel/coverage.xml --repoToken 6ZRcivFLTNUU4bmNIqsZgaXOc4IMWktjd --commitId $CI_COMMIT_SHA --commitBranch $CI_COMMIT_REF_NAME --commitMessage $CI_COMMIT_TITLE --jobId $CI_JOB_ID        
 
 test_integration_physical_debug: 
   stage: integration_test  
