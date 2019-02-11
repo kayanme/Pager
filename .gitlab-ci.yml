@@ -7,9 +7,9 @@ stages:
  - publish
  - deploy
 
-  variables:
-    COVERALLS_GIT_COMMIT: "$CI_COMMIT_SHA"
-    COVERALLS_GIT_BRANCH: "$CI_COMMIT_REF_NAME"
+variables:
+  COVERALLS_GIT_COMMIT: "$CI_COMMIT_SHA"
+  COVERALLS_GIT_BRANCH: "$CI_COMMIT_REF_NAME"
 
 test_physical_debug: 
   stage: unit_test  
