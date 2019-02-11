@@ -38,7 +38,7 @@ test_logical_release:
      - export PATH="$PATH:/root/.dotnet/tools"
      - dotnet tool install --global coverlet.console     
      - dotnet build Test.Paging.LogicalLevel -c Release
-     - dotnet tool install coveralls.net --tool-path ./tools
+     - dotnet tool install coveralls.net --tool-path ./tools 
      - coverlet Test.Paging.LogicalLevel/bin/Release/netcoreapp2.0 -t dotnet -a "test Test.Paging.LogicalLevel  -c Release --no-build" --format opencover --output "coverage.xml"  --exclude "[Test*]*"
      - unset GITLAB_CI
      - tools/csmacnz.Coveralls --opencover -i coverage.xml  --repoTokenVariable COVER_TOKEN 
