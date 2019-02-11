@@ -1,8 +1,7 @@
 
 # About System.IO.Paging
-This is a low-level framework allowing to build up an I/O  system based on file pages. 
-The concept is basically the same, as the most databases use, so it can help you to build your own.
-
+This is a low-level framework which allows to build up an I/O system based on file pages. 
+The concept is basically the same, as the most databases use, so it may help you to build your own.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build](https://img.shields.io/gitlab/pipeline/kayanme/System.IO.Paging.svg?style=flat)]

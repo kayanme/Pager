@@ -11,19 +11,13 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         private readonly ushort _fixedRecordSize;
         private readonly IPageAccessor _accessor;
         private readonly FixedPageParametersCalculator _pageCalculator;
-
-
         private int _usedRecords;
-
       
-
         public FixedRecordWithLogicalOrderHeader(IPageAccessor accessor, FixedPageParametersCalculator pageCalculator)
         {
             _fixedRecordSize = pageCalculator.FixedRecordSize;
             _accessor = accessor;
             _pageCalculator = pageCalculator;
-
-
             _usedRecords = pageCalculator.UsedRecords;
         }
 
@@ -155,6 +149,11 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
             return isFree;
         }
 
+        /// <summary>
+        /// Swaps the left anr right part of 16bit number.
+        /// </summary>
+        /// <param name="num">Number</param>
+        /// <returns></returns>
         private static ushort FixUshort(ushort num) =>(ushort)( num >> 8 | num << 8);
 
         public unsafe void FreeRecord(ushort persistentRecordNum)
@@ -208,9 +207,11 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
             {
                 while (Interlocked.CompareExchange(ref _reordering, 1, 0) != 0) ;
                 _accessor.QueueByteArrayOperation(0, _pageCalculator.PamSize,
-                    b =>
+                    byteSpace =>
                     {
-                        var s = (int*)b;
+                        //every 32 integer of pam stores two order numbers (for each physical position).
+                        //so we are moving through each part and swap each for the new order on that position.
+                        var s = (int*)byteSpace;
                         int d;
                         for (ushort i = 1; i <= recordsInOrder.Length; i++)
                         {
@@ -232,8 +233,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
                                         newMap = oldMap & (int) 0xFFFF0000 | (FixUshort(i));
                                     }
                                 }
-                            } while (Interlocked.CompareExchange(ref *(s + p / 2), newMap, oldMap) !=
-                                     oldMap);
+                            } while (Interlocked.CompareExchange(ref *(s + p / 2), newMap, oldMap) != oldMap);
                         }
                     });
 

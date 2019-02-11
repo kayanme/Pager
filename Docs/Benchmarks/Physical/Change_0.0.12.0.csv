@@ -1,0 +1,7 @@
+Method;WriteMethod;Mean;Error;Version;Group
+AddRecord;FixedSize;3.673 us;0.0438 us;0.0.12.0;Change
+AddRecordWithFlush;FixedSize;"1,066.949 us";76.0870 us;0.0.12.0;Change
+AddRecordGroupWithFlush;FixedSize;308.887 us;3.0503 us;0.0.12.0;Change
+AddRecord;Naive;3.105 us;0.0367 us;0.0.12.0;Change
+AddRecordWithFlush;Naive;3.139 us;0.0389 us;0.0.12.0;Change
+AddRecordGroupWithFlush;Naive;151.284 us;0.9070 us;0.0.12.0;Change

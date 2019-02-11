@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>Physical_RecordChangeBenchmark</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.10.14, OS=debian 9
+Intel Xeon CPU 2.30GHz, 1 CPU, 1 logical core and 1 physical core
+.NET Core SDK=2.1.503
+  [Host] : .NET Core 2.1.7 (CoreCLR 4.6.27129.04, CoreFX 4.6.27129.04), 64bit RyuJIT
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>           Method</th><th>WriteMethod</th><th>  Mean</th><th>Error</th><th>Version</th><th>Group</th>
+</tr>
+</thead><tbody><tr><td>AddRecord</td><td>FixedSize</td><td>3.673 us</td><td>0.0438 us</td><td>0.0.12.0</td><td>Change</td>
+</tr><tr><td>AddRecordWithFlush</td><td>FixedSize</td><td>1,066.949 us</td><td>76.0870 us</td><td>0.0.12.0</td><td>Change</td>
+</tr><tr><td>AddRecordGroupWithFlush</td><td>FixedSize</td><td>308.887 us</td><td>3.0503 us</td><td>0.0.12.0</td><td>Change</td>
+</tr><tr><td>AddRecord</td><td>Naive</td><td>3.105 us</td><td>0.0367 us</td><td>0.0.12.0</td><td>Change</td>
+</tr><tr><td>AddRecordWithFlush</td><td>Naive</td><td>3.139 us</td><td>0.0389 us</td><td>0.0.12.0</td><td>Change</td>
+</tr><tr><td>AddRecordGroupWithFlush</td><td>Naive</td><td>151.284 us</td><td>0.9070 us</td><td>0.0.12.0</td><td>Change</td>
+</tr></tbody></table>
+</body>
+</html>

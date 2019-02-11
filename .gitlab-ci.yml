@@ -130,6 +130,8 @@ packages_logical_debug:
 
 packages_stubs:
   stage: deploy
+  only:
+     - master
   script:    
    - dotnet build System.IO.Paging.PhysicalLevel.MemoryStubs/System.IO.Paging.PhysicalLevel.MemoryStubs.csproj -c Release 
    - dotnet nuget push System.IO.Paging.PhysicalLevel.MemoryStubs/bin/Release/*.nupkg -k oy2cqotpghuxh56wruoabzcnpnh7z3auxcbbc5y26tngtu -s https://api.nuget.org/v3/index.json

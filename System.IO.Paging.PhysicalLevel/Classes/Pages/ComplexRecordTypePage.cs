@@ -44,10 +44,7 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
 
 
         public TypedRecord<TRecordType> AddRecord(TRecordType type)
-        {
-
-          //  var mapKey = _config.GetRecordType(type);
-            //var config = _config.RecordMap[0];
+        {        
             var record = Headers.TakeNewRecord(0, (ushort)_config.RecordMap.GetSize(type));
             if (record == -1)
                 return null;

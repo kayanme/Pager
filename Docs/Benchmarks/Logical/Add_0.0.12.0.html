@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>RecordAddBenchmark</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.10.14, OS=debian 9
+Intel Xeon CPU 2.30GHz, 1 CPU, 1 logical core and 1 physical core
+.NET Core SDK=2.1.503
+  [Host] : .NET Core 2.1.7 (CoreCLR 4.6.27129.04, CoreFX 4.6.27129.04), 64bit RyuJIT
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>             Method</th><th>PageSize</th><th>  Mean</th><th>Error</th><th>Version</th><th>Group</th>
+</tr>
+</thead><tbody><tr><td>AddRecordWithOrder</td><td>Kb4</td><td>3.006 us</td><td>0.0386 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>AddRecordInVirtualPage</td><td>Kb4</td><td>26.436 us</td><td>2.3768 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>AddRecordWithoutOrder</td><td>Kb4</td><td>1.323 us</td><td>0.0252 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>ChangeRecordWithOrder</td><td>Kb4</td><td>509.527 us</td><td>5.3732 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>ChangeRecordInVirtualPage</td><td>Kb4</td><td>10.385 us</td><td>0.1068 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>ChangeRecordWithoutOrder</td><td>Kb4</td><td>2.444 us</td><td>0.0770 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>AddRecordWithOrder</td><td>Kb8</td><td>4.920 us</td><td>0.0593 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>AddRecordInVirtualPage</td><td>Kb8</td><td>34.815 us</td><td>2.3578 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>AddRecordWithoutOrder</td><td>Kb8</td><td>1.533 us</td><td>0.0379 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>ChangeRecordWithOrder</td><td>Kb8</td><td>1,044.136 us</td><td>21.0318 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>ChangeRecordInVirtualPage</td><td>Kb8</td><td>36.582 us</td><td>0.4570 us</td><td>0.0.12.0</td><td>logic</td>
+</tr><tr><td>ChangeRecordWithoutOrder</td><td>Kb8</td><td>6.317 us</td><td>0.2573 us</td><td>0.0.12.0</td><td>logic</td>
+</tr></tbody></table>
+</body>
+</html>
