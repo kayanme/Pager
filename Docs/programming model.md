@@ -84,7 +84,7 @@ You can use lambdas right in configuration description instead of an interface r
 Declare realization of IVariableSizeRecordDefinition<>.
 
 
-``C#
+```C#
 using System.IO.Paging.PhysicalLevel.Configuration.Builder;
 public class SampleRecordGetter : IVariableSizeRecordDefinition<SampleRecord>
     {
