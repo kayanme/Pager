@@ -1,4 +1,4 @@
-#Page configuration
+# Page configuration
 
 You should describe the configuration for a file, which will store your pages, by deriving from a PageManagerConfiguration.
 Choose the desired page size (the same for each page type), and extent size (a page count in each).
@@ -32,14 +32,14 @@ internal class SamplePageConfiguration:PageManagerConfiguration
                 .UsingRecordDefinition(new SampleRecordGetter())
                 .ApplyLockScheme(new ReaderWriterLockRuleset());
 
-	        DefinePageType(5)
+			DefinePageType(5)
                 .AsPageWithRecordType<PageImage>()
                 .AsPlainImage(new PageImageProvider());
         }
     }
 ```
 
-Here we see four page types, which can be arranged in one file.
+Here we see five page types, which can be arranged in one page file.
 There records can be the same (such as on page 1 and 3) or different types.
 Each one should declare a provider, which should define how the record is read and stored from and to byte array.
 
@@ -77,14 +77,14 @@ Here you should describe the serialization of your record class, deserialization
 Byte arrays, that will come to your methods, will be strictly the size you defined in Size property.
 Avoid resizing that array by yourself. You will be punished for that.
 
-You can use lambdas right in configuration description instead of an interface realisation, if you want.
+You can use lambdas right in configuration description instead of an interface realization, if you want.
 
 ### Variable size
 
 Declare realization of IVariableSizeRecordDefinition<>.
 
 
-```C#
+``C#
 using System.IO.Paging.PhysicalLevel.Configuration.Builder;
 public class SampleRecordGetter : IVariableSizeRecordDefinition<SampleRecord>
     {
@@ -103,8 +103,9 @@ public class SampleRecordGetter : IVariableSizeRecordDefinition<SampleRecord>
 
         public int Size(SampleRecord record) =>Encoding.UTF8.GetByteCount(record.Text);
     }
+```
 
-Serialization and deserialization is pretty the same, but the size of record (and so target array in FillBytes) is calculating each time.
+Serialization and deserialization are pretty the same, but the size of record (and so target array in FillBytes) is calculating each time.
 The size for a FillFromBytes is extracted from record itself, so just be sure, that you will decode that bytes correctly.
 
 As with fixed record, you can use lambdas in a configuration description.
