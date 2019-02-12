@@ -7,12 +7,12 @@ namespace Test.Integration.Physical
 
     internal class PageConfiguration:PageManagerConfiguration
     {
-        public PageConfiguration() : base(PageSize.Kb8)
+        public PageConfiguration() : base(PageSize.Kb8,64)
         {
             DefinePageType(1)
                 .AsPageWithRecordType<TestRecord>()
                 .UsingRecordDefinition(new TestRecordGetter());
-
+            
             DefinePageType(2)
                 .AsPageWithRecordType<TestRecord>()
                 .UsingRecordDefinition(new TestRecordGetter())

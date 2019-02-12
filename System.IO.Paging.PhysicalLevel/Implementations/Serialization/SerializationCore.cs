@@ -32,7 +32,8 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Serialization
           
             var b = new byte[size];
             _definition.FillBytes(ref record, b);
-
+            if (b.Length != size)
+                throw new InvalidOperationException("The size of a target array was changed. You should never control the size of it by yourself.");
             fixed (byte* ft = b)
             {
                 Buffer.MemoryCopy(ft, inputData , size, size);

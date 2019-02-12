@@ -5,12 +5,6 @@ using System.Linq;
 
 namespace System.IO.Paging.PhysicalLevel.Classes.Pages
 {
-    public enum KeyPersistanseType
-    {
-        Physical,
-        Logical,
-        Key
-    }
 
 
     internal sealed class BinarySearchContext<TRecord> : TypedPageBase, IBinarySearcher<TRecord> where TRecord : struct

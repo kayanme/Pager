@@ -35,12 +35,13 @@ F.e., PAM, can look like that:
 
 |Physical pos.|1|2|3 |4|5|6 |
 |-------------|-|-|--|-|-|--|
-|Logical order|3|1|-1|2|4|-1|
+|Logical order|3|1|-1|2|4|0|
 
 Which means, that the order of records (their physical position) should be:
-2,4,1,5
+3,2,4,1,5
 
-The 3rd and 6th records are considered free.
+The 3rd record is considered "unordered" (a normal state for the fresh inserted or explicitly order-dropped record), these one always goes first.
+The 6th record is considered free.
 
 Because of additional space needed for order:
 PageSizeInBytes = (SizeOfRecordInBytes*TotalRecordCount) + TotalRecordCount
@@ -78,11 +79,11 @@ Currently, there are two logical page types.
 
 ### Continuous heap.
 
-Looks like one infinite page to put records on it. It is a very good scenario for inserts with rare deletes.
+Looks like the one infinite page to put records on it. It is a very good scenario for inserts with rare deletes.
 Information about used physical pages is stored in additional service pages.
 
 ### Autosorting page.
 
-SQL-index scenario. You define a key selector, which defines the logical order of records on page.
-Because of natural support for such ordered pages is a binary search - you can do that searches rather quickly, without manual handling of these records.
+SQL-index scenario. You define a key selector, which defines the logical order of records on a page.
+Because of a natural binary search support for such ordered pages - you can do that searches rather quickly, without manual handling these records order.
 

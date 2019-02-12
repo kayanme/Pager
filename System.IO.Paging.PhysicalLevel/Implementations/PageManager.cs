@@ -220,8 +220,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations
                 throw new ObjectDisposedException("IPageManager");
             if (type == 0)
                 throw new ArgumentException("TRecordType");
-            var act = Tracing.Tracer.StartActivity(new Activity($"Creating page"),type);
-            var sw = Stopwatch.StartNew();
+            var act = Tracing.Tracer.StartActivity(new Activity($"Creating page"),type);            
             var newPageNum = _accessor.MarkPageUsed(type);
             var newRef = new PageReference(newPageNum);
             _firstPages.AddOrUpdate(type, newRef, (s, n) => n == null ? newRef : n);

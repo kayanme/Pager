@@ -87,18 +87,23 @@ At last you can destroy the page itself.
 
 ```
 
-# Current features 
-- 4Kb and 8Kb pages support.
-- Definition of multiple page types in one file.
-- Fixed (predefined) and variable record size.
-- Applying logical sort to maintain some record order.
-- Defining page headers.
-- Managing simple and more complex lock schemes on pages and records.
-- Ability to work with a page as a raw block (f.e. for some dumps).
-
+# Current and planned features 
+- [x] 4Kb and 8Kb pages support.
+- [x] Definition of multiple page types in one file.
+- [x] Fixed (predefined) and variable record size.
+- [x] Applying logical sort to maintain some record order.
+- [x] Definition of page header.
+- [x] Managing simple and more complex lock schemes on pages and records.
+- [x] Ability to work with a page as a raw block (f.e. for some dumps).
+- [x] Test memory stubs.
+- [ ] Full covering diagnostics (currently only some operations are covered)
+- [ ] Control sums for pages and individual records.
+- [ ] Concurrency checks for record updates.
+- [ ] Versions of page configurations to control application changes.
 In addition, some logical features are available.
-- "Infinite" virtual page type.
-- Autosorting (based on some record property) page type.
+- [x] "Infinite" virtual page type.
+- [x] Autosorting (based on some record property) page type.
+- [ ] Transacted pages.
 
 # Perfomance
-Access speed varies due to the scenario, the latest bechmarks are published in docs section.
+Access speed varies due to the scenario, the latest bechmarks are published in [docs](/docs/benchmarks) section.

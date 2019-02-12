@@ -59,7 +59,7 @@ namespace System.IO.Paging.PhysicalLevel.Configuration.Builder
             if (fillBytes == null) throw new ArgumentNullException(nameof(fillBytes));
             if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
             var conf = new ImageTypePageConfiguration<TRecordType>();
-            conf.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
+            conf.PageSize = (ushort)Config.PageSizeInBytes;
             conf.RecordMap = new FixedSizeRecordDeclaration<TRecordType>(fillBytes, fillFromBytes, conf.PageSize);
             _config.PageMap[_pageNum] = conf;
             return this;
@@ -69,7 +69,7 @@ namespace System.IO.Paging.PhysicalLevel.Configuration.Builder
         {
             if (recordDefinition == null) throw new ArgumentNullException(nameof(recordDefinition));
             var conf = new FixedRecordTypePageConfiguration<TRecordType>();
-            conf.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
+            conf.PageSize = (ushort)Config.PageSizeInBytes;
             conf.RecordMap = new FixedSizeRecordDeclaration<TRecordType>(recordDefinition.FillBytes,recordDefinition.FillFromBytes,recordDefinition.Size);
             _config.PageMap[_pageNum] = conf;
             return this;
@@ -81,7 +81,7 @@ namespace System.IO.Paging.PhysicalLevel.Configuration.Builder
             if (fillFromBytes == null) throw new ArgumentNullException(nameof(fillFromBytes));
 
             var conf = new FixedRecordTypePageConfiguration<TRecordType>();
-            conf.PageSize = Config.SizeOfPage == PageManagerConfiguration.PageSize.Kb4 ? (ushort)4096 : (ushort)8192;
+            conf.PageSize = (ushort)Config.PageSizeInBytes;
             conf.RecordMap = new FixedSizeRecordDeclaration<TRecordType>(fillBytes, fillFromBytes, size);
             _config.PageMap[_pageNum] =  conf;
             return this;

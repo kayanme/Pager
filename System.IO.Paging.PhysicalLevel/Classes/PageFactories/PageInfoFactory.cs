@@ -26,15 +26,15 @@ namespace System.IO.Paging.PhysicalLevel.Classes.PageFactories
             switch (page.Config)
             {
                 case FixedRecordTypePageConfiguration<TRecordType> conf:
-                     ser = new RecordAcquirer<TRecordType>(page.ContentAccessor, conf.RecordMap);
+                    ser = new RecordAcquirer<TRecordType>(page.ContentAccessor, conf.RecordMap);
                     keyType = conf.WithLogicalSort ? KeyPersistanseType.Logical : KeyPersistanseType.Physical;
                     break;
-                //case VariableRecordTypePageConfiguration<TRecordType> conf:
-                //    return new ComplexRecordTypePage<TRecordType>(page.Headers, page.ContentAccessor,
-                //        pageNum, page.Config.PageSize, page.PageType, conf);
-            }                        
-            
-            return new BinarySearchContext<TRecordType>( page.Headers, ser, pageNum,keyType, actionToClean);
+                case VariableRecordTypePageConfiguration<TRecordType> conf:
+                    ser = new RecordAcquirer<TRecordType>(page.ContentAccessor, conf.RecordMap);
+                    keyType = conf.WithLogicalSort ? KeyPersistanseType.Logical : KeyPersistanseType.Physical;
+                    break;
+            }
+            return new BinarySearchContext<TRecordType>(page.Headers, ser, pageNum, keyType, actionToClean);
         }
     }
 }
