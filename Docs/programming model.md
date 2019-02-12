@@ -112,19 +112,19 @@ As with fixed record, you can use lambdas in a configuration description.
 
 ### Plain image.
 
-You can use this option to access a page like a whole an array, managing all content layout by yourself.
-You will store and retrieve the whole page through (de-)serializing an array of a page size.
+You can use this option to access a page like a whole array, managing all content layout by yourself.
+You will store and retrieve the whole page through (de-)serializing an array of a page size, using previously shown fixed-size provider (or matching lambdas).
 This scenario can be good enough for large preformed pages (such as archives), which you will read and extract by special algorithms.
 For a random access consider using a common per-record technique - it is much more convinient and pretty fast.
 
 #### A word about providers
 
-The complete read-write algorithm will be described below, but keep in mind, that these operations a crucial for performance.
+The complete read-write algorithm will be described below, but keep in mind, that these operations are crucial for performance.
 Avoid of fill and read of a target arrays byte-per-byte, try to access your record as a whole memory block, if you can.
 You can use RecordUtils wrapper upon unsafe operations, or use more modern Span's and Memory's.
 Also you can make internal decisions about record type (which can lead to a serialization to a derived types).
 
-The same is for size calculating. Every record storing will calculate this size, so avoid heavy operations there.
+The same is for a size calculating for variable-sized records. Every record storing will calculate this size, so avoid heavy operations there.
 
 ## Additional page features.
 
@@ -138,8 +138,8 @@ If you want a variable size header - consider use of a variable sized record pag
 
 ### Logical sort index
 
-With this feature you will gain ability to put an explicit order for records on your page and thus made a binary search operation upon it.
-The other way the search will be based just upon physical order of records on your page (which you can control only be swapping content of records manually).
+With this feature you will gain ability to put an explicit order for records on your page and thus perform a binary search operation upon it.
+Other way the search will be based just upon the physical order of records on your page (which you can control only be swapping content of records manually).
 You will lost some potential space with this ability due to need of storing order (see concepts).
 
 ### Locks
