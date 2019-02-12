@@ -84,5 +84,5 @@ Information about used physical pages is stored in additional service pages.
 ### Autosorting page.
 
 SQL-index scenario. You define a key selector, which defines the logical order of records on page.
-Because of natural support for such ordered pages is a binary search - you can do that searches rather quickly, without manual tossing these records.
+Because of natural support for such ordered pages is a binary search - you can do that searches rather quickly, without manual handling of these records.
 
