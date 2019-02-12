@@ -37,7 +37,7 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
             config.FillBytes(ref record, bytes);
 
             Thread.BeginCriticalRegion();
-            Headers.SetNewRecordInfo(offset, recordSize, 1);
+            Headers.SetNewRecordInfo(offset, recordSize);
             Accessor.SetByteArray(bytes, recordStart, recordSize);
             Thread.EndCriticalRegion();
         }
@@ -48,7 +48,7 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
 
           //  var mapKey = _config.GetRecordType(type);
             //var config = _config.RecordMap[0];
-            var record = Headers.TakeNewRecord(0, (ushort)_config.RecordMap.GetSize(type));
+            var record = Headers.TakeNewRecord((ushort)_config.RecordMap.GetSize(type));
             if (record == -1)
                 return null;
             SetRecord((ushort)record, type, _config.RecordMap);
@@ -70,8 +70,7 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
             if (!Headers.IsRecordFree((ushort)reference.PersistentRecordNum))
             {
                 var offset = Headers.RecordShift((ushort)reference.PersistentRecordNum);
-                var size = Headers.RecordSize((ushort)reference.PersistentRecordNum);
-                var type = Headers.RecordType((ushort)reference.PersistentRecordNum);
+                var size = Headers.RecordSize((ushort)reference.PersistentRecordNum);                
                 var bytes = Accessor.GetByteArray(offset, size);
                 var r = new TypedRecord<TRecordType>()
                 {

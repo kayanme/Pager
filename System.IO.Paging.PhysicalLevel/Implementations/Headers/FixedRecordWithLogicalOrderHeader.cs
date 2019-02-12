@@ -53,6 +53,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         {
             
             var orders = new ushort[_usedRecords];
+            SpinWait.SpinUntil(() => _reordering == 0);
             var pageAllocationMap = GetPam();
             var lastLookedRecord = 0;
             for (var currentRecord = 0; currentRecord <orders.Length;currentRecord++)
@@ -89,9 +90,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
             }            
         }
 
-        public unsafe short TakeNewRecord(byte rType, ushort rSize)
+        public unsafe short TakeNewRecord(ushort rSize)
         {
-            Debug.Assert(rType == 0, "rType == 0");
+            
             Debug.Assert(rSize == _fixedRecordSize, "rSize == _fixedRecordSize");
             var recordTaken = -1;
             _accessor.QueueByteArrayOperation(0, _pageCalculator.PamSize,
@@ -192,13 +193,13 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         public ushort RecordCount => (ushort)_usedRecords;
         public ushort RecordShift(ushort persistentRecordNum) => persistentRecordNum;
 
-        public byte RecordType(ushort persistentRecordNum) => 0;
+        
 
         public ushort RecordSize(ushort persistentRecordNum) => _fixedRecordSize;
 
-        public void SetNewRecordInfo(ushort persistentRecordNum, ushort rSize, byte rType)
+        public void SetNewRecordInfo(ushort persistentRecordNum, ushort rSize)
         {
-            Debug.Assert(rType == 0, "rType == 0");
+            
             Debug.Assert(rSize == _fixedRecordSize, "rSize == _fixedRecordSize");
         }
 
@@ -206,7 +207,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         {
             try
             {
-                while (Interlocked.CompareExchange(ref _reordering, 1, 0) != 0) ;
+                SpinWait.SpinUntil(()=>Interlocked.CompareExchange(ref _reordering, 1, 0) == 0);
                 _accessor.QueueByteArrayOperation(0, _pageCalculator.PamSize,
                     b =>
                     {
@@ -249,7 +250,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         {
             var p = CalcPositionFromShift(persistentRecordNum);
             int oldMap, newMap;
-            _accessor.QueueByteArrayOperation(0, _pageCalculator.PamIntLength,
+            _accessor.QueueByteArrayOperation(0, _pageCalculator.PamSize,
                 b =>
                 {
                     var s = (int*)b;
@@ -259,13 +260,13 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
                         unchecked
                         {
 
-                            if (p % 2 == 0)
+                            if (p % 2 == 1)
                             {
-                                newMap = oldMap | (int) 0xFFFF0000;
+                                newMap = oldMap | (int)0xFFFF0000;
                             }
                             else
                             {
-                                newMap = oldMap & 0xFFFF;
+                                newMap = oldMap  | 0xFFFF;
                             }
                         }
                     } while (Interlocked.CompareExchange(ref *(s + p / 2), newMap, oldMap) != oldMap);

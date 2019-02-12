@@ -29,7 +29,7 @@ namespace Test.Paging.PhysicalLevel.Headers
         private IPageAccessor Page => TestContext.Properties["page"] as IPageAccessor;
 
         [TestMethod]
-        public void FreePage_ThatNotFree()
+        public void FreeRecord_ThatNotFree()
         {
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
@@ -39,7 +39,7 @@ namespace Test.Paging.PhysicalLevel.Headers
         }
 
         [TestMethod]
-        public void FreePage_ThatIsFree()
+        public void FreeRecord_ThatIsFree()
         {
             var pageContent = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
@@ -52,46 +52,48 @@ namespace Test.Paging.PhysicalLevel.Headers
 
 
         [TestMethod]
-        public void AcquirePage_WhenAvailable()
+        public void AcquireRecord_WhenAvailable()
         {
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
-            var pos = headers.TakeNewRecord(1, 3);
+            var pos = headers.TakeNewRecord(3);
 
-            A.CallTo(() => Page.SetByteArray(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x10, 0x03 }), 4, 2)).MustHaveHappened();
+            A.CallTo(() => Page.SetByteArray(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x03 }), 4, 2)).MustHaveHappened();
 
             Assert.AreEqual(1, pos);
             Assert.AreEqual(6, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));
 
+            Assert.IsFalse(headers.IsRecordFree((ushort)pos));
+
         }
 
 
         [TestMethod]
-        public void AcquirePage_WhenNotAvailable()
+        public void AcquireRecord_WhenNotAvailable()
         {
             var pageContent = new byte[] { 0x10, 0x06, 0, 0, 0, 0, 0, 0, 0x10, 0x06, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            var pos = headers.TakeNewRecord(1, 7);
+            var pos = headers.TakeNewRecord( 7);
             Assert.AreEqual(-1, pos);
 
         }
 
         [TestMethod]
-        public void AcquirePage_WhenSizeIsnotEnough()
+        public void AcquireRecord_WhenSizeIsnotEnough()
         {
             var pageContent = new byte[] { 0x10, 0x06, 0, 0, 0, 0, 0, 0, 0x10, 0x05, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            var pos = headers.TakeNewRecord(1, 7);
+            var pos = headers.TakeNewRecord( 7);
             Assert.AreEqual(-1, pos);
 
         }
 
 
         [TestMethod]
-        public void IsPageFree_ThatNotFree()
+        public void IsRecordFree_ThatNotFree()
         {
             var pageContent = new byte[] { 0x10, 0x07, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
@@ -102,7 +104,7 @@ namespace Test.Paging.PhysicalLevel.Headers
         }
 
         [TestMethod]
-        public void IsPageFree_ThatIsFree()
+        public void IsRecordFree_ThatIsFree()
         {
             var pageContent = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
@@ -123,11 +125,10 @@ namespace Test.Paging.PhysicalLevel.Headers
 
             Assert.AreEqual(2, headers.RecordShift(0));
             Assert.AreEqual(2, headers.RecordSize(0));
-            Assert.AreEqual(1, headers.RecordType(0));
+            
             Assert.AreEqual(6, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));
-            Assert.AreEqual(2, headers.RecordType(1));
-
+            
             Assert.AreEqual(2, headers.RecordCount);
             Assert.AreEqual(9, headers.TotalUsedSize);
         }

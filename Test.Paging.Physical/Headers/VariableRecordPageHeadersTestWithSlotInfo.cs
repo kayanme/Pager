@@ -41,9 +41,6 @@ namespace Test.Paging.PhysicalLevel.Headers
         {
             var pageContent = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
-
-            //A.CallTo(()=>        //    page.SetByteArray(new byte[] { 0 }, 0, 1));
-
             headers.FreeRecord(0);
 
         }
@@ -53,16 +50,13 @@ namespace Test.Paging.PhysicalLevel.Headers
         public void AcquirePage_WhenAvailable()
         {
             var pageContent = new byte[] { 0x10, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            var headers = Create(pageContent);
-
-            
-
-            var pos = headers.TakeNewRecord(1, 3);
-            A.CallTo(() => Page.SetByteArray(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x10, 0x03, 0x0, 0x01 }), 6, 4)).MustHaveHappenedOnceExactly();
+            var headers = Create(pageContent);            
+            var pos = headers.TakeNewRecord(3);
+            A.CallTo(() => Page.SetByteArray(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x03, 0x0, 0x01 }), 6, 4)).MustHaveHappenedOnceExactly();
             Assert.AreEqual(1, pos);
             Assert.AreEqual(10, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));
-
+            Assert.IsFalse(headers.IsRecordFree((ushort)pos));
         }
 
 
@@ -72,7 +66,7 @@ namespace Test.Paging.PhysicalLevel.Headers
             var pageContent = new byte[] { 0x10, 0x06, 0, 0, 0, 0, 0, 0, 0x10, 0x06, 0, 0x01, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            var pos = headers.TakeNewRecord(1, 7);
+            var pos = headers.TakeNewRecord(7);
             Assert.AreEqual(-1, pos);
 
         }
@@ -83,7 +77,7 @@ namespace Test.Paging.PhysicalLevel.Headers
             var pageContent = new byte[] { 0x10, 0x04, 0, 0, 0, 0, 0, 0, 0x10, 0x03, 0, 0x01, 0, 0, 0, 0, 0, 0, 0 };
             var headers = Create(pageContent);
 
-            var pos = headers.TakeNewRecord(1, 7);
+            var pos = headers.TakeNewRecord(7);
             Assert.AreEqual(-1, pos);
 
         }
@@ -122,12 +116,11 @@ namespace Test.Paging.PhysicalLevel.Headers
 
             Assert.AreEqual(10, headers.RecordShift(0));
             Assert.AreEqual(3, headers.RecordSize(0));
-            Assert.AreEqual(2, headers.RecordType(0));
+            
 
             Assert.AreEqual(4, headers.RecordShift(1));
             Assert.AreEqual(2, headers.RecordSize(1));
-            Assert.AreEqual(1, headers.RecordType(1));
-
+            
         }
 
         //[TestMethod]
@@ -143,11 +136,11 @@ namespace Test.Paging.PhysicalLevel.Headers
 
             Assert.AreEqual(10, headers.RecordShift(1));
             Assert.AreEqual(3, headers.RecordSize(1));
-            Assert.AreEqual(2, headers.RecordType(1));
+            
 
             Assert.AreEqual(4, headers.RecordShift(0));
             Assert.AreEqual(2, headers.RecordSize(0));
-            Assert.AreEqual(1, headers.RecordType(0));
+            
         }
     }
 }

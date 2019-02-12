@@ -48,14 +48,14 @@ namespace Test.Paging.PhysicalLevel.Headers
                 TestSetFree(record);
             }
 
-            protected sealed override ushort SetUsed(ushort record, ushort size, byte type)
+            protected sealed override ushort SetUsed(ushort record, ushort size)
             {
-                return TestSetUsed(record, size, type);
+                return TestSetUsed(record, size);
             }
 
             public abstract void TestSetFree(ushort record);
 
-            public abstract ushort TestSetUsed(ushort record, ushort size, byte type);
+            public abstract ushort TestSetUsed(ushort record, ushort size);
         }
 
         private TestHeaders CreateHeaders(int maxRecords)
@@ -81,7 +81,7 @@ namespace Test.Paging.PhysicalLevel.Headers
             Assert.AreEqual(1, headers.RecordCount);
             Assert.AreEqual(10, headers.RecordShift(0));
             Assert.AreEqual(40, headers.RecordSize(0));
-            Assert.AreEqual(14, headers.RecordType(0));
+            
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace Test.Paging.PhysicalLevel.Headers
             A.CallTo(() => headers.FillHeadersMock())
                                .Returns(new[]
                                {
-                       Tuple.Create(10,40,14)
+                              Tuple.Create(10,40,14)
                                });
 
             headers.FillHeaders();
@@ -132,7 +132,7 @@ namespace Test.Paging.PhysicalLevel.Headers
             Assert.AreEqual(0, headers.RecordCount);
             Assert.AreEqual(10, headers.RecordShift(0));
             Assert.AreEqual(10, headers.RecordSize(0));
-            Assert.AreEqual(0, headers.RecordType(0));
+            
         }
 
         [TestMethod]
@@ -144,17 +144,17 @@ namespace Test.Paging.PhysicalLevel.Headers
                                {
                        Tuple.Create(0,0,0)
                                });
-            A.CallTo(() => headers.TestSetUsed(0, 30, 3)).Returns<ushort>(2);
+            A.CallTo(() => headers.TestSetUsed(0, 30)).Returns<ushort>(2);
 
             headers.FillHeaders();
 
-            var recordNum = headers.TakeNewRecord(3, 30);
+            var recordNum = headers.TakeNewRecord(30);
 
             Assert.AreEqual(0, recordNum);
             Assert.AreEqual(1, headers.RecordCount);
             Assert.AreEqual(2, headers.RecordShift(0));
             Assert.AreEqual(30, headers.RecordSize(0));
-            Assert.AreEqual(3, headers.RecordType(0));
+            
 
         }
 
@@ -169,13 +169,13 @@ namespace Test.Paging.PhysicalLevel.Headers
                                });
 
             headers.FillHeaders();
-            var recordNum = headers.TakeNewRecord(3, 30);
+            var recordNum = headers.TakeNewRecord(30);
 
             Assert.AreEqual(-1, recordNum);
             Assert.AreEqual(1, headers.RecordCount);
             Assert.AreEqual(10, headers.RecordShift(0));
             Assert.AreEqual(40, headers.RecordSize(0));
-            Assert.AreEqual(2, headers.RecordType(0));
+            
 
         }
     }

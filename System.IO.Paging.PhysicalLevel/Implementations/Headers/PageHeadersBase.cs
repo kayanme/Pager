@@ -27,9 +27,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
 
         protected abstract void SetFree(ushort record);
 
-        protected abstract ushort SetUsed(ushort record, ushort size, byte type);
+        protected abstract ushort SetUsed(ushort record, ushort size);
 
-        protected abstract void UpdateUsed(ushort record,ushort shift, ushort size, byte type);
+        protected abstract void UpdateUsed(ushort record,ushort shift, ushort size);
 
         public void FreeRecord(ushort record)
         {
@@ -54,11 +54,13 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         private const uint TypeMask =  0b00000000000000000000000000001111;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual ushort RecordShift(ushort record) => (ushort)((RecordInfo[record] & ShiftMask) >> 18);//14 бит = 16384
+        public virtual ushort RecordShift(ushort record) => (ushort)((RecordInfo[record] & ShiftMask) >> 18);//14 bits = 16384
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte RecordType(ushort record) => (byte)(RecordInfo[record] & TypeMask);//4 бит = 16
+        public ushort RecordSize(ushort record) => (ushort)((RecordInfo[record] & SizeMask) >> 4);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ushort RecordSize(ushort record) => (ushort)((RecordInfo[record] & SizeMask) >> 4);//14 бит = 16384
+        public ushort RecordType(ushort record) => (ushort)((RecordInfo[record] & TypeMask));
 
 
         public bool IsRecordFree(int logicalRecordNum)
@@ -90,17 +92,17 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
 
         protected int FormRecordInf(byte rType, ushort rSize, ushort rShift) => (rShift << 18) | (rSize << 4) | (rType);
         protected abstract int HeaderOverheadSize {get;}
-        public short TakeNewRecord(byte rType,ushort rSize)
+        public short TakeNewRecord(ushort rSize)
         {
          
             Thread.BeginCriticalRegion();                     
             short index = -1;
             foreach (var i in PossibleRecordsToInsert())
             {
-                var it = FormRecordInf(rType, rSize, ushort.MaxValue);
+                var it = FormRecordInf(0, rSize, ushort.MaxValue);
                 if (Interlocked.CompareExchange(ref RecordInfo[i], it, 0) == 0)
                 {                    
-                    var shift = SetUsed((ushort)i, rSize, rType);
+                    var shift = SetUsed((ushort)i, rSize);
                     if (shift == ushort.MaxValue)//если запись данного размера не влезает в свободое место
                     {
                         RecordInfo[i] = 0;
@@ -108,7 +110,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
                     }                  
                     else
                     {
-                        RecordInfo[i] = FormRecordInf(rType, rSize, shift);
+                        RecordInfo[i] = FormRecordInf(0, rSize, shift);
                         index = (short)i;
                         break;
                     }
@@ -131,16 +133,16 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         public IEnumerable<ushort> NonFreeRecords() 
             =>  RecordInfo.Where((k,i) => RecordType((ushort)i) != 0).Select((k, i) => (ushort)i);
 
-        public void SetNewRecordInfo(ushort logicalRecordNum,ushort rSize, byte rType)
+        public void SetNewRecordInfo(ushort logicalRecordNum,ushort rSize)
         {
             var oldInf = RecordInfo[logicalRecordNum];
             var shift = RecordShift(logicalRecordNum);
             var oldSize = RecordSize(logicalRecordNum);
-            var t = FormRecordInf(rType, rSize, shift);
+            var t = FormRecordInf(0, rSize, shift);
             if (Interlocked.CompareExchange(ref RecordInfo[logicalRecordNum], t, oldInf) != oldInf)
                 throw new RecordWriteConflictException();
             Interlocked.Add(ref _totalRecordSize, rSize- oldSize);
-            UpdateUsed(logicalRecordNum, shift, rSize, rType);
+            UpdateUsed(logicalRecordNum, shift, rSize);
         }
 
         public void ApplyOrder(ushort[] recordsInOrder)

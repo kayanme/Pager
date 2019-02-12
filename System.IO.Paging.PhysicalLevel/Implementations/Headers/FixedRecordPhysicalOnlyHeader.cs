@@ -92,9 +92,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         }
 
         
-        public unsafe short TakeNewRecord(byte rType, ushort rSize)
+        public unsafe short TakeNewRecord( ushort rSize)
         {
-            Debug.Assert(rType == 0, "rType == 0");
+            
             Debug.Assert(rSize == _fixedRecordSize, "rSize == _fixedRecordSize");
             var t = _searchHint;
             var pamLength = _pageCalculator.PamIntLength;
@@ -175,13 +175,12 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         public ushort RecordCount => (ushort)_usedRecords;
         public ushort RecordShift(ushort persistentRecordNum) => persistentRecordNum;
 
-        public byte RecordType(ushort persistentRecordNum) => 0;
+        
 
         public ushort RecordSize(ushort persistentRecordNum) => _fixedRecordSize;
 
-        public void SetNewRecordInfo(ushort persistentRecordNum, ushort rSize, byte rType)
-        {
-            Debug.Assert(rType == 0, "rType == 0");
+        public void SetNewRecordInfo(ushort persistentRecordNum, ushort rSize)
+        {            
             Debug.Assert(rSize == _fixedRecordSize, "rSize == _fixedRecordSize");
         }
 

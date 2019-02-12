@@ -28,7 +28,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
 
         
         
-        public unsafe short TakeNewRecord(byte rType, ushort rSize)
+        public unsafe short TakeNewRecord(ushort rSize)
         {
             return -1;
         }    
@@ -47,11 +47,11 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         public ushort RecordCount => 1;
         public ushort RecordShift(ushort persistentRecordNum) => 0;
 
-        public byte RecordType(ushort persistentRecordNum) => 0;
+        
 
         public ushort RecordSize(ushort persistentRecordNum) => (ushort)_accessor.PageSize;
 
-        public void SetNewRecordInfo(ushort persistentRecordNum, ushort rSize, byte rType)
+        public void SetNewRecordInfo(ushort persistentRecordNum, ushort rSize)
         {           
         }
 

@@ -95,13 +95,13 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
 
 
 
-        protected override ushort SetUsed(ushort record, ushort size, byte type)
+        protected override ushort SetUsed(ushort record, ushort size)
         {
            
             if (record == 0)
             {
                 var shift = 0;
-                var rec = SetNewRecordInfo(size, type, shift,record);
+                var rec = SetNewRecordInfo(size, 0, shift,record);
                 Interlocked.Increment(ref _firstFreeRecord);
                 return rec;
             }
@@ -111,7 +111,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
                 var shift = RecordShift((ushort)(record - 1)) + RecordSize((ushort)(record - 1));
                 if (shift + size > _pageSize)
                     return ushort.MaxValue;
-                var rec = SetNewRecordInfo(size, type, shift,record);
+                var rec = SetNewRecordInfo(size, 0, shift,record);
                 Interlocked.Increment(ref _firstFreeRecord);
                 return rec;
             }
@@ -121,7 +121,7 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
         private ushort SetNewRecordInfo(ushort size, byte type, int shift, ushort record)
         {
             var val = type << 12 | size;
-
+            //TODO: Remove type
             var toWrite = new byte[] {(byte) (val >> 8), (byte) (val & 0xFF)};
             _accessor.SetByteArray(toWrite, shift, 2);
 
@@ -129,9 +129,9 @@ namespace System.IO.Paging.PhysicalLevel.Implementations.Headers
 
         }
 
-        protected override void UpdateUsed(ushort record, ushort shift, ushort size, byte type)
+        protected override void UpdateUsed(ushort record, ushort shift, ushort size)
         {
-             SetNewRecordInfo(size, type, shift, record);
+             SetNewRecordInfo(size, 0, shift, record);
         }
         
 

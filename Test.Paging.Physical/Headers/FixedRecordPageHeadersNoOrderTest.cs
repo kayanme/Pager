@@ -111,7 +111,7 @@ namespace Test.Paging.PhysicalLevel.Headers
 
             MakeAccessorExpectation(0, 3, fromPageContent(ref pageContent), new byte[] { 0x03, 0, 0 });            
 
-            var pos = headers.TakeNewRecord(0,8);
+            var pos = headers.TakeNewRecord(8);
             Assert.AreEqual(11, pos);
             Assert.AreEqual(11,headers.RecordShift(11));
             Assert.AreEqual(8, headers.RecordSize(11));
@@ -133,7 +133,7 @@ namespace Test.Paging.PhysicalLevel.Headers
             }         
             var headers = Create(pageContent,22);
             MakeAccessorExpectation(0, 3, fromPageContent(ref pageContent), new byte[] { 0xFF, 0xFF, 0x03 });
-            var pos = headers.TakeNewRecord(0,8);
+            var pos = headers.TakeNewRecord(8);
             Assert.AreEqual(-1, pos);
 
         }

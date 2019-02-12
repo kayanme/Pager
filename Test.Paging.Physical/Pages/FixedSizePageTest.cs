@@ -52,7 +52,7 @@ namespace Test.Paging.PhysicalLevel.Pages
         public unsafe void AddRecord()
         {
             var page = Create();
-            A.CallTo(()=> Headers.TakeNewRecord(0, 4)).Returns<short>(0);
+            A.CallTo(()=> Headers.TakeNewRecord(4)).Returns<short>(0);
             A.CallTo(() => Headers.RecordShift(0)).Returns<ushort>(2);
             A.CallTo(() => Headers.RecordSize(0)).Returns<ushort>(4);
             var r = new TestRecord{Value = 2};
@@ -68,7 +68,7 @@ namespace Test.Paging.PhysicalLevel.Pages
         public void AddRecord_NoSpace()
         {
             var page = Create();
-            A.CallTo(() => Headers.TakeNewRecord(0, 4)).Returns<short>(-1);
+            A.CallTo(() => Headers.TakeNewRecord(4)).Returns<short>(-1);
             var r = new TestRecord { Value = 2 };
            
            

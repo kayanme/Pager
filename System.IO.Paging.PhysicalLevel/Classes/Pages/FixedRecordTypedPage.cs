@@ -59,7 +59,7 @@ namespace System.IO.Paging.PhysicalLevel.Classes.Pages
             var headerAct = new Activity("Header allocation in fixed size record page");
             headerAct.SetParentId(act.Id);
             headerAct = Tracing.Tracer.StartActivity(headerAct,type);
-            var physicalRecordNum = Headers.TakeNewRecord(0, (ushort) _config.RecordMap.GetSize);
+            var physicalRecordNum = Headers.TakeNewRecord((ushort) _config.RecordMap.GetSize);
             Tracing.Tracer.StopActivity(headerAct, physicalRecordNum);                                  
             if (physicalRecordNum == -1)
                 return null;
