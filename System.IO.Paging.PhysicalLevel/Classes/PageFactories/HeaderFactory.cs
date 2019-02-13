@@ -38,7 +38,14 @@ namespace System.IO.Paging.PhysicalLevel.Classes.PageFactories
             }
             else
             {
-                throw new Exception();
+                if (!headerInfo.WithLogicalSort)
+                {                   
+                    return new VariableRecordPageHeaders(headerAccessor);
+                }
+                else
+                {                   
+                    return new VariableRecordWithLogicalOrderHeaders(headerAccessor);
+                }
             }
         }
     }

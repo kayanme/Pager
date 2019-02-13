@@ -29,6 +29,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.IO.Paging.PhysicalLe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Durability.Paging.LogicalLevel", "Durability.Paging.LogicalLevel\Durability.Paging.LogicalLevel.csproj", "{B737E274-A909-4E04-8EAC-BA29AA701BCF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{83BF4746-1CED-401A-83C7-AFFE43BB4E59}"
+	ProjectSection(SolutionItems) = preProject
+		Docs\concepts.md = Docs\concepts.md
+		Docs\programming model.md = Docs\programming model.md
+		Docs\techonology.md = Docs\techonology.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
